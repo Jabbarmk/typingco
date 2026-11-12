@@ -1375,8 +1375,14 @@ function doLogout() {
       </div>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">
-      <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" onclick="confirmSuspend()">Suspend Company</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" onclick="confirmSuspend()">Suspend Company</button>
+        <button class="btn btn-secondary" style="color:var(--accent);" onclick="openResetPasswordModal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Reset Admin Password
+        </button>
+      </div>
       <div style="display:flex;gap:10px;">
         <button class="btn btn-secondary" onclick="closeManageCompanyPage()">Cancel</button>
         <button class="btn btn-primary" onclick="saveManageCompany()">Save Changes</button>
@@ -1457,6 +1463,31 @@ function doLogout() {
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('user-delete-modal')">Cancel</button>
       <button class="btn btn-primary" style="background:var(--red);border-color:var(--red);" onclick="confirmDeleteUser()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET ADMIN PASSWORD MODAL -->
+<div class="modal-overlay" id="reset-pass-modal" hidden onclick="if(event.target===this)closeModal('reset-pass-modal')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title">Reset Admin Password</span>
+      <button class="close-btn" onclick="closeModal('reset-pass-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 16px;color:var(--fg2);font-size:13px;">Set a new password for <strong id="reset-pass-co-name"></strong>'s admin account (<span id="reset-pass-email" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--fg3);"></span>).</p>
+      <div class="form-group">
+        <label>New Password</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="reset-pass-input" class="input" placeholder="Min 6 characters" style="flex:1;font-family:'DM Mono',monospace;">
+          <button class="btn btn-secondary btn-sm" onclick="genResetPassword()">Generate</button>
+        </div>
+      </div>
+      <div id="reset-pass-result" style="display:none;margin-top:12px;padding:10px 12px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);font-size:13px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('reset-pass-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doResetPassword()">Set Password</button>
     </div>
   </div>
 </div>
@@ -1717,6 +1748,60 @@ async function saveInvoiceEdit() {
     renderCoInvoices();
     closeModal('invoice-edit-modal');
     showToast('Invoice updated');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// ── Reset Admin Password ──────────────────────────────────────
+let _resetPassUserId = null;
+
+async function openResetPasswordModal() {
+  const id = parseInt(document.getElementById('mgmt-id').value);
+  const c  = companies.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('reset-pass-co-name').textContent = c.name;
+  document.getElementById('reset-pass-email').textContent   = '';
+  document.getElementById('reset-pass-input').value         = '';
+  document.getElementById('reset-pass-result').style.display = 'none';
+  _resetPassUserId = null;
+  openModal('reset-pass-modal');
+  // Load company users to find the admin
+  try {
+    const list = await apiFetch(`/users?company_id=${id}`);
+    const admin = list.find(u => u.role === 'admin') || list[0];
+    if (admin) {
+      _resetPassUserId = admin.id;
+      document.getElementById('reset-pass-email').textContent = admin.email || '';
+    } else {
+      document.getElementById('reset-pass-result').style.display = 'block';
+      document.getElementById('reset-pass-result').innerHTML = '<span style="color:var(--red);">No users found for this company.</span>';
+    }
+  } catch(e) {
+    document.getElementById('reset-pass-result').style.display = 'block';
+    document.getElementById('reset-pass-result').innerHTML = `<span style="color:var(--red);">Error loading users: ${e.message}</span>`;
+  }
+}
+
+function genResetPassword() {
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789@#!';
+  let p = '';
+  for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('reset-pass-input').value = p;
+}
+
+async function doResetPassword() {
+  if (!_resetPassUserId) { showToast('No admin user found for this company', 'error'); return; }
+  const pw = document.getElementById('reset-pass-input').value.trim();
+  if (pw.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  try {
+    await apiFetch(`/users/${_resetPassUserId}`, { method: 'PATCH', body: JSON.stringify({ password: pw }) });
+    const email = document.getElementById('reset-pass-email').textContent;
+    document.getElementById('reset-pass-result').style.display = 'block';
+    document.getElementById('reset-pass-result').innerHTML =
+      `<span style="color:var(--green);">&#10003; Password updated.</span><br>
+       <span style="color:var(--fg2);font-size:12px;">Login: <strong style="font-family:'DM Mono',monospace;">${email}</strong> &nbsp;/&nbsp; Password: <strong style="font-family:'DM Mono',monospace;">${pw}</strong></span>`;
+    showToast('Password reset successfully');
   } catch(e) {
     showToast('Error: ' + e.message, 'error');
   }

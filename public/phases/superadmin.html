@@ -1,0 +1,1935 @@
+<title>ALNOOR ERP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: fixed navy sidebar + scrollable main content area */
+:root {
+  --sidebar: #0f1f3d;
+  --sidebar-hover: #1a3260;
+  --sidebar-active: #2563eb;
+  --bg: #f0f2f7;
+  --surface: #ffffff;
+  --surface2: #f8f9fc;
+  --border: #e2e6ef;
+  --fg: #111827;
+  --fg2: #4b5563;
+  --fg3: #9ca3af;
+  --accent: #2563eb;
+  --accent-light: #eff4ff;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --amber: #f59e0b;
+  --amber-light: #fffbeb;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --teal: #0ea5e9;
+  --teal-light: #f0f9ff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.1);
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sidebar: #060d1f;
+    --sidebar-hover: #0f1f3d;
+    --sidebar-active: #2563eb;
+    --bg: #0d1117;
+    --surface: #161b27;
+    --surface2: #1c2235;
+    --border: #2a3347;
+    --fg: #f1f5f9;
+    --fg2: #94a3b8;
+    --fg3: #64748b;
+    --accent-light: #1e3a8a;
+    --green-light: #064e3b;
+    --amber-light: #78350f;
+    --red-light: #7f1d1d;
+    --purple-light: #3b0764;
+    --teal-light: #0c4a6e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --sidebar: #060d1f;
+  --sidebar-hover: #0f1f3d;
+  --sidebar-active: #2563eb;
+  --bg: #0d1117;
+  --surface: #161b27;
+  --surface2: #1c2235;
+  --border: #2a3347;
+  --fg: #f1f5f9;
+  --fg2: #94a3b8;
+  --fg3: #64748b;
+  --accent-light: #1e3a8a;
+  --green-light: #064e3b;
+  --amber-light: #78350f;
+  --red-light: #7f1d1d;
+  --purple-light: #3b0764;
+  --teal-light: #0c4a6e;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: 'Poppins', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  display: flex;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--sidebar);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.logo-mark {
+  width: 34px; height: 34px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.logo-text { color: #fff; font-weight: 700; font-size: 15px; line-height: 1.2; }
+.logo-sub { color: rgba(255,255,255,.45); font-size: 10px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; }
+
+.sidebar-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(255,255,255,.3);
+  padding: 16px 16px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px; cursor: pointer;
+  color: rgba(255,255,255,.65);
+  font-size: 13.5px; font-weight: 500;
+  border-radius: 0;
+  transition: background .15s, color .15s;
+  user-select: none;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--sidebar-hover); color: rgba(255,255,255,.9); }
+.nav-item.active { background: var(--sidebar-active); color: #fff; }
+.nav-item svg { flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff; font-size: 10px; font-weight: 700;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 5px;
+}
+
+/* MAIN */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  min-width: 0;
+}
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  gap: 12px;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 17px; font-weight: 700; flex: 1; }
+.topbar-sub { font-size: 13px; color: var(--fg2); margin-top: 1px; }
+.topbar-left { flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--fg2);
+  transition: background .15s, color .15s;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--fg); }
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+
+.page-content {
+  padding: 24px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  flex: 1;
+}
+.page { display: none; }
+.page.active { display: block; }
+
+/* STAT CARDS */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.stat-icon-row { display: flex; align-items: flex-start; justify-content: space-between; }
+.stat-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.stat-value { font-size: 26px; font-weight: 700; line-height: 1; }
+.stat-label { font-size: 12px; color: var(--fg2); font-weight: 500; margin-top: 2px; }
+.stat-change { font-size: 12px; font-weight: 600; }
+.stat-change.up { color: var(--green); }
+.stat-change.down { color: var(--red); }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 15px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--fg3); padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+/* BADGES */
+.badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+  white-space: nowrap;
+}
+.badge-green { background: var(--green-light); color: var(--green); }
+.badge-amber { background: var(--amber-light); color: var(--amber); }
+.badge-red { background: var(--red-light); color: var(--red); }
+.badge-blue { background: var(--accent-light); color: var(--accent); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-teal { background: var(--teal-light); color: var(--teal); }
+
+/* BUTTONS */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: opacity .15s, background .15s;
+  font-family: inherit;
+}
+.btn:hover { opacity: .88; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-secondary { background: var(--surface2); color: var(--fg); border: 1px solid var(--border); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 12px; font-weight: 600; color: var(--fg2); }
+input, select, textarea {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color .15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+textarea { resize: vertical; min-height: 80px; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay[hidden] { display: none !important; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-body { padding: 24px; }
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.close-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--fg3); font-size: 20px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px;
+}
+.close-btn:hover { background: var(--surface2); color: var(--fg); }
+
+/* CHART AREA */
+.chart-area { position: relative; }
+.chart-svg { width: 100%; display: block; }
+
+/* SUBSCRIPTION PLAN CARDS */
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.plan-card {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.plan-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+.plan-card.featured { border-color: var(--accent); background: var(--accent-light); }
+.plan-badge-top {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: .05em;
+  padding: 2px 10px; border-radius: 20px; white-space: nowrap;
+}
+.plan-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.plan-price { font-size: 28px; font-weight: 800; line-height: 1; }
+.plan-price span { font-size: 14px; font-weight: 500; color: var(--fg2); }
+.plan-features { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.plan-features li { font-size: 13px; color: var(--fg2); display: flex; align-items: center; gap: 8px; }
+.plan-features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+/* COMPANY LIST */
+.company-row-actions { display: flex; gap: 6px; }
+
+/* TOAST */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 999; pointer-events: none;
+}
+.toast {
+  background: var(--fg);
+  color: var(--surface);
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-md);
+  pointer-events: all;
+  animation: slide-in .2s ease;
+  display: flex; align-items: center; gap: 8px;
+}
+@keyframes slide-in { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* SEARCH BAR */
+.search-bar {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 12px; min-width: 220px;
+}
+.search-bar input {
+  border: none; background: transparent; padding: 8px 0;
+  flex: 1; min-width: 0;
+}
+.search-bar input:focus { box-shadow: none; }
+
+/* PROGRESS */
+.progress-bar { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+
+/* DONUT CHART SEGMENTS */
+.donut-wrap { display: flex; align-items: center; gap: 24px; }
+.donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
+.donut-legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.donut-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* TABS */
+.tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+.tab-btn {
+  padding: 10px 16px; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--fg2);
+  background: none; border: none; border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: color .15s, border-color .15s;
+  font-family: inherit;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover { color: var(--fg); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; min-width: 60px; }
+  .sidebar .logo-text, .sidebar .logo-sub, .sidebar .nav-item span,
+  .sidebar .sidebar-section-label { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .main { margin-left: 60px; }
+  .grid-2, .grid-3, .form-grid { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+}
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item {
+  display: flex; gap: 12px; padding-bottom: 16px;
+  position: relative;
+}
+.timeline-item:not(:last-child)::before {
+  content: ''; position: absolute;
+  left: 15px; top: 28px; bottom: 0;
+  width: 1px; background: var(--border);
+}
+.timeline-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 13px;
+}
+.timeline-content { flex: 1; min-width: 0; }
+.timeline-title { font-size: 13px; font-weight: 600; }
+.timeline-time { font-size: 11px; color: var(--fg3); margin-top: 1px; }
+
+/* SUPER ADMIN SPECIFIC */
+.sa-metric { text-align: center; padding: 16px; }
+.sa-metric-value { font-size: 32px; font-weight: 800; line-height: 1; }
+.sa-metric-label { font-size: 12px; color: var(--fg2); margin-top: 4px; }
+
+.company-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface);
+  transition: box-shadow .15s;
+}
+.company-card:hover { box-shadow: var(--shadow-md); }
+.company-logo {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.company-info { flex: 1; min-width: 0; }
+.company-name { font-weight: 700; font-size: 14px; }
+.company-meta { font-size: 12px; color: var(--fg2); margin-top: 2px; }
+
+/* APP STATUS */
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; }
+.status-dot.active { background: var(--green); }
+.status-dot.trial { background: var(--amber); }
+.status-dot.suspended { background: var(--red); }
+
+/* SUBSCRIPTION PROGRESS */
+.sub-usage { margin-top: 8px; }
+.sub-usage-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg3); margin-bottom: 4px; }
+</style>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">A</div>
+    <div>
+      <div class="logo-text">ALNOOR ERP</div>
+      <div class="logo-sub">Super Admin</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section-label">Overview</div>
+  <button class="nav-item active" onclick="showPage('dashboard',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Dashboard</span>
+  </button>
+  <button class="nav-item" onclick="showPage('companies',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Companies</span>
+    <span class="nav-badge">12</span>
+  </button>
+  <button class="nav-item" onclick="showPage('subscriptions',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+    <span>Subscriptions</span>
+  </button>
+  <button class="nav-item" onclick="showPage('plans',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    <span>Plans & Pricing</span>
+  </button>
+
+  <div class="sidebar-section-label">Financial</div>
+  <button class="nav-item" onclick="showPage('billing',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    <span>Billing & Revenue</span>
+  </button>
+  <button class="nav-item" onclick="showPage('invoices',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>Invoices</span>
+  </button>
+
+  <div class="sidebar-section-label">System</div>
+  <button class="nav-item" onclick="showPage('users',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+    <span>Users & Roles</span>
+  </button>
+  <button class="nav-item" onclick="showPage('audit',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    <span>Audit Logs</span>
+  </button>
+  <button class="nav-item" onclick="showPage('settings',this)">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span>Settings</span>
+  </button>
+
+  <div style="margin-top:auto; padding:16px; border-top:1px solid rgba(255,255,255,.08);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="avatar" id="sa-avatar" style="width:34px;height:34px;font-size:13px;flex-shrink:0;">SA</div>
+      <div style="flex:1;min-width:0;">
+        <div id="sa-name" style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Super Admin</div>
+        <div id="sa-email" style="color:rgba(255,255,255,.4);font-size:11px;">admin@alnoor.ae</div>
+      </div>
+      <button onclick="doLogout()" title="Logout"
+        style="flex-shrink:0;background:rgba(255,255,255,.08);border:none;border-radius:7px;padding:7px 8px;cursor:pointer;color:rgba(255,255,255,.7);display:flex;align-items:center;transition:background .15s;"
+        onmouseover="this.style.background='rgba(239,68,68,.25)';this.style.color='#fca5a5'"
+        onmouseout="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Read session from URL params
+(function applySession() {
+  const p = new URLSearchParams(window.location.search)
+  const name = p.get('uname') ? decodeURIComponent(p.get('uname')) : 'Super Admin'
+  const initials = name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || 'SA'
+  const av = document.getElementById('sa-avatar')
+  const nm = document.getElementById('sa-name')
+  if (av) av.textContent = initials
+  if (nm) nm.textContent = name
+})()
+
+function doLogout() {
+  if (!confirm('Logout and return to the main screen?')) return;
+  try { window.top.location.reload(); } catch(e) { window.location.reload(); }
+}
+</script>
+
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div style="font-size:12px;color:var(--fg3);">Mon, 9 Nov 2026 · Asia/Dubai</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('create-company-modal')">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Company
+      </button>
+      <div class="icon-btn" title="Notifications">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </div>
+      <div class="avatar">SA</div>
+      <button class="icon-btn" onclick="doLogout()" title="Logout" style="color:var(--fg2);">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="page-content">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-icon-row">
+            <div>
+              <div class="stat-value" id="dash-total-co">—</div>
+              <div class="stat-label">Total Companies</div>
+            </div>
+            <div class="stat-icon" style="background:var(--accent-light);color:var(--accent);">🏢</div>
+          </div>
+          <div class="stat-change up">In database</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-row">
+            <div>
+              <div class="stat-value" id="dash-mrr">AED —</div>
+              <div class="stat-label">Monthly Revenue</div>
+            </div>
+            <div class="stat-icon" style="background:var(--green-light);color:var(--green);">💰</div>
+          </div>
+          <div class="stat-change up">Active subscriptions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-row">
+            <div>
+              <div class="stat-value" id="dash-active-co">—</div>
+              <div class="stat-label">Active Companies</div>
+            </div>
+            <div class="stat-icon" style="background:var(--purple-light);color:var(--purple);">✅</div>
+          </div>
+          <div class="stat-change up">Live accounts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-row">
+            <div>
+              <div class="stat-value" id="dash-trial-co">—</div>
+              <div class="stat-label">Trial / Expiring Soon</div>
+            </div>
+            <div class="stat-icon" style="background:var(--amber-light);color:var(--amber);">⚠️</div>
+          </div>
+          <div class="stat-change down">Free trial accounts</div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:20px;">
+        <!-- Revenue Chart -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Revenue Overview</span>
+            <select style="padding:4px 8px;font-size:12px;width:auto;">
+              <option>Last 6 months</option>
+              <option>This year</option>
+            </select>
+          </div>
+          <div class="card-body" style="padding-bottom:12px;">
+            <svg class="chart-svg" viewBox="0 0 500 180" style="overflow:visible;">
+              <!-- Grid lines -->
+              <line x1="40" y1="10" x2="40" y2="150" stroke="var(--border)" stroke-width="1"/>
+              <line x1="40" y1="150" x2="490" y2="150" stroke="var(--border)" stroke-width="1"/>
+              <line x1="40" y1="110" x2="490" y2="110" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,4"/>
+              <line x1="40" y1="70" x2="490" y2="70" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,4"/>
+              <line x1="40" y1="30" x2="490" y2="30" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,4"/>
+              <!-- Y labels -->
+              <text x="32" y="153" font-size="10" fill="var(--fg3)" text-anchor="end">0</text>
+              <text x="32" y="113" font-size="10" fill="var(--fg3)" text-anchor="end">50K</text>
+              <text x="32" y="73" font-size="10" fill="var(--fg3)" text-anchor="end">100K</text>
+              <text x="32" y="33" font-size="10" fill="var(--fg3)" text-anchor="end">150K</text>
+              <!-- Area fill -->
+              <defs>
+                <linearGradient id="rev-grad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2563eb" stop-opacity=".25"/>
+                  <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M55,120 C90,118 110,100 145,95 C180,90 210,105 245,88 C280,70 310,60 345,52 C380,44 420,38 465,30 L465,150 L55,150 Z" fill="url(#rev-grad)"/>
+              <path d="M55,120 C90,118 110,100 145,95 C180,90 210,105 245,88 C280,70 310,60 345,52 C380,44 420,38 465,30" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>
+              <!-- Data points -->
+              <circle cx="55" cy="120" r="4" fill="#2563eb" stroke="var(--surface)" stroke-width="2"/>
+              <circle cx="145" cy="95" r="4" fill="#2563eb" stroke="var(--surface)" stroke-width="2"/>
+              <circle cx="245" cy="88" r="4" fill="#2563eb" stroke="var(--surface)" stroke-width="2"/>
+              <circle cx="345" cy="52" r="4" fill="#2563eb" stroke="var(--surface)" stroke-width="2"/>
+              <circle cx="465" cy="30" r="4" fill="#2563eb" stroke="var(--surface)" stroke-width="2"/>
+              <!-- Current point highlight -->
+              <circle cx="465" cy="30" r="7" fill="none" stroke="#2563eb" stroke-width="1.5" opacity=".4"/>
+              <rect x="430" y="12" width="52" height="18" rx="4" fill="#2563eb"/>
+              <text x="456" y="24" font-size="10" fill="#fff" text-anchor="middle" font-weight="600">184K</text>
+              <!-- X labels -->
+              <text x="55" y="168" font-size="10" fill="var(--fg3)" text-anchor="middle">Jun</text>
+              <text x="145" y="168" font-size="10" fill="var(--fg3)" text-anchor="middle">Jul</text>
+              <text x="245" y="168" font-size="10" fill="var(--fg3)" text-anchor="middle">Aug</text>
+              <text x="345" y="168" font-size="10" fill="var(--fg3)" text-anchor="middle">Sep</text>
+              <text x="465" y="168" font-size="10" fill="var(--fg3)" text-anchor="middle">Nov</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Plan Distribution -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Plan Distribution</span></div>
+          <div class="card-body">
+            <div class="donut-wrap" style="flex-direction:column;gap:16px;">
+              <svg viewBox="0 0 120 120" width="120" style="display:block;margin:0 auto;">
+                <circle cx="60" cy="60" r="45" fill="none" stroke="var(--border)" stroke-width="18"/>
+                <!-- Enterprise 38% -->
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#2563eb" stroke-width="18"
+                  stroke-dasharray="107.4 282.7" stroke-dashoffset="70.7" transform="rotate(-90 60 60)"/>
+                <!-- Professional 32% -->
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#8b5cf6" stroke-width="18"
+                  stroke-dasharray="90.5 282.7" stroke-dashoffset="-36.7" transform="rotate(-90 60 60)"/>
+                <!-- Starter 20% -->
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#10b981" stroke-width="18"
+                  stroke-dasharray="56.5 282.7" stroke-dashoffset="-127.2" transform="rotate(-90 60 60)"/>
+                <!-- Trial 10% -->
+                <circle cx="60" cy="60" r="45" fill="none" stroke="#f59e0b" stroke-width="18"
+                  stroke-dasharray="28.3 282.7" stroke-dashoffset="-183.7" transform="rotate(-90 60 60)"/>
+                <text x="60" y="55" font-size="14" fill="var(--fg)" text-anchor="middle" font-weight="700">47</text>
+                <text x="60" y="68" font-size="9" fill="var(--fg3)" text-anchor="middle">companies</text>
+              </svg>
+              <div class="donut-legend">
+                <div class="donut-legend-item"><div class="donut-dot" style="background:#2563eb;"></div><span style="flex:1">Enterprise</span><strong>18 (38%)</strong></div>
+                <div class="donut-legend-item"><div class="donut-dot" style="background:#8b5cf6;"></div><span style="flex:1">Professional</span><strong>15 (32%)</strong></div>
+                <div class="donut-legend-item"><div class="donut-dot" style="background:#10b981;"></div><span style="flex:1">Starter</span><strong>9 (20%)</strong></div>
+                <div class="donut-legend-item"><div class="donut-dot" style="background:#f59e0b;"></div><span style="flex:1">Trial</span><strong>5 (10%)</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Recent Companies -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Companies</span>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('companies', document.querySelector('.nav-item:nth-child(3)'))">View All</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Company</th><th>Plan</th><th>Status</th><th>Since</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><strong>Al Noor Typing</strong><div style="font-size:11px;color:var(--fg3);">TRN: 100123456700003</div></td>
+                  <td><span class="badge badge-blue">Enterprise</span></td>
+                  <td><span class="status-dot active"></span>Active</td>
+                  <td style="color:var(--fg3);">01 Nov 2026</td>
+                </tr>
+                <tr>
+                  <td><strong>Gulf Services LLC</strong><div style="font-size:11px;color:var(--fg3);">TRN: 100987654300003</div></td>
+                  <td><span class="badge badge-purple">Pro</span></td>
+                  <td><span class="status-dot active"></span>Active</td>
+                  <td style="color:var(--fg3);">28 Oct 2026</td>
+                </tr>
+                <tr>
+                  <td><strong>Emirates Doc Centre</strong><div style="font-size:11px;color:var(--fg3);">No TRN</div></td>
+                  <td><span class="badge badge-green">Starter</span></td>
+                  <td><span class="status-dot trial"></span>Trial</td>
+                  <td style="color:var(--fg3);">05 Nov 2026</td>
+                </tr>
+                <tr>
+                  <td><strong>Sharjah Typing Hub</strong><div style="font-size:11px;color:var(--fg3);">TRN: 100456789100003</div></td>
+                  <td><span class="badge badge-blue">Enterprise</span></td>
+                  <td><span class="status-dot active"></span>Active</td>
+                  <td style="color:var(--fg3);">22 Oct 2026</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity Timeline -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Recent Activity</span></div>
+          <div class="card-body">
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--green-light);color:var(--green);">✓</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Gulf Services LLC upgraded to Pro</div>
+                  <div class="timeline-time">2 hours ago</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--accent-light);color:var(--accent);">+</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Emirates Doc Centre created (Trial)</div>
+                  <div class="timeline-time">4 hours ago</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--amber-light);color:var(--amber);">!</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">3 subscriptions expiring in 7 days</div>
+                  <div class="timeline-time">Today 09:00</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--green-light);color:var(--green);">💳</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Payment received AED 4,500 from Al Noor</div>
+                  <div class="timeline-time">Yesterday 14:30</div>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot" style="background:var(--red-light);color:var(--red);">✕</div>
+                <div class="timeline-content">
+                  <div class="timeline-title">Ajman Typing suspended (non-payment)</div>
+                  <div class="timeline-time">2 days ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPANIES PAGE -->
+    <div class="page" id="page-companies">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div class="search-bar">
+          <svg width="14" height="14" fill="none" stroke="var(--fg3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search companies…" id="company-search" oninput="filterCompanies()">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select id="plan-filter" onchange="filterCompanies()" style="width:auto;padding:7px 10px;font-size:13px;">
+            <option value="">All Plans</option>
+            <option>Enterprise</option>
+            <option>Professional</option>
+            <option>Starter</option>
+            <option>Trial</option>
+          </select>
+          <select id="status-filter" onchange="filterCompanies()" style="width:auto;padding:7px 10px;font-size:13px;">
+            <option value="">All Status</option>
+            <option>Active</option>
+            <option>Trial</option>
+            <option>Suspended</option>
+          </select>
+          <button class="btn btn-primary" onclick="openModal('create-company-modal')">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Company
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table id="companies-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Plan</th>
+                <th>Users</th>
+                <th>Status</th>
+                <th>Renewal</th>
+                <th>MRR</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="companies-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBSCRIPTIONS PAGE -->
+    <div class="page" id="page-subscriptions">
+      <div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="stat-value">39</div>
+          <div class="stat-label">Active</div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:83%;background:var(--green);"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">5</div>
+          <div class="stat-label">Trial</div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:11%;background:var(--amber);"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">2</div>
+          <div class="stat-label">Suspended</div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:4%;background:var(--red);"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Cancelled</div>
+          <div class="progress-bar" style="margin-top:8px;"><div class="progress-fill" style="width:2%;background:var(--fg3);"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">All Subscriptions</span>
+          <span id="sub-count" style="font-size:12px;color:var(--fg3);"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Company</th><th>Plan</th><th>Billing</th><th>Amount (AED)</th><th>Renewal</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="subscriptions-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLANS PAGE -->
+    <div class="page" id="page-plans">
+      <div style="margin-bottom:24px;">
+        <div style="font-size:13px;color:var(--fg2);margin-bottom:16px;">Configure subscription plans available to companies. Changes take effect for new subscriptions.</div>
+        <div class="plan-grid">
+          <div class="plan-card">
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">AED 1,200<span>/month</span></div>
+            <ul class="plan-features">
+              <li>Up to 3 users</li>
+              <li>POS &amp; Sales</li>
+              <li>Customer management</li>
+              <li>Basic reports</li>
+              <li>Email support</li>
+            </ul>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <span class="badge badge-green" style="align-self:center;">9 companies</span>
+            </div>
+          </div>
+          <div class="plan-card featured">
+            <div class="plan-badge-top">MOST POPULAR</div>
+            <div class="plan-name">Professional</div>
+            <div class="plan-price">AED 2,500<span>/month</span></div>
+            <ul class="plan-features">
+              <li>Up to 10 users</li>
+              <li>Full accounting suite</li>
+              <li>Application tracking</li>
+              <li>Document management</li>
+              <li>WhatsApp notifications</li>
+              <li>UAE VAT reports</li>
+              <li>Priority support</li>
+            </ul>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <span class="badge badge-blue" style="align-self:center;">15 companies</span>
+            </div>
+          </div>
+          <div class="plan-card">
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-price">AED 4,500<span>/month</span></div>
+            <ul class="plan-features">
+              <li>Unlimited users</li>
+              <li>All Pro features</li>
+              <li>UAE e-invoicing module</li>
+              <li>Multi-branch support</li>
+              <li>Custom integrations</li>
+              <li>Dedicated account manager</li>
+              <li>SLA 99.9%</li>
+            </ul>
+            <div style="margin-top:16px;display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Edit Plan</button>
+              <span class="badge badge-purple" style="align-self:center;">18 companies</span>
+            </div>
+          </div>
+          <div class="plan-card" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;cursor:pointer;" onclick="openModal('create-company-modal')">
+            <div style="font-size:28px;color:var(--fg3);margin-bottom:8px;">+</div>
+            <div style="color:var(--fg2);font-weight:600;">Create Custom Plan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BILLING PAGE -->
+    <div class="page" id="page-billing">
+      <div class="stat-grid" style="margin-bottom:24px;">
+        <div class="stat-card"><div class="stat-value" style="color:var(--green);">AED 184,250</div><div class="stat-label">This Month Revenue</div><div class="stat-change up" style="margin-top:4px;">↑ 12.4%</div></div>
+        <div class="stat-card"><div class="stat-value">AED 2,196,000</div><div class="stat-label">Annual Run Rate</div><div class="stat-change up" style="margin-top:4px;">On track</div></div>
+        <div class="stat-card"><div class="stat-value" style="color:var(--red);">AED 7,500</div><div class="stat-label">Outstanding</div><div class="stat-change down" style="margin-top:4px;">3 overdue invoices</div></div>
+        <div class="stat-card"><div class="stat-value">AED 3,912</div><div class="stat-label">Avg Revenue/Company</div><div class="stat-change up" style="margin-top:4px;">↑ 8% vs last month</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Payments</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Company</th><th>Invoice</th><th>Plan</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Al Noor Typing</td><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0094</td><td>Enterprise</td><td style="font-weight:600;">AED 4,500</td><td>Bank Transfer</td><td>01 Nov 2026</td><td><span class="badge badge-green">Paid</span></td></tr>
+              <tr><td>Gulf Services LLC</td><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0093</td><td>Professional</td><td style="font-weight:600;">AED 2,500</td><td>Card</td><td>31 Oct 2026</td><td><span class="badge badge-green">Paid</span></td></tr>
+              <tr><td>Ajman Typing</td><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0088</td><td>Professional</td><td style="font-weight:600;">AED 2,500</td><td>—</td><td>01 Oct 2026</td><td><span class="badge badge-red">Overdue</span></td></tr>
+              <tr><td>Sharjah Typing Hub</td><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0085</td><td>Enterprise Annual</td><td style="font-weight:600;">AED 48,000</td><td>Bank Transfer</td><td>22 Oct 2025</td><td><span class="badge badge-green">Paid</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS PAGE -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">System Users &amp; Roles</span>
+          <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Add User</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Company</th><th>Last Login</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT PAGE -->
+    <div class="page" id="page-audit">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Audit Log</span>
+          <span style="font-size:12px;color:var(--fg3);">Last 30 days</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Timestamp</th><th>Actor</th><th>Action</th><th>Target</th><th>IP</th><th>Result</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">2026-11-09 14:22:11</td><td>Super Admin</td><td>Company created</td><td>Emirates Doc Centre</td><td style="font-family:'DM Mono',monospace;font-size:11px;">10.0.0.1</td><td><span class="badge badge-green">Success</span></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">2026-11-09 12:10:05</td><td>Super Admin</td><td>Plan upgraded</td><td>Gulf Services LLC → Pro</td><td style="font-family:'DM Mono',monospace;font-size:11px;">10.0.0.1</td><td><span class="badge badge-green">Success</span></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">2026-11-07 09:15:30</td><td>Super Admin</td><td>Subscription suspended</td><td>Ajman Typing</td><td style="font-family:'DM Mono',monospace;font-size:11px;">10.0.0.1</td><td><span class="badge badge-amber">Warning</span></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap;">2026-11-05 11:00:00</td><td>Super Admin</td><td>E-invoice settings updated</td><td>System</td><td style="font-family:'DM Mono',monospace;font-size:11px;">10.0.0.1</td><td><span class="badge badge-green">Success</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-general',this)">General</button>
+        <button class="tab-btn" onclick="switchTab('tab-einvoice',this)">E-Invoicing</button>
+        <button class="tab-btn" onclick="switchTab('tab-whatsapp',this)">WhatsApp</button>
+        <button class="tab-btn" onclick="switchTab('tab-vat',this)">VAT &amp; Tax</button>
+      </div>
+      <div class="tab-panel active" id="tab-general">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Platform Settings</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Platform Name</label><input value="ALNOOR ERP Platform"></div>
+              <div class="form-group"><label>Support Email</label><input value="support@alnoorerp.ae" type="email"></div>
+              <div class="form-group"><label>Default Currency</label><select><option>AED — UAE Dirham</option></select></div>
+              <div class="form-group"><label>Timezone</label><select><option>Asia/Dubai (UTC+4)</option></select></div>
+              <div class="form-group full"><label>Trial Period (days)</label><input type="number" value="14" style="width:120px;"></div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="showToast('Settings saved')">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-einvoice">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">UAE E-Invoice API Settings</span>
+            <span class="badge badge-amber">Mock / Sandbox Mode</span>
+          </div>
+          <div class="card-body">
+            <div style="background:var(--amber-light);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--amber);">
+              <strong>⚠ Placeholder:</strong> Real UAE ASP/FTA e-invoice API credentials are required. Configure only after selecting an accredited service provider.
+            </div>
+            <div class="form-grid">
+              <div class="form-group"><label>Operating Mode</label>
+                <select><option>Disabled</option><option selected>Mock / Sandbox</option><option>Provider Sandbox</option><option>Production</option></select>
+              </div>
+              <div class="form-group"><label>Provider / ASP Name</label><input placeholder="e.g. Peppol-UAE ASP (PLACEHOLDER)"></div>
+              <div class="form-group"><label>Base API URL</label><input placeholder="https://api.your-asp.ae/einvoice (PLACEHOLDER)" disabled></div>
+              <div class="form-group"><label>Auth Method</label><select><option>API Key</option><option>OAuth2 Client Credentials</option><option>mTLS</option></select></div>
+              <div class="form-group"><label>API Key / Client ID</label><input type="password" placeholder="Stored encrypted — never shown in plaintext"></div>
+              <div class="form-group"><label>Auto-Submit</label>
+                <select><option selected>OFF (Manual queue)</option><option>On after posting</option></select>
+              </div>
+            </div>
+            <div style="margin-top:20px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="showToast('Connection test: Mock mode — OK (no real API call)')">Test Connection</button>
+              <button class="btn btn-secondary" onclick="showToast('Sample invoice validated in mock mode')">Validate Sample</button>
+              <button class="btn btn-primary" onclick="showToast('E-invoice settings saved (encrypted)')">Save Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-whatsapp">
+        <div class="card">
+          <div class="card-header"><span class="card-title">WhatsApp Business API</span><span class="badge badge-red">Not Configured</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Provider</label><select><option>Meta Cloud API</option><option>Twilio</option></select></div>
+              <div class="form-group"><label>Phone Number ID</label><input placeholder="Enter your Meta Phone Number ID"></div>
+              <div class="form-group full"><label>Access Token (stored encrypted)</label><input type="password" placeholder="Never shown after save"></div>
+              <div class="form-group"><label>Webhook Verify Token</label><input type="password" placeholder="Stored encrypted"></div>
+              <div class="form-group"><label>Sandbox Mode</label><select><option selected>Yes (no real messages)</option><option>No (live)</option></select></div>
+            </div>
+            <div style="margin-top:20px;"><button class="btn btn-primary" onclick="showToast('WhatsApp settings saved')">Save Settings</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-vat">
+        <div class="card">
+          <div class="card-header"><span class="card-title">UAE VAT Configuration</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group"><label>Standard VAT Rate</label><input value="5" type="number" min="0" max="100"><span style="font-size:12px;color:var(--fg3);margin-top:4px;">% — UAE standard rate as of 2026</span></div>
+              <div class="form-group"><label>Default Pricing</label><select><option>Tax-exclusive (VAT added on top)</option><option>Tax-inclusive</option></select></div>
+              <div class="form-group"><label>TRN Format Validation</label><select><option selected>UAE — 15 digits ending in 003</option></select></div>
+              <div class="form-group"><label>Tax Period</label><select><option>Quarterly</option><option>Monthly</option></select></div>
+            </div>
+            <div style="margin-top:20px;"><button class="btn btn-primary" onclick="showToast('VAT settings saved')">Save Settings</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICES PAGE -->
+    <div class="page" id="page-invoices">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Subscription Invoices</span><button class="btn btn-secondary btn-sm">Export CSV</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Invoice #</th><th>Company</th><th>Plan</th><th>Amount</th><th>Issue Date</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0094</td><td>Al Noor Typing</td><td>Enterprise</td><td style="font-weight:600;">AED 4,500</td><td>01 Nov 2026</td><td>15 Nov 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-secondary btn-sm">View</button></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0093</td><td>Gulf Services LLC</td><td>Professional</td><td style="font-weight:600;">AED 2,500</td><td>31 Oct 2026</td><td>14 Nov 2026</td><td><span class="badge badge-green">Paid</span></td><td><button class="btn btn-secondary btn-sm">View</button></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0092</td><td>Emirates Doc Centre</td><td>Starter (Trial)</td><td style="font-weight:600;">AED 0</td><td>05 Nov 2026</td><td>—</td><td><span class="badge badge-teal">Trial</span></td><td><button class="btn btn-secondary btn-sm">View</button></td></tr>
+              <tr><td style="font-family:'DM Mono',monospace;font-size:12px;">INV-2026-0088</td><td>Ajman Typing</td><td>Professional</td><td style="font-weight:600;">AED 2,500</td><td>01 Oct 2026</td><td>15 Oct 2026</td><td><span class="badge badge-red">Overdue</span></td><td><button class="btn btn-primary btn-sm">Send Reminder</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CREATE COMPANY MODAL -->
+<div class="modal-overlay" id="create-company-modal" hidden onclick="if(event.target===this)closeModal('create-company-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create New Company</span>
+      <button class="close-btn" onclick="closeModal('create-company-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="tabs" style="margin-bottom:16px;">
+        <button class="tab-btn active" onclick="switchTab('ctab-company',this)">Company Info</button>
+        <button class="tab-btn" onclick="switchTab('ctab-subscription',this)">Subscription</button>
+        <button class="tab-btn" onclick="switchTab('ctab-admin',this)">Admin User</button>
+      </div>
+
+      <div class="tab-panel active" id="ctab-company">
+        <div class="form-grid">
+          <div class="form-group full"><label>Company / Trade Name *</label><input id="new-company-name" placeholder="e.g. Al Noor Typing &amp; Photocopying Services"></div>
+          <div class="form-group"><label>Legal Name</label><input placeholder="Official registered name"></div>
+          <div class="form-group"><label>TRN (UAE Tax Registration No.)</label><input placeholder="100XXXXXXXXXXXX3 (15 digits)" maxlength="15" id="trn-input" oninput="validateTRN()"></div>
+          <div class="form-group"><label>Emirate</label>
+            <select>
+              <option value="">Select emirate…</option>
+              <option>Abu Dhabi</option><option>Dubai</option><option selected>Sharjah</option>
+              <option>Ajman</option><option>Umm Al Quwain</option><option>Ras Al Khaimah</option><option>Fujairah</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Phone</label><input placeholder="+971 X XXX XXXX" type="tel"></div>
+          <div class="form-group"><label>WhatsApp Number</label><input placeholder="+971 X XXX XXXX" type="tel"></div>
+          <div class="form-group"><label>Email</label><input placeholder="info@company.ae" type="email"></div>
+          <div class="form-group full"><label>Address</label><textarea rows="2" placeholder="Full business address"></textarea></div>
+        </div>
+        <div id="trn-msg" style="font-size:12px;margin-top:4px;"></div>
+      </div>
+
+      <div class="tab-panel" id="ctab-subscription">
+        <div class="plan-grid" style="grid-template-columns:1fr 1fr;">
+          <div class="plan-card" id="plan-starter" onclick="selectPlan('starter')">
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">AED 1,200<span>/mo</span></div>
+            <ul class="plan-features"><li>3 users</li><li>POS &amp; Sales</li><li>Basic reports</li></ul>
+          </div>
+          <div class="plan-card featured" id="plan-professional" onclick="selectPlan('professional')">
+            <div class="plan-badge-top">POPULAR</div>
+            <div class="plan-name">Professional</div>
+            <div class="plan-price">AED 2,500<span>/mo</span></div>
+            <ul class="plan-features"><li>10 users</li><li>Full accounting</li><li>WhatsApp</li><li>VAT reports</li></ul>
+          </div>
+          <div class="plan-card" id="plan-enterprise" onclick="selectPlan('enterprise')">
+            <div class="plan-name">Enterprise</div>
+            <div class="plan-price">AED 4,500<span>/mo</span></div>
+            <ul class="plan-features"><li>Unlimited users</li><li>E-invoicing</li><li>Multi-branch</li></ul>
+          </div>
+          <div class="plan-card" id="plan-trial" onclick="selectPlan('trial')">
+            <div class="plan-name">Trial</div>
+            <div class="plan-price">FREE<span> 14 days</span></div>
+            <ul class="plan-features"><li>All Pro features</li><li>No credit card</li></ul>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="form-group"><label>Billing Cycle</label><select id="billing-cycle"><option>Monthly</option><option>Quarterly</option><option>Annual (2 months free)</option></select></div>
+          <div class="form-group"><label>Start Date</label><input type="date" id="start-date"></div>
+          <div class="form-group"><label>Custom Discount (%)</label><input type="number" min="0" max="100" placeholder="0" id="discount"></div>
+          <div class="form-group"><label>Notes</label><input placeholder="Any special terms…"></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="ctab-admin">
+        <div class="form-grid">
+          <div class="form-group"><label>Admin First Name *</label><input id="admin-fname" placeholder="Ahmed"></div>
+          <div class="form-group"><label>Admin Last Name *</label><input id="admin-lname" placeholder="Al Mazrouei"></div>
+          <div class="form-group"><label>Admin Email *</label><input type="email" id="admin-email" placeholder="admin@company.ae"></div>
+          <div class="form-group"><label>Mobile</label><input type="tel" placeholder="+971 X XXX XXXX"></div>
+          <div class="form-group full"><label>Temporary Password</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="temp-pass" placeholder="Auto-generated" style="flex:1;">
+              <button class="btn btn-secondary btn-sm" onclick="genPassword()">Generate</button>
+            </div>
+          </div>
+          <div class="form-group full" style="margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" checked> Send welcome email with login instructions
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('create-company-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createCompany()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Create Company
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW COMPANY MODAL -->
+<div class="modal-overlay" id="view-company-modal" hidden onclick="if(event.target===this)closeModal('view-company-modal')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title" id="view-co-title">Company Details</span>
+      <button class="close-btn" onclick="closeModal('view-company-modal')">×</button>
+    </div>
+    <div class="modal-body" id="view-co-body"></div>
+  </div>
+</div>
+
+<!-- MANAGE COMPANY MODAL -->
+<div class="modal-overlay" id="manage-company-modal" hidden onclick="if(event.target===this)closeModal('manage-company-modal')">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-title" id="mgmt-co-title">Manage Company</span>
+      <button class="close-btn" onclick="closeModal('manage-company-modal')">×</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
+      <input type="hidden" id="mgmt-id">
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Company Details</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="form-group full" style="grid-column:1/-1;">
+          <label>Company Name *</label>
+          <input type="text" id="mgmt-name" style="width:100%;" placeholder="Company legal name">
+        </div>
+        <div class="form-group">
+          <label>TRN (Tax Registration)</label>
+          <input type="text" id="mgmt-trn" style="width:100%;" placeholder="100000000000003">
+        </div>
+        <div class="form-group">
+          <label>Emirate</label>
+          <select id="mgmt-emirate" style="width:100%;">
+            <option value="Abu Dhabi">Abu Dhabi</option>
+            <option value="Dubai">Dubai</option>
+            <option value="Sharjah">Sharjah</option>
+            <option value="Ajman">Ajman</option>
+            <option value="Umm Al Quwain">Umm Al Quwain</option>
+            <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+            <option value="Fujairah">Fujairah</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="mgmt-phone" style="width:100%;" placeholder="+971 6 000 0000">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="mgmt-email" style="width:100%;" placeholder="info@company.ae">
+        </div>
+        <div class="form-group full" style="grid-column:1/-1;">
+          <label>Address</label>
+          <input type="text" id="mgmt-address" style="width:100%;" placeholder="Shop No, Street, Area">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Subscription</div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="mgmt-status" style="width:100%;">
+            <option>Active</option>
+            <option>Trial</option>
+            <option>Suspended</option>
+            <option>Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Plan</label>
+          <select id="mgmt-plan" style="width:100%;">
+            <option>Starter</option>
+            <option>Professional</option>
+            <option>Enterprise</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Monthly Revenue (AED)</label>
+          <input type="number" id="mgmt-mrr" style="width:100%;" min="0" step="1">
+        </div>
+        <div class="form-group">
+          <label>Billing Cycle</label>
+          <select id="mgmt-billing" style="width:100%;">
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+            <option value="trial">Trial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Renewal Date</label>
+          <input type="date" id="mgmt-renewal" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>Max Users</label>
+          <input type="number" id="mgmt-max-users" style="width:100%;" min="1" step="1" placeholder="e.g. 10">
+        </div>
+        <div class="form-group full" style="grid-column:1/-1;">
+          <label>Notes</label>
+          <textarea id="mgmt-notes" rows="2" style="width:100%;resize:vertical;" placeholder="Internal notes…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
+      <button class="btn btn-secondary" style="color:#ef4444;border-color:#fecaca;" onclick="confirmSuspend()">Suspend</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('manage-company-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveManageCompany()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USER CREATE / EDIT MODAL -->
+<div class="modal-overlay" id="user-modal" hidden onclick="if(event.target===this)closeModal('user-modal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title" id="user-modal-title">Add User</span>
+      <button class="close-btn" onclick="closeModal('user-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="um-id">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Full Name <span style="color:var(--red);">*</span></label>
+          <input type="text" id="um-name" placeholder="Ahmed Al Mazrouei" style="width:100%;">
+        </div>
+        <div class="form-group full">
+          <label>Email / Username <span style="color:var(--red);">*</span></label>
+          <input type="email" id="um-email" placeholder="ahmed@company.ae" style="width:100%;">
+        </div>
+        <div class="form-group full" id="um-pass-group">
+          <label>Password <span style="color:var(--red);" id="um-pass-required">*</span> <span id="um-pass-hint" style="color:var(--fg3);font-size:11px;font-weight:400;">(leave blank to keep current)</span></label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="um-password" placeholder="Min 6 characters" style="flex:1;">
+            <button class="btn btn-secondary btn-sm" onclick="genUserPassword()">Generate</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Role <span style="color:var(--red);">*</span></label>
+          <select id="um-role" style="width:100%;">
+            <option value="operator">Operator</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin</option>
+            <option value="superadmin">Super Admin</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="um-active" style="width:100%;">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Assigned Company</label>
+          <select id="um-company" style="width:100%;">
+            <option value="">— Super Admin (no company) —</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+      <button class="btn btn-primary" id="um-save-btn" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER DELETE CONFIRM -->
+<div class="modal-overlay" id="user-delete-modal" hidden onclick="if(event.target===this)closeModal('user-delete-modal')">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header">
+      <span class="modal-title">Delete User</span>
+      <button class="close-btn" onclick="closeModal('user-delete-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0;color:var(--fg2);">Are you sure you want to delete <strong id="del-user-name"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('user-delete-modal')">Cancel</button>
+      <button class="btn btn-primary" style="background:var(--red);border-color:var(--red);" onclick="confirmDeleteUser()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// --- DATA ---
+let companies = [];
+let users = [];
+let plans = [];
+let auditLogs = [];
+let selectedPlan = 'professional';
+
+const COLORS = ['#2563eb','#8b5cf6','#10b981','#ef4444','#0ea5e9','#f59e0b','#ec4899','#14b8a6'];
+
+async function apiFetch(path, opts = {}) {
+  const r = await fetch('/api' + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function normalizeCompany(c, idx) {
+  const statusMap = { active:'Active', trial:'Trial', suspended:'Suspended' };
+  const st = statusMap[c.status] || c.status || 'Active';
+  const renewal = c.trial_ends_at ? new Date(c.trial_ends_at).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+  return {
+    id: c.id,
+    name: c.name || '—',
+    trn: c.trn || '',
+    emirate: c.emirate || 'UAE',
+    plan: c.plan_name || 'Starter',
+    plan_id: c.plan_id,
+    users: c.user_count || 0,
+    maxUsers: (c.plan_name||'').toLowerCase().includes('enterprise') ? 999 : (c.plan_name||'').toLowerCase().includes('professional') ? 10 : 3,
+    status: st,
+    renewal,
+    mrr: parseFloat(c.price_monthly || 0),
+    color: COLORS[idx % COLORS.length],
+    email: c.email || '',
+    phone: c.phone || '',
+    address: c.address || '',
+    created_at: c.created_at,
+  };
+}
+
+function renderCompanies(list) {
+  const tbody = document.getElementById('companies-tbody');
+  const planBadge = { Enterprise:'badge-blue', Professional:'badge-purple', Starter:'badge-green', Trial:'badge-teal' };
+  const statusBadge = { Active:'badge-green', Trial:'badge-amber', Suspended:'badge-red' };
+  tbody.innerHTML = list.map(c => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:${c.color};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;">${c.name[0]}</div>
+          <div>
+            <div style="font-weight:600;">${c.name}</div>
+            <div style="font-size:11px;color:var(--fg3);">${c.emirate}${c.trn?' · TRN: '+c.trn:''}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge ${planBadge[c.plan]||'badge-teal'}">${c.plan}</span></td>
+      <td>
+        <span style="font-weight:600;">${c.users}</span>
+        <span style="color:var(--fg3);font-size:11px;"> / ${c.maxUsers===999?'∞':c.maxUsers}</span>
+        <div class="progress-bar sub-usage"><div class="progress-fill" style="width:${Math.min(100,c.maxUsers===999?40:c.users/c.maxUsers*100)}%;background:${c.users/c.maxUsers>0.9&&c.maxUsers!==999?'var(--red)':'var(--accent)'};"></div></div>
+      </td>
+      <td><span class="badge ${statusBadge[c.status]||'badge-teal'}"><span class="status-dot ${c.status.toLowerCase()}"></span>${c.status}</span></td>
+      <td style="font-size:12px;color:${c.renewal==='Overdue'?'var(--red)':'var(--fg2)'};">${c.renewal}</td>
+      <td style="font-weight:600;font-variant-numeric:tabular-nums;">${c.mrr>0?'AED '+c.mrr.toLocaleString():'—'}</td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-secondary btn-sm" onclick="viewCompany(${c.id})">View</button>
+          <button class="btn btn-secondary btn-sm" onclick="manageCompany(${c.id})">Manage</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterCompanies() {
+  const q = (document.getElementById('company-search').value || '').toLowerCase();
+  const plan = document.getElementById('plan-filter').value;
+  const status = document.getElementById('status-filter').value;
+  const filtered = companies.filter(c =>
+    (!q || c.name.toLowerCase().includes(q) || c.emirate.toLowerCase().includes(q)) &&
+    (!plan || c.plan === plan) &&
+    (!status || c.status === status)
+  );
+  renderCompanies(filtered);
+}
+
+function viewCompany(id) {
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('view-co-title').textContent = c.name;
+  document.getElementById('view-co-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="form-group"><label>Company Name</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;">${c.name}</div></div>
+      <div class="form-group"><label>Emirate</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;">${c.emirate}</div></div>
+      <div class="form-group"><label>TRN</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;font-family:monospace;">${c.trn||'—'}</div></div>
+      <div class="form-group"><label>Plan</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;">${c.plan}</div></div>
+      <div class="form-group"><label>Status</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;">${c.status}</div></div>
+      <div class="form-group"><label>Users</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;">${c.users} / ${c.maxUsers===999?'Unlimited':c.maxUsers}</div></div>
+      <div class="form-group"><label>Monthly Revenue</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;font-weight:600;">${c.mrr>0?'AED '+c.mrr.toLocaleString():'—'}</div></div>
+      <div class="form-group"><label>Renewal Date</label><div style="padding:8px;background:var(--bg2);border-radius:6px;font-size:13px;color:${c.renewal==='Overdue'?'var(--red)':'inherit'};">${c.renewal}</div></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="manageCompany(${c.id});closeModal('view-company-modal')">Edit / Manage</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('view-company-modal')">Close</button>
+    </div>`;
+  openModal('view-company-modal');
+}
+
+function manageCompany(id) {
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('mgmt-co-title').textContent = 'Manage — ' + c.name;
+  document.getElementById('mgmt-id').value        = c.id;
+  document.getElementById('mgmt-name').value      = c.name || '';
+  document.getElementById('mgmt-trn').value       = c.trn || '';
+  document.getElementById('mgmt-emirate').value   = c.emirate || 'Sharjah';
+  document.getElementById('mgmt-phone').value     = c.phone || '';
+  document.getElementById('mgmt-email').value     = c.email || '';
+  document.getElementById('mgmt-address').value   = c.address || '';
+  document.getElementById('mgmt-status').value    = c.status || 'Active';
+  document.getElementById('mgmt-plan').value      = c.plan || 'Starter';
+  document.getElementById('mgmt-mrr').value       = c.mrr || '';
+  document.getElementById('mgmt-billing').value   = c.billing || 'monthly';
+  document.getElementById('mgmt-max-users').value = c.maxUsers === 999 ? '' : (c.maxUsers || '');
+  document.getElementById('mgmt-notes').value     = c.notes || '';
+  // Convert renewal date to ISO for date input
+  const rDate = c.renewal_date || c.renewal;
+  if (rDate && rDate !== '—') {
+    try {
+      const d = new Date(rDate);
+      if (!isNaN(d)) document.getElementById('mgmt-renewal').value = d.toISOString().slice(0,10);
+      else document.getElementById('mgmt-renewal').value = '';
+    } catch { document.getElementById('mgmt-renewal').value = ''; }
+  } else {
+    document.getElementById('mgmt-renewal').value = '';
+  }
+  openModal('manage-company-modal');
+}
+
+async function saveManageCompany() {
+  const id = parseInt(document.getElementById('mgmt-id').value);
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  const name     = document.getElementById('mgmt-name').value.trim();
+  if (!name) { showToast('Company name is required', 'error'); return; }
+  const statusVal = document.getElementById('mgmt-status').value.toLowerCase();
+  const planName  = document.getElementById('mgmt-plan').value;
+  const planObj   = plans.find(p => p.name === planName);
+  const mrr       = parseFloat(document.getElementById('mgmt-mrr').value) || 0;
+  const renewal   = document.getElementById('mgmt-renewal').value || null;
+  const payload = {
+    name,
+    status:    statusVal,
+    trn:       document.getElementById('mgmt-trn').value.trim() || null,
+    emirate:   document.getElementById('mgmt-emirate').value,
+    phone:     document.getElementById('mgmt-phone').value.trim() || null,
+    email:     document.getElementById('mgmt-email').value.trim() || null,
+    address:   document.getElementById('mgmt-address').value.trim() || null,
+    plan_id:   planObj ? planObj.id : c.plan_id,
+    trial_ends_at: renewal || null,
+  };
+  try {
+    await apiFetch(`/companies/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    // Update local object
+    Object.assign(c, {
+      name, status: document.getElementById('mgmt-status').value,
+      trn: payload.trn || '', emirate: payload.emirate,
+      phone: payload.phone || '', email: payload.email || '',
+      address: payload.address || '', plan: planName,
+      mrr, billing: document.getElementById('mgmt-billing').value,
+      notes: document.getElementById('mgmt-notes').value,
+      renewal: renewal ? new Date(renewal).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'}) : '—',
+      renewal_date: renewal,
+    });
+    if (planObj) c.plan_id = planObj.id;
+    renderCompanies(companies);
+    renderSubscriptions(companies);
+    closeModal('manage-company-modal');
+    showToast(name + ' updated successfully');
+  } catch(e) {
+    showToast('Error saving: ' + e.message);
+  }
+}
+
+function confirmSuspend() {
+  const id = parseInt(document.getElementById('mgmt-id').value);
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  if (c.status === 'Suspended') {
+    document.getElementById('mgmt-status').value = 'Active';
+    showToast('Status set to Active — click Save to confirm');
+  } else {
+    document.getElementById('mgmt-status').value = 'Suspended';
+    showToast('Status set to Suspended — click Save to confirm');
+  }
+}
+
+function renderSubscriptions(list) {
+  const tbody = document.getElementById('subscriptions-tbody');
+  if (!tbody) return;
+  const planBadge   = { Enterprise:'badge-blue', Professional:'badge-purple', Pro:'badge-purple', Starter:'badge-green' };
+  const statusBadge = { Active:'badge-green', Trial:'badge-amber', Suspended:'badge-red', Cancelled:'badge-red' };
+  const countEl = document.getElementById('sub-count');
+  if (countEl) countEl.textContent = list.length + ' total';
+  tbody.innerHTML = list.map(c => {
+    const st = c.status || 'Active';
+    const isOverdue = c.renewal === 'Overdue' || (c.renewal_date && new Date(c.renewal_date) < new Date() && st !== 'Cancelled');
+    const renewDisplay = isOverdue ? `<span style="color:var(--red);font-weight:600;">Overdue</span>` : (c.renewal || '—');
+    const actionBtn = st === 'Trial'
+      ? `<button class="btn btn-primary btn-sm" onclick="manageCompany(${c.id})">Convert</button>`
+      : st === 'Suspended'
+        ? `<button class="btn btn-secondary btn-sm" style="color:var(--green);" onclick="manageCompany(${c.id})">Reinstate</button>`
+        : `<button class="btn btn-secondary btn-sm" onclick="manageCompany(${c.id})">Manage</button>`;
+    return `<tr>
+      <td><strong>${c.name}</strong><div style="font-size:11px;color:var(--fg3);">${c.emirate||''}</div></td>
+      <td><span class="badge ${planBadge[c.plan]||'badge-teal'}">${c.plan}</span></td>
+      <td style="font-size:12px;">${c.billing ? c.billing.charAt(0).toUpperCase()+c.billing.slice(1) : 'Monthly'}</td>
+      <td style="font-weight:600;">${c.mrr > 0 ? 'AED '+c.mrr.toLocaleString() : '—'}</td>
+      <td style="font-size:12px;">${renewDisplay}</td>
+      <td><span class="badge ${statusBadge[st]||'badge-teal'}">${st}</span></td>
+      <td>${actionBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+// --- NAVIGATION ---
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard:'Dashboard', companies:'Companies', subscriptions:'Subscriptions', plans:'Plans & Pricing', billing:'Billing & Revenue', invoices:'Invoices', users:'Users & Roles', audit:'Audit Logs', settings:'Settings' };
+  document.getElementById('page-title').textContent = titles[id] || id;
+  if (id === 'companies') { renderCompanies(companies); }
+  if (id === 'subscriptions') { renderSubscriptions(companies); }
+}
+
+// --- TABS ---
+function switchTab(id, btn) {
+  const parent = btn.closest('.tabs').parentElement;
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  parent.querySelector('#' + id).classList.add('active');
+}
+
+// --- MODAL ---
+function openModal(id) { document.getElementById(id).hidden = false; }
+function closeModal(id) { document.getElementById(id).hidden = true; }
+
+// --- PLAN SELECTION ---
+function selectPlan(plan) {
+  document.querySelectorAll('[id^="plan-"]').forEach(el => el.classList.remove('featured'));
+  document.getElementById('plan-' + plan).classList.add('featured');
+  selectedPlan = plan;
+}
+
+// --- TOAST ---
+function showToast(msg) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// --- TRN VALIDATION ---
+function validateTRN() {
+  const val = document.getElementById('trn-input').value.replace(/\s/g,'');
+  const msg = document.getElementById('trn-msg');
+  if (!val) { msg.textContent = ''; return; }
+  if (/^\d{15}$/.test(val) && val.endsWith('003')) {
+    msg.textContent = '✓ Valid UAE TRN format'; msg.style.color = 'var(--green)';
+  } else {
+    msg.textContent = 'UAE TRN must be 15 digits ending in 003'; msg.style.color = 'var(--red)';
+  }
+}
+
+// --- PASSWORD GENERATOR ---
+function genPassword() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  let p = '';
+  for (let i = 0; i < 12; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('temp-pass').value = p;
+}
+
+// --- CREATE COMPANY ---
+async function createCompany() {
+  const name = document.getElementById('new-company-name').value.trim();
+  const email = document.getElementById('admin-email').value.trim();
+  if (!name) { showToast('Company name is required'); return; }
+  if (!email) { showToast('Admin email is required'); return; }
+  const planObj = plans.find(p => p.name.toLowerCase() === selectedPlan.toLowerCase());
+  try {
+    const newCo = await apiFetch('/companies', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        email,
+        trn: document.getElementById('trn-input').value || null,
+        emirate: 'UAE',
+        plan_id: planObj ? planObj.id : null,
+        status: selectedPlan === 'trial' ? 'trial' : 'active',
+      }),
+    });
+    companies.unshift(normalizeCompany(newCo, 0));
+    closeModal('create-company-modal');
+    showToast('Company "' + name + '" created successfully');
+    showPage('companies', document.querySelector('.nav-item:nth-child(3)'));
+  } catch(e) {
+    showToast('Error creating company: ' + e.message);
+  }
+}
+
+// --- INIT ---
+document.getElementById('start-date').value = new Date().toISOString().split('T')[0];
+
+async function initAdmin() {
+  try {
+    // Load companies
+    const rawCos = await apiFetch('/companies');
+    companies = rawCos.map((c, i) => normalizeCompany(c, i));
+    renderCompanies(companies);
+    renderSubscriptions(companies);
+
+    // Load plans (for manage modal & create form)
+    plans = await apiFetch('/plans');
+    const planSel = document.getElementById('mgmt-plan');
+    if (planSel) {
+      planSel.innerHTML = plans.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    }
+
+    // Load dashboard stats
+    try {
+      const s = await apiFetch('/admin/stats');
+      const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      setEl('dash-total-co', s.totalCompanies || 0);
+      setEl('dash-active-co', s.active || 0);
+      setEl('dash-trial-co', s.trial || 0);
+      setEl('dash-mrr', 'AED ' + parseFloat(s.mrr || 0).toLocaleString('en-AE', { minimumFractionDigits: 0 }));
+    } catch(e) {}
+
+    // Load users
+    try {
+      users = await apiFetch('/users');
+      renderUsers(users);
+    } catch(e) {}
+
+    // Load audit logs
+    try {
+      auditLogs = await apiFetch('/audit');
+      renderAudit(auditLogs);
+    } catch(e) {}
+
+  } catch(e) {
+    console.warn('API unavailable, showing static demo data', e);
+    companies = [
+      { id:1, name:'Al Noor Typing', trn:'100123456700003', emirate:'Sharjah', plan:'Enterprise', users:8, maxUsers:999, status:'Active', renewal:'01 Dec 2026', mrr:4500, color:'#2563eb', email:'', phone:'', address:'' },
+      { id:2, name:'Gulf Services LLC', trn:'100987654300003', emirate:'Dubai', plan:'Professional', users:6, maxUsers:10, status:'Active', renewal:'15 Dec 2026', mrr:2500, color:'#8b5cf6', email:'', phone:'', address:'' },
+      { id:3, name:'Emirates Doc Centre', trn:'', emirate:'Abu Dhabi', plan:'Starter', users:2, maxUsers:3, status:'Trial', renewal:'19 Nov 2026', mrr:0, color:'#10b981', email:'', phone:'', address:'' },
+    ];
+    renderCompanies(companies);
+    renderSubscriptions(companies);
+  }
+}
+
+function renderUsers(list) {
+  const tbody = document.getElementById('users-tbody') || document.querySelector('#page-users table tbody');
+  if (!tbody) return;
+  const roleBadge = { superadmin:'badge-purple', admin:'badge-blue', manager:'badge-purple', operator:'badge-teal', staff:'badge-green' };
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">No users yet — click Add User to create one.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td style="font-weight:600;">${u.name||'—'}</td>
+      <td style="color:var(--fg2);font-size:12px;font-family:'DM Mono',monospace;">${u.email||'—'}</td>
+      <td><span class="badge ${roleBadge[u.role]||'badge-teal'}">${u.role||'—'}</span></td>
+      <td>${u.company_name||'—'}</td>
+      <td style="font-size:12px;color:var(--fg3);">${u.last_login ? new Date(u.last_login).toLocaleDateString('en-AE') : 'Never'}</td>
+      <td><span class="badge ${u.is_active?'badge-green':'badge-red'}">${u.is_active?'Active':'Inactive'}</span></td>
+      <td>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-secondary btn-sm" onclick="openUserModal(${u.id})">Edit</button>
+          <button class="btn btn-sm" style="background:var(--red-light);color:var(--red);border:1px solid var(--red-light);" onclick="promptDeleteUser(${u.id},'${(u.name||'').replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+let deleteUserId = null;
+
+function promptDeleteUser(id, name) {
+  deleteUserId = id;
+  document.getElementById('del-user-name').textContent = name;
+  openModal('user-delete-modal');
+}
+
+async function confirmDeleteUser() {
+  if (!deleteUserId) return;
+  try {
+    await apiFetch(`/users/${deleteUserId}`, { method: 'DELETE' });
+    users = users.filter(u => u.id !== deleteUserId);
+    renderUsers(users);
+    closeModal('user-delete-modal');
+    showToast('User deleted');
+  } catch(e) {
+    showToast('Error: ' + e.message);
+  }
+  deleteUserId = null;
+}
+
+function openUserModal(id) {
+  const u = id ? users.find(x => x.id === id) : null;
+  document.getElementById('user-modal-title').textContent = u ? 'Edit User' : 'Add User';
+  document.getElementById('um-id').value = u ? u.id : '';
+  document.getElementById('um-name').value = u ? u.name : '';
+  document.getElementById('um-email').value = u ? u.email : '';
+  document.getElementById('um-password').value = '';
+  document.getElementById('um-role').value = u ? (u.role || 'operator') : 'operator';
+  document.getElementById('um-active').value = u ? (u.is_active ? '1' : '0') : '1';
+  document.getElementById('um-pass-required').hidden = !!u;
+  document.getElementById('um-pass-hint').hidden = !u;
+
+  // Populate company dropdown
+  const sel = document.getElementById('um-company');
+  sel.innerHTML = '<option value="">— Super Admin (no company) —</option>' +
+    companies.map(c => `<option value="${c.id}"${u && u.company_id === c.id ? ' selected' : ''}>${c.name}</option>`).join('');
+  if (!u) sel.value = '';
+
+  openModal('user-modal');
+}
+
+async function saveUser() {
+  const id = document.getElementById('um-id').value;
+  const name = document.getElementById('um-name').value.trim();
+  const email = document.getElementById('um-email').value.trim();
+  const password = document.getElementById('um-password').value.trim();
+  const role = document.getElementById('um-role').value;
+  const is_active = document.getElementById('um-active').value === '1';
+  const company_id = document.getElementById('um-company').value || null;
+
+  if (!name) { showToast('Name is required'); return; }
+  if (!email) { showToast('Email is required'); return; }
+  if (!id && !password) { showToast('Password is required for new users'); return; }
+  if (password && password.length < 6) { showToast('Password must be at least 6 characters'); return; }
+
+  const body = { name, email, role, is_active, company_id: company_id ? parseInt(company_id) : null };
+  if (password) body.password = password;
+
+  try {
+    if (id) {
+      const updated = await apiFetch(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+      const idx = users.findIndex(u => u.id === parseInt(id));
+      if (idx !== -1) users[idx] = updated;
+    } else {
+      const created = await apiFetch('/users', { method: 'POST', body: JSON.stringify(body) });
+      users.unshift(created);
+    }
+    renderUsers(users);
+    closeModal('user-modal');
+    showToast(id ? 'User updated successfully' : 'User created successfully');
+  } catch(e) {
+    showToast('Error: ' + (e.message.includes('409') || e.message.includes('Duplicate') ? 'Email already exists' : e.message));
+  }
+}
+
+function genUserPassword() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+  let p = '';
+  for (let i = 0; i < 12; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('um-password').value = p;
+}
+
+function renderAudit(list) {
+  const tbody = document.querySelector('#page-audit table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = list.map(a => `
+    <tr>
+      <td style="font-size:11px;font-family:monospace;">${new Date(a.created_at).toLocaleString('en-AE')}</td>
+      <td style="font-weight:600;">${a.user_name||'System'}</td>
+      <td>${a.action||'—'}</td>
+      <td>${a.target||'—'}</td>
+      <td style="font-size:11px;color:var(--fg3);">${a.ip_address||'—'}</td>
+      <td><span class="badge ${a.result==='success'?'badge-green':'badge-red'}">${a.result||'—'}</span></td>
+    </tr>`).join('');
+}
+
+initAdmin();
+
+// Keyboard shortcut: N to open create company
+document.addEventListener('keydown', e => {
+  if (e.key === 'n' && !e.target.closest('input,textarea,select')) openModal('create-company-modal');
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.hidden = true);
+});
+</script>

@@ -1,0 +1,1544 @@
+<title>ALNOOR E-Invoice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --sidebar:#0f1f3d;--sidebar-hover:#1a3260;--sidebar-active:#2563eb;
+  --bg:#f0f2f7;--surface:#ffffff;--surface2:#f4f6fb;--border:#e2e6ef;
+  --fg:#111827;--fg2:#4b5563;--fg3:#9ca3af;
+  --accent:#2563eb;--accent-light:#eff4ff;
+  --green:#10b981;--green-light:#ecfdf5;
+  --amber:#f59e0b;--amber-light:#fffbeb;
+  --red:#ef4444;--red-light:#fef2f2;
+  --purple:#8b5cf6;--purple-light:#f5f3ff;
+  --teal:#0ea5e9;--teal-light:#f0f9ff;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.12);
+  font-variant-numeric:tabular-nums;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --sidebar:#060d1f;--sidebar-hover:#0f1f3d;
+  --bg:#0d1117;--surface:#161b27;--surface2:#1c2235;
+  --border:#2a3347;--fg:#f1f5f9;--fg2:#94a3b8;--fg3:#64748b;
+  --accent-light:#1e3a8a;--green-light:#064e3b;--amber-light:#78350f;
+  --red-light:#7f1d1d;--purple-light:#3b0764;--teal-light:#0c4a6e;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --sidebar:#060d1f;--sidebar-hover:#0f1f3d;
+  --bg:#0d1117;--surface:#161b27;--surface2:#1c2235;
+  --border:#2a3347;--fg:#f1f5f9;--fg2:#94a3b8;--fg3:#64748b;
+  --accent-light:#1e3a8a;--green-light:#064e3b;--amber-light:#78350f;
+  --red-light:#7f1d1d;--purple-light:#3b0764;--teal-light:#0c4a6e;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--fg);display:flex;font-size:14px;line-height:1.5;}
+
+/* SIDEBAR */
+.sidebar{width:220px;min-width:220px;background:var(--sidebar);display:flex;flex-direction:column;height:100%;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+.sidebar-logo{display:flex;align-items:center;gap:10px;padding:18px 14px 14px;border-bottom:1px solid rgba(255,255,255,.08);}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;}
+.logo-text{color:#fff;font-weight:700;font-size:13px;line-height:1.2;}
+.logo-sub{color:rgba(255,255,255,.4);font-size:10px;letter-spacing:.04em;text-transform:uppercase;}
+.sec-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.28);padding:14px 14px 4px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;transition:background .15s,color .15s;user-select:none;}
+.nav-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,.9);}
+.nav-item.active{background:var(--sidebar-active);color:#fff;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.sidebar-footer{margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,.08);}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100%;min-width:0;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50;}
+.topbar-title{font-weight:700;font-size:17px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.content{padding:24px;flex:1;overflow-y:auto;min-width:0;}
+.content-inner{max-width:1300px;margin:0 auto;}
+
+/* PAGE */
+.page{display:none;}
+.page.active{display:block;}
+
+/* STAT CARDS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:6px;}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);}
+.stat-val{font-size:26px;font-weight:800;line-height:1;}
+.stat-sub{font-size:12px;color:var(--fg3);}
+.stat-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.pill-green{background:var(--green-light);color:var(--green);}
+.pill-amber{background:var(--amber-light);color:var(--amber);}
+.pill-red{background:var(--red-light);color:var(--red);}
+.pill-blue{background:var(--accent-light);color:var(--accent);}
+.pill-purple{background:var(--purple-light);color:var(--purple);}
+.pill-teal{background:var(--teal-light);color:var(--teal);}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;}
+.card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.card-title{font-weight:700;font-size:15px;}
+.card-body{padding:20px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg3);padding:8px 12px;border-bottom:1px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-secondary{background:var(--surface);color:var(--fg);border-color:var(--border);}
+.btn-secondary:hover{background:var(--surface2);}
+.btn-ghost{background:transparent;color:var(--fg2);border-color:transparent;padding:6px 10px;}
+.btn-ghost:hover{background:var(--surface2);}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover{background:#059669;}
+.btn-amber{background:var(--amber);color:#fff;border-color:var(--amber);}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+
+/* BADGE / STATUS */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.badge-submitted{background:var(--accent-light);color:var(--accent);}
+.badge-cleared{background:var(--green-light);color:var(--green);}
+.badge-pending{background:var(--amber-light);color:var(--amber);}
+.badge-failed{background:var(--red-light);color:var(--red);}
+.badge-queued{background:var(--purple-light);color:var(--purple);}
+.badge-draft{background:var(--surface2);color:var(--fg2);}
+.badge-warning{background:var(--amber-light);color:var(--amber);}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:12px;padding:10px 0;}
+.tl-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;}
+.tl-line{position:relative;}
+.tl-line::after{content:'';position:absolute;left:13px;top:30px;bottom:-10px;width:2px;background:var(--border);}
+.tl-body{flex:1;min-width:0;}
+.tl-title{font-weight:600;font-size:13px;}
+.tl-meta{font-size:11px;color:var(--fg3);margin-top:1px;}
+
+/* PROGRESS STEPS */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:24px;}
+.step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;}
+.step:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;right:-50%;height:2px;background:var(--border);z-index:0;}
+.step.done::after,.step.active::after{background:var(--accent);}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;z-index:1;position:relative;}
+.step.done .step-num{background:var(--green);border-color:var(--green);color:#fff;}
+.step.active .step-num{background:var(--accent);border-color:var(--accent);color:#fff;}
+.step-label{font-size:11px;color:var(--fg3);margin-top:4px;text-align:center;}
+.step.active .step-label{color:var(--accent);font-weight:600;}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-weight:700;font-size:17px;}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--fg2);font-size:20px;padding:2px 6px;border-radius:6px;}
+.modal-close:hover{background:var(--surface2);}
+.modal-body{padding:24px;}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:flex-end;gap:10px;}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-row.cols-1{grid-template-columns:1fr;}
+.form-row.cols-3{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:12px;font-weight:600;color:var(--fg2);}
+.field input,.field select,.field textarea{padding:8px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--fg);font-size:13px;font-family:inherit;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+.field textarea{resize:vertical;min-height:70px;}
+.field .hint{font-size:11px;color:var(--fg3);}
+.field .err{font-size:11px;color:var(--red);}
+
+/* ALERT */
+.alert{border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;display:flex;gap:10px;align-items:flex-start;margin-bottom:16px;}
+.alert-warn{background:var(--amber-light);color:#92400e;border:1px solid #fcd34d;}
+.alert-info{background:var(--accent-light);color:#1e40af;border:1px solid #93c5fd;}
+.alert-success{background:var(--green-light);color:#065f46;border:1px solid #6ee7b7;}
+.alert-danger{background:var(--red-light);color:#991b1b;border:1px solid #fca5a5;}
+.alert-icon{flex-shrink:0;font-size:16px;line-height:1;}
+
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.tab{padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--fg2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.tab:hover{color:var(--fg);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* TOAST */
+.toast-stack{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:999;}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-md);font-size:13px;font-weight:500;min-width:260px;max-width:360px;animation:slideIn .2s ease;}
+.toast-success{border-left:3px solid var(--green);}
+.toast-error{border-left:3px solid var(--red);}
+.toast-info{border-left:3px solid var(--accent);}
+.toast-warn{border-left:3px solid var(--amber);}
+@keyframes slideIn{from{transform:translateX(40px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+/* LOG CODE */
+.log-code{font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;overflow-x:auto;white-space:pre;line-height:1.6;max-height:220px;overflow-y:auto;}
+.log-ok{color:var(--green);}
+.log-err{color:var(--red);}
+.log-warn{color:var(--amber);}
+.log-info{color:var(--accent);}
+
+/* QUEUE STATUS TRACKER */
+.qstatus{display:flex;align-items:center;gap:0;overflow-x:auto;padding:4px 0;}
+.qs-step{display:flex;align-items:center;gap:0;flex-shrink:0;}
+.qs-node{width:30px;height:30px;border-radius:50%;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;position:relative;}
+.qs-node.done{background:var(--green);border-color:var(--green);color:#fff;}
+.qs-node.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 0 4px var(--accent-light);}
+.qs-node.failed{background:var(--red);border-color:var(--red);color:#fff;}
+.qs-line{width:36px;height:2px;background:var(--border);}
+.qs-line.done{background:var(--green);}
+
+/* PLACEHOLDER BANNER */
+.placeholder-banner{background:linear-gradient(135deg,#1e3a8a,#312e81);color:#fff;border-radius:var(--radius);padding:20px 24px;margin-bottom:22px;display:flex;gap:16px;align-items:flex-start;}
+.placeholder-banner .pb-icon{font-size:28px;flex-shrink:0;}
+.placeholder-banner h3{margin:0 0 4px;font-size:16px;font-weight:700;}
+.placeholder-banner p{margin:0;font-size:13px;opacity:.85;line-height:1.5;}
+.placeholder-banner .pb-badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;letter-spacing:.04em;margin-top:8px;}
+
+/* VALIDATION ROW */
+.vrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.vrow:last-child{border-bottom:none;}
+.vrow-icon{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.vrow-pass{background:var(--green-light);color:var(--green);}
+.vrow-fail{background:var(--red-light);color:var(--red);}
+.vrow-warn{background:var(--amber-light);color:var(--amber);}
+.vrow-label{flex:1;font-size:13px;}
+.vrow-detail{font-size:11px;color:var(--fg3);}
+
+/* MISC */
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.empty-state{text-align:center;padding:48px 20px;color:var(--fg3);}
+.empty-state .es-icon{font-size:40px;margin-bottom:12px;}
+.empty-state h3{margin:0 0 6px;font-size:16px;color:var(--fg2);}
+.empty-state p{margin:0;font-size:13px;}
+.flex{display:flex;} .items-center{align-items:center;} .justify-between{justify-content:space-between;}
+.gap-2{gap:8px;} .gap-3{gap:12px;} .gap-4{gap:16px;}
+.text-sm{font-size:12px;} .text-xs{font-size:11px;} .text-fg2{color:var(--fg2);} .text-fg3{color:var(--fg3);}
+.font-mono{font-family:'DM Mono',monospace;}
+.mb-4{margin-bottom:16px;} .mb-3{margin-bottom:12px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.fw-700{font-weight:700;}
+@media(max-width:640px){.sidebar{display:none;}.main{margin-left:0;}.form-row{grid-template-columns:1fr;}.grid-2{grid-template-columns:1fr;}}
+</style>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AN</div>
+    <div>
+      <div class="logo-text">ALNOOR Typing</div>
+      <div class="logo-sub">E-Invoice Module</div>
+    </div>
+  </div>
+  <div class="sec-label">E-Invoice</div>
+  <button class="nav-item active" onclick="nav('dashboard')">
+    <span>⚡</span> Dashboard
+  </button>
+  <button class="nav-item" onclick="nav('queue')">
+    <span>📤</span> Submission Queue
+    <span class="nav-badge" id="badge-queue">3</span>
+  </button>
+  <button class="nav-item" onclick="nav('invoices')">
+    <span>🧾</span> E-Invoices
+  </button>
+  <button class="nav-item" onclick="nav('validate')">
+    <span>✅</span> Validator
+  </button>
+  <button class="nav-item" onclick="nav('logs')">
+    <span>📋</span> Submission Logs
+  </button>
+  <div class="sec-label">Configuration</div>
+  <button class="nav-item" onclick="nav('provider')">
+    <span>⚙️</span> ASP Provider
+  </button>
+  <button class="nav-item" onclick="nav('templates')">
+    <span>📄</span> Invoice Templates
+  </button>
+  <div class="sidebar-footer">
+    <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;">
+      <div style="font-weight:600;color:rgba(255,255,255,.5);margin-bottom:2px;">SANDBOX MODE</div>
+      Mock ASP • No real submissions
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">UAE E-Invoice Module</div>
+    <div class="topbar-right">
+      <span class="badge badge-warning"><span class="badge-dot"></span> Sandbox Mode</span>
+      <button class="btn btn-secondary btn-sm" onclick="nav('provider')">⚙️ Configure ASP</button>
+      <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ New E-Invoice</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="content-inner">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="placeholder-banner">
+          <div class="pb-icon">🔒</div>
+          <div>
+            <h3>PLACEHOLDER — Real UAE ZATCA/ASP API Not Connected</h3>
+            <p>All submissions shown here are <strong>mock/sandbox only</strong>. To go live, configure your Accredited Service Provider (ASP) credentials in <strong>ASP Provider Settings</strong>. Only ASPs accredited by the UAE Federal Tax Authority (FTA) may submit Phase 2 e-invoices. Never enter real private keys or certificates in a demo environment.</p>
+            <span class="pb-badge">⚠ SANDBOX — NOT REAL ZATCA SUBMISSIONS</span>
+          </div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-label">Total E-Invoices</div>
+            <div class="stat-val" id="stat-cleared" style="color:var(--accent)">—</div>
+            <div class="stat-sub">Cleared</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Cleared ✓</div>
+            <div class="stat-val" id="stat-aed" style="color:var(--green);font-size:18px;">—</div>
+            <div class="stat-sub">Total value cleared</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In Queue</div>
+            <div class="stat-val" id="stat-pending" style="color:var(--amber)">—</div>
+            <div class="stat-sub">Pending submission</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Failed</div>
+            <div class="stat-val" id="stat-failed" style="color:var(--red)">—</div>
+            <div class="stat-sub">Need retry</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Submission Status Chart -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Submissions This Week</div>
+            </div>
+            <div class="card-body" style="padding:16px 20px;">
+              <svg viewBox="0 0 400 160" width="100%" style="overflow:visible;">
+                <defs>
+                  <linearGradient id="gblue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb" stop-opacity=".25"/>
+                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- grid -->
+                <line x1="40" y1="10" x2="40" y2="130" stroke="var(--border)" stroke-width="1"/>
+                <line x1="40" y1="130" x2="390" y2="130" stroke="var(--border)" stroke-width="1"/>
+                <!-- y labels -->
+                <text x="34" y="14" text-anchor="end" font-size="9" fill="var(--fg3)">60</text>
+                <text x="34" y="54" text-anchor="end" font-size="9" fill="var(--fg3)">45</text>
+                <text x="34" y="94" text-anchor="end" font-size="9" fill="var(--fg3)">30</text>
+                <text x="34" y="134" text-anchor="end" font-size="9" fill="var(--fg3)">0</text>
+                <!-- grid lines -->
+                <line x1="40" y1="10" x2="390" y2="10" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,3"/>
+                <line x1="40" y1="50" x2="390" y2="50" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,3"/>
+                <line x1="40" y1="90" x2="390" y2="90" stroke="var(--border)" stroke-width=".5" stroke-dasharray="4,3"/>
+                <!-- area fill: days Mon-Sun values 38,42,51,45,55,60,47 -->
+                <polygon points="40,67 98,60 156,37 214,53 272,27 330,10 388,53 388,130 40,130" fill="url(#gblue)"/>
+                <!-- line -->
+                <polyline points="40,67 98,60 156,37 214,53 272,27 330,10 388,53" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <!-- dots -->
+                <circle cx="40" cy="67" r="4" fill="var(--accent)"/><circle cx="98" cy="60" r="4" fill="var(--accent)"/><circle cx="156" cy="37" r="4" fill="var(--accent)"/><circle cx="214" cy="53" r="4" fill="var(--accent)"/><circle cx="272" cy="27" r="4" fill="var(--accent)"/><circle cx="330" cy="10" r="4" fill="var(--accent)"/><circle cx="388" cy="53" r="4" fill="var(--accent)"/>
+                <!-- x labels -->
+                <text x="40" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Mon</text>
+                <text x="98" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Tue</text>
+                <text x="156" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Wed</text>
+                <text x="214" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Thu</text>
+                <text x="272" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Fri</text>
+                <text x="330" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Sat</text>
+                <text x="388" y="144" text-anchor="middle" font-size="9" fill="var(--fg3)">Sun</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Clearance Rate donut -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Clearance Breakdown</div>
+            </div>
+            <div class="card-body" style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+              <svg viewBox="0 0 120 120" width="110" height="110" style="flex-shrink:0;overflow:visible;">
+                <!-- donut: cleared=231(93.5%), failed=13(5.3%), queued=3(1.2%) -->
+                <!-- circumference at r=42: 263.9 -->
+                <circle cx="60" cy="60" r="42" fill="none" stroke="var(--border)" stroke-width="14"/>
+                <!-- cleared: 93.5% = 246.7 -->
+                <circle cx="60" cy="60" r="42" fill="none" stroke="var(--green)" stroke-width="14" stroke-dasharray="246.7 263.9" stroke-dashoffset="66" stroke-linecap="round"/>
+                <!-- failed: 5.3% = 14.0 offset = 66-246.7= -->
+                <circle cx="60" cy="60" r="42" fill="none" stroke="var(--red)" stroke-width="14" stroke-dasharray="14 263.9" stroke-dashoffset="-180.7" stroke-linecap="round"/>
+                <!-- queued: 1.2% = 3.2 -->
+                <circle cx="60" cy="60" r="42" fill="none" stroke="var(--amber)" stroke-width="14" stroke-dasharray="3.2 263.9" stroke-dashoffset="-194.7" stroke-linecap="round"/>
+                <text x="60" y="55" text-anchor="middle" font-size="18" font-weight="800" fill="var(--green)">93.5</text>
+                <text x="60" y="68" text-anchor="middle" font-size="9" fill="var(--fg3)">% cleared</text>
+              </svg>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div class="flex gap-2 items-center"><div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div><span class="text-sm">Cleared <strong>231</strong></span></div>
+                <div class="flex gap-2 items-center"><div style="width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0;"></div><span class="text-sm">Failed <strong>13</strong></span></div>
+                <div class="flex gap-2 items-center"><div style="width:10px;height:10px;border-radius:50%;background:var(--amber);flex-shrink:0;"></div><span class="text-sm">Queued <strong>3</strong></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Recent Submissions</div>
+            <button class="btn btn-secondary btn-sm" onclick="nav('invoices')">View All</button>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Invoice #</th><th>Customer</th><th>Amount (AED)</th>
+                <th>Submitted</th><th>ASP Status</th><th>UUID</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="dashboard-recent"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Submission Timeline -->
+        <div class="card">
+          <div class="card-head"><div class="card-title">Submission Timeline</div></div>
+          <div class="card-body">
+            <div class="timeline" id="dash-timeline"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMISSION QUEUE -->
+      <div class="page" id="page-queue">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">Submission Queue</div>
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="refreshQueue()">↻ Refresh</button>
+            <button class="btn btn-primary btn-sm" onclick="submitAll()">⚡ Submit All Pending</button>
+          </div>
+        </div>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          <div>Invoices are queued automatically after POS checkout. The queue processor retries failed submissions with exponential backoff (30s → 2m → 10m → 1h). <strong>Sandbox mode</strong> — submissions go to the mock ASP, not the real FTA clearance portal.</div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Pending (<span id="q-pending-count">3</span>)</div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Invoice #</th><th>Customer</th><th>Total</th>
+                <th>Queued At</th><th>Attempts</th><th>Next Retry</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="queue-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">Queue Processor Status</div></div>
+          <div class="card-body">
+            <div class="flex gap-4 items-center flex-wrap" style="gap:20px 32px;">
+              <div>
+                <div class="text-xs text-fg3">Processor</div>
+                <span class="badge badge-cleared"><span class="badge-dot"></span> Running</span>
+              </div>
+              <div>
+                <div class="text-xs text-fg3">Mode</div>
+                <span class="badge badge-warning"><span class="badge-dot"></span> Sandbox</span>
+              </div>
+              <div>
+                <div class="text-xs text-fg3">Last Run</div>
+                <div class="font-mono text-sm">09 Nov 2026 · 14:32:08 GST</div>
+              </div>
+              <div>
+                <div class="text-xs text-fg3">Next Run</div>
+                <div class="font-mono text-sm">Every 60 seconds</div>
+              </div>
+              <div>
+                <div class="text-xs text-fg3">Max Retries</div>
+                <div class="font-mono text-sm">4</div>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="text-xs text-fg3 mb-3">Backoff Schedule</div>
+            <div class="flex gap-2 items-center flex-wrap">
+              <span class="badge badge-submitted">Attempt 1 — immediate</span>
+              <span>→</span>
+              <span class="badge badge-submitted">Attempt 2 — 30s</span>
+              <span>→</span>
+              <span class="badge badge-submitted">Attempt 3 — 2 min</span>
+              <span>→</span>
+              <span class="badge badge-submitted">Attempt 4 — 10 min</span>
+              <span>→</span>
+              <span class="badge badge-failed">Dead Letter</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- E-INVOICES LIST -->
+      <div class="page" id="page-invoices">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">All E-Invoices</div>
+          <div class="flex gap-2">
+            <select class="btn btn-secondary btn-sm" id="inv-filter-status" onchange="renderInvoiceTable()" style="padding:5px 10px;cursor:pointer;">
+              <option value="">All Status</option>
+              <option value="cleared">Cleared</option>
+              <option value="failed">Failed</option>
+              <option value="queued">Queued</option>
+              <option value="draft">Draft</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ New</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Invoice #</th><th>Type</th><th>Customer</th>
+                <th>Issue Date</th><th>Total AED</th><th>VAT AED</th>
+                <th>Status</th><th>ZATCA UUID</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="invoice-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VALIDATOR -->
+      <div class="page" id="page-validate">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">Invoice Validator</div>
+        </div>
+        <div class="alert alert-warn">
+          <span class="alert-icon">⚠️</span>
+          <div>This validator checks UAE ZATCA Phase 2 e-invoice compliance rules against mock schema. It does <strong>not</strong> submit to FTA. Use to pre-check invoices before live submission.</div>
+        </div>
+        <div class="grid-2" style="gap:18px;align-items:flex-start;">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head"><div class="card-title">Invoice JSON Input</div></div>
+            <div class="card-body">
+              <textarea id="val-json" class="field" style="width:100%;height:260px;font-family:'DM Mono',monospace;font-size:12px;border:1.5px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2);color:var(--fg);" placeholder='Paste invoice JSON here...'></textarea>
+              <div style="margin-top:12px;display:flex;gap:8px;">
+                <button class="btn btn-primary" onclick="runValidator()">▶ Validate</button>
+                <button class="btn btn-secondary" onclick="loadSampleInvoice()">Load Sample</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('val-json').value=''">Clear</button>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head">
+              <div class="card-title">Validation Results</div>
+              <span id="val-overall" class="badge badge-draft">Not validated</span>
+            </div>
+            <div class="card-body" style="padding:12px 20px;">
+              <div id="val-results">
+                <div class="empty-state" style="padding:32px 20px;">
+                  <div class="es-icon">🔍</div>
+                  <h3>No results yet</h3>
+                  <p>Paste an invoice JSON and click Validate</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMISSION LOGS -->
+      <div class="page" id="page-logs">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">Submission Logs</div>
+          <button class="btn btn-secondary btn-sm" onclick="renderLogs()">↻ Refresh</button>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Raw Log Stream</div>
+            <select id="log-filter" class="btn btn-secondary btn-sm" onchange="renderLogs()" style="padding:5px 10px;cursor:pointer;">
+              <option value="">All</option><option value="INFO">INFO</option>
+              <option value="WARN">WARN</option><option value="ERROR">ERROR</option>
+            </select>
+          </div>
+          <div class="card-body">
+            <div class="log-code" id="log-output">Loading logs...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Webhook Events</div></div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Time</th><th>Event</th><th>Invoice</th><th>Payload</th><th>Status</th></tr></thead>
+              <tbody id="webhook-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ASP PROVIDER -->
+      <div class="page" id="page-provider">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">ASP Provider Configuration</div>
+        </div>
+        <div class="placeholder-banner">
+          <div class="pb-icon">🔑</div>
+          <div>
+            <h3>PLACEHOLDER — Real ASP Credentials Required</h3>
+            <p>To connect a live UAE Accredited Service Provider, obtain API credentials from your chosen ASP (e.g. Fintech Galaxy, Keyloop, SAP, etc.). Enter the Production Base URL, Client ID, and Certificate below. <strong>All credentials are stored encrypted — never shown after save.</strong> Never enter live credentials in a sandbox/demo environment.</p>
+            <span class="pb-badge">⚠ PLACEHOLDER SETTINGS — NOT ACTIVE IN SANDBOX</span>
+          </div>
+        </div>
+        <div class="grid-2" style="gap:18px;align-items:flex-start;">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head"><div class="card-title">Provider Connection</div></div>
+            <div class="card-body">
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Mode</label>
+                  <select id="asp-mode">
+                    <option value="sandbox" selected>Sandbox (Mock)</option>
+                    <option value="production">Production (Live)</option>
+                  </select>
+                  <div class="hint">Sandbox uses the built-in mock adapter. Production requires real ASP credentials.</div>
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>ASP Provider Name</label>
+                  <input id="asp-name" value="Mock ASP (Built-in)" placeholder="e.g. Fintech Galaxy, Keyloop">
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Base API URL <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
+                  <input id="asp-url" value="" placeholder="https://your-asp-provider.com/api/v1" disabled>
+                  <div class="hint">Only active in Production mode</div>
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Client ID <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
+                  <input id="asp-clientid" value="" placeholder="Enter Client ID" type="password" disabled>
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Client Secret <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
+                  <input id="asp-secret" value="" placeholder="Enter Client Secret" type="password" disabled>
+                  <div class="hint">Stored encrypted — never shown after save</div>
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>TLS Certificate (PEM) <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
+                  <textarea id="asp-cert" placeholder="-----BEGIN CERTIFICATE-----&#10;(paste PEM here)&#10;-----END CERTIFICATE-----" disabled style="height:90px;"></textarea>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="saveASPConfig()">Save Configuration</button>
+              <button class="btn btn-secondary" onclick="testASPConnection()" style="margin-left:8px;">Test Connection</button>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-head"><div class="card-title">Seller Identity (ZATCA)</div></div>
+            <div class="card-body">
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Seller Name (Arabic)</label>
+                  <input value="النور للطباعة والتصوير" id="seller-ar">
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Seller Name (English)</label>
+                  <input value="Alnoor Typing & Photocopying" id="seller-en">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>TRN (VAT Registration Number)</label>
+                  <input value="100234567890003" id="seller-trn" maxlength="15" class="font-mono">
+                  <div class="hint">15 digits, ends in 003</div>
+                </div>
+                <div class="field">
+                  <label>CR Number</label>
+                  <input value="CN-2021-0045" id="seller-cr">
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Street Address</label>
+                  <input value="Shop 12, Al Nahda Complex, Dubai" id="seller-addr">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>Emirate</label>
+                  <select id="seller-emirate">
+                    <option selected>Dubai</option>
+                    <option>Abu Dhabi</option><option>Sharjah</option>
+                    <option>Ajman</option><option>RAK</option>
+                    <option>UAQ</option><option>Fujairah</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Country Code</label>
+                  <input value="AE" id="seller-country" maxlength="2">
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>E-Invoice Schema Version</label>
+                  <select>
+                    <option selected>UBL 2.1 (ZATCA Phase 2)</option>
+                    <option>UBL 2.1 (ZATCA Phase 1)</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="saveSellerInfo()">Save Seller Info</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEMPLATES -->
+      <div class="page" id="page-templates">
+        <div class="card-head" style="padding:0 0 16px;">
+          <div class="card-title" style="font-size:19px;">Invoice Templates</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">Default Tax Invoice (Standard)</div></div>
+          <div class="card-body">
+            <div class="form-row cols-1">
+              <div class="field">
+                <label>Invoice Type Code</label>
+                <select>
+                  <option value="388" selected>388 — Tax Invoice</option>
+                  <option value="381">381 — Credit Note</option>
+                  <option value="383">383 — Debit Note</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>Currency</label>
+                <select><option selected>AED — UAE Dirham</option></select>
+              </div>
+              <div class="field">
+                <label>Tax Currency</label>
+                <select><option selected>AED</option></select>
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field">
+                <label>Default VAT Category</label>
+                <select>
+                  <option value="S" selected>S — Standard Rate (5%)</option>
+                  <option value="Z">Z — Zero-Rated (0%)</option>
+                  <option value="E">E — Exempt</option>
+                  <option value="O">O — Out of Scope (Gov Fees)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row cols-1">
+              <div class="field">
+                <label>Notes / Footer</label>
+                <textarea>Thank you for visiting ALNOOR Typing Centre. This is a computer-generated e-invoice compliant with UAE FTA requirements.</textarea>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="toast('Template saved','success')">Save Template</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content-inner -->
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- CREATE E-INVOICE MODAL -->
+<div class="modal-backdrop" id="modal-create">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Create E-Invoice</div>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="steps" id="create-steps">
+        <div class="step active" id="step-1"><div class="step-num">1</div><div class="step-label">Header</div></div>
+        <div class="step" id="step-2"><div class="step-num">2</div><div class="step-label">Lines</div></div>
+        <div class="step" id="step-3"><div class="step-num">3</div><div class="step-label">Review</div></div>
+        <div class="step" id="step-4"><div class="step-num">4</div><div class="step-label">Submit</div></div>
+      </div>
+      <!-- Step 1: Header -->
+      <div id="create-panel-1">
+        <div class="form-row">
+          <div class="field">
+            <label>Invoice Type</label>
+            <select id="inv-type">
+              <option value="388">388 — Tax Invoice</option>
+              <option value="381">381 — Credit Note</option>
+              <option value="383">383 — Debit Note</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Invoice Number</label>
+            <input id="inv-num" value="INV-2026-0248" class="font-mono">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Issue Date</label>
+            <input type="date" id="inv-date" value="2026-11-09">
+          </div>
+          <div class="field">
+            <label>Supply Date</label>
+            <input type="date" id="inv-supply" value="2026-11-09">
+          </div>
+        </div>
+        <div class="form-row cols-1">
+          <div class="field">
+            <label>Buyer Name</label>
+            <input id="inv-buyer" placeholder="Customer / Company name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Buyer TRN (if VAT-registered)</label>
+            <input id="inv-buyer-trn" placeholder="15 digits (optional)" maxlength="15" class="font-mono">
+          </div>
+          <div class="field">
+            <label>Payment Method</label>
+            <select id="inv-pay">
+              <option value="cash">Cash</option>
+              <option value="card">Card</option>
+              <option value="bank">Bank Transfer</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Step 2: Lines -->
+      <div id="create-panel-2" hidden>
+        <table style="width:100%;font-size:13px;border-collapse:collapse;margin-bottom:12px;">
+          <thead><tr>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg3);">Description</th>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg3);">VAT</th>
+            <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg3);">Qty</th>
+            <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg3);">Unit AED</th>
+            <th style="text-align:right;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--fg3);">Line AED</th>
+            <th style="padding:6px 4px;"></th>
+          </tr></thead>
+          <tbody id="inv-lines-body"></tbody>
+        </table>
+        <button class="btn btn-secondary btn-sm" onclick="addInvLine()">+ Add Line</button>
+        <div class="divider"></div>
+        <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;font-size:13px;" id="inv-totals">
+          <div class="flex gap-2 justify-between" style="width:220px;"><span>Subtotal</span><span class="font-mono" id="inv-sub">0.00</span></div>
+          <div class="flex gap-2 justify-between" style="width:220px;"><span>VAT (5%)</span><span class="font-mono" id="inv-vat-amt">0.00</span></div>
+          <div class="divider" style="margin:4px 0;width:220px;"></div>
+          <div class="flex gap-2 justify-between fw-700" style="width:220px;font-size:15px;"><span>Total</span><span class="font-mono" id="inv-total-amt">0.00</span></div>
+        </div>
+      </div>
+      <!-- Step 3: Review -->
+      <div id="create-panel-3" hidden>
+        <div class="alert alert-info">
+          <span class="alert-icon">ℹ️</span>
+          <span>Review the generated UBL XML below before submission. This is the payload that will be sent to the mock ASP.</span>
+        </div>
+        <div class="log-code" id="review-xml" style="max-height:300px;"></div>
+      </div>
+      <!-- Step 4: Submit -->
+      <div id="create-panel-4" hidden>
+        <div class="alert alert-warn" id="submit-sandbox-note">
+          <span class="alert-icon">⚠️</span>
+          <span><strong>Sandbox Mode:</strong> This invoice will be submitted to the <strong>mock ASP only</strong>, not the real ZATCA/FTA portal. No real legal effect.</span>
+        </div>
+        <div id="submit-progress" style="display:none;">
+          <div class="steps" id="submit-steps">
+            <div class="step" id="ss-1"><div class="step-num">1</div><div class="step-label">Signing</div></div>
+            <div class="step" id="ss-2"><div class="step-num">2</div><div class="step-label">Sending</div></div>
+            <div class="step" id="ss-3"><div class="step-num">3</div><div class="step-label">Clearing</div></div>
+            <div class="step" id="ss-4"><div class="step-num">4</div><div class="step-label">Logging</div></div>
+          </div>
+          <div class="log-code" id="submit-log" style="margin-top:16px;max-height:200px;"></div>
+        </div>
+        <div id="submit-result" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" id="btn-back" onclick="createBack()" hidden>← Back</button>
+      <button class="btn btn-primary" id="btn-next" onclick="createNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE DETAIL MODAL -->
+<div class="modal-backdrop" id="modal-detail">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-head">
+      <div class="modal-title" id="detail-title">Invoice Detail</div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- TOAST STACK -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+// ===================== CONFIG =====================
+const API = '/api'
+const _p  = new URLSearchParams(window.location.search)
+const CID = parseInt(_p.get('cid') || '1')
+
+// Live data (populated from API)
+let INVOICES = []
+let QUEUE    = []
+let LOGS     = []
+
+async function apiFetch(path, opts) {
+  const r = await fetch(API + path, opts)
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+}
+
+async function loadAll() {
+  try {
+    const [queue, logs, invRows] = await Promise.all([
+      apiFetch(`/${CID}/einvoice/queue`),
+      apiFetch(`/${CID}/einvoice/logs`),
+      apiFetch(`/${CID}/invoices`),
+    ])
+    QUEUE = queue.map(q => ({
+      _qid:      q.id,
+      _invId:    q.invoice_id,
+      id:        q.invoice_number,
+      buyer:     q.customer_name,
+      total:     parseFloat(q.total),
+      queuedAt:  (q.created_at||'').toString().slice(0,16).replace('T',' '),
+      attempts:  q.attempts,
+      status:    q.status,
+      nextRetry: q.next_retry ? q.next_retry.toString().slice(11,16) : 'Immediate',
+    }))
+    LOGS = logs.map(l => ({
+      ts:    (l.created_at||'').toString().slice(0,19).replace('T',' '),
+      level: l.level,
+      msg:   l.message,
+    }))
+    INVOICES = invRows
+      .filter(i => i.einvoice_status && i.einvoice_status !== 'none')
+      .map(i => ({
+        _id:     i.id,
+        id:      i.invoice_number,
+        type:    i.type === 'credit_note' ? 'Credit Note' : i.type === 'debit_note' ? 'Debit Note' : 'Tax Invoice',
+        buyer:   i.customer_name || '',
+        buyerTrn:i.customer_trn  || '',
+        date:    i.issue_date     || '',
+        subtotal:parseFloat(i.subtotal),
+        vatAmt:  parseFloat(i.vat_amount),
+        total:   parseFloat(i.total),
+        status:  i.einvoice_status,
+        uuid:    i.einvoice_uuid  || '',
+        attempts:0,
+        queuedAt: (i.created_at||'').toString().slice(0,16).replace('T',' '),
+        clearedAt:i.einvoice_uuid ? (i.created_at||'').toString().slice(0,16).replace('T',' ') : '',
+      }))
+    renderDashboard()
+    updateQueueBadge()
+  } catch(e) {
+    console.error('E-Invoice load error:', e)
+  }
+}
+
+function updateQueueBadge() {
+  const pending = QUEUE.filter(q => q.status === 'pending' || q.status === 'submitted').length
+  const el = document.getElementById('badge-queue')
+  if (el) el.textContent = pending || ''
+  if (el) el.style.display = pending ? '' : 'none'
+}
+
+// ===================== NAV =====================
+function nav(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  if(id==='queue')    { loadAll().then(renderQueue); return; }
+  if(id==='invoices') { loadAll().then(renderInvoiceTable); return; }
+  if(id==='logs')     { loadAll().then(renderLogs); return; }
+  if(id==='dashboard'){ loadAll(); return; }
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard(){
+  // Stat cards
+  const cleared = INVOICES.filter(i=>i.status==='cleared')
+  const failed  = INVOICES.filter(i=>i.status==='failed')
+  const pending = QUEUE.filter(q=>q.status==='pending'||q.status==='submitted')
+  const totalAED= cleared.reduce((s,i)=>s+i.total,0)
+  const sc = document.getElementById('stat-cleared'); if(sc) sc.textContent = cleared.length
+  const sf = document.getElementById('stat-failed');  if(sf) sf.textContent = failed.length
+  const sp = document.getElementById('stat-pending'); if(sp) sp.textContent = pending.length
+  const sa = document.getElementById('stat-aed');     if(sa) sa.textContent = 'AED '+totalAED.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})
+
+  const tbody = document.getElementById('dashboard-recent');
+  if(!tbody) return;
+  if (!INVOICES.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:20px;">No e-invoices yet — submit an invoice to get started</td></tr>`
+  } else {
+    tbody.innerHTML = INVOICES.slice(0,5).map(inv=>`
+      <tr>
+        <td class="font-mono" style="font-weight:600;">${inv.id}</td>
+        <td>${inv.buyer}</td>
+        <td class="font-mono" style="text-align:right;">${Math.abs(inv.total).toFixed(2)}</td>
+        <td class="font-mono text-fg3" style="font-size:11px;">${inv.clearedAt||inv.queuedAt}</td>
+        <td>${statusBadge(inv.status)}</td>
+        <td class="font-mono text-fg3" style="font-size:11px;">${inv.uuid||'—'}</td>
+        <td><button class="btn btn-ghost btn-xs" onclick="showDetail('${inv.id}')">View</button></td>
+      </tr>`).join('')
+  }
+
+  const tl = document.getElementById('dash-timeline');
+  if (!tl) return
+  const recent = [...INVOICES].slice(0,4)
+  if (!recent.length) { tl.innerHTML = `<div style="color:var(--fg3);font-size:13px;">No activity yet</div>`; return }
+  tl.innerHTML = recent.map((inv,i)=>{
+    const ok = inv.status === 'cleared'
+    const icon = ok ? '✅' : inv.status === 'failed' ? '❌' : '⏳'
+    const bg   = ok ? 'var(--green-light)' : inv.status === 'failed' ? 'var(--red-light)' : 'var(--amber-light)'
+    const col  = ok ? 'var(--green)'       : inv.status === 'failed' ? 'var(--red)'       : 'var(--amber)'
+    const title= `${inv.id} — ${ok ? 'Cleared' : inv.status.charAt(0).toUpperCase()+inv.status.slice(1)}`
+    const meta = `${inv.clearedAt||inv.queuedAt}${inv.uuid ? ' · UUID '+inv.uuid : ''}`
+    return `<div class="tl-item${i<recent.length-1?' tl-line':''}">
+      <div class="tl-dot" style="background:${bg};color:${col};">${icon}</div>
+      <div class="tl-body"><div class="tl-title">${title}</div><div class="tl-meta">${meta}</div></div>
+    </div>`
+  }).join('')
+}
+
+// ===================== QUEUE =====================
+function renderQueue(){
+  const tbody = document.getElementById('queue-table');
+  if(!tbody) return;
+  document.getElementById('q-pending-count').textContent = QUEUE.length;
+  document.getElementById('badge-queue').textContent = QUEUE.length;
+  tbody.innerHTML = QUEUE.map(q=>`
+    <tr>
+      <td class="font-mono" style="font-weight:600;">${q.id}</td>
+      <td>${q.buyer}</td>
+      <td class="font-mono" style="text-align:right;">AED ${q.total.toFixed(2)}</td>
+      <td class="font-mono text-fg3" style="font-size:11px;">${q.queuedAt}</td>
+      <td><span class="badge ${q.attempts===0?'badge-submitted':'badge-warning'}">${q.attempts}/${4}</span></td>
+      <td class="font-mono text-fg3" style="font-size:11px;">${q.nextRetry}</td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn btn-green btn-xs" onclick="submitOne('${q.id}')">▶ Submit</button>
+        <button class="btn btn-ghost btn-xs" onclick="removeFromQueue('${q.id}')">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function submitOne(invId){
+  const q = QUEUE.find(x=>x.id===invId)
+  if(!q) return
+  toast(`Submitting ${invId} to mock ASP…`,'info')
+  try {
+    const res = await apiFetch(`/${CID}/einvoice/submit/${q._qid}`, { method:'POST' })
+    toast(`${invId} cleared ✓ UUID: ${res.uuid}`,'success')
+    await loadAll()
+    renderQueue()
+  } catch(e) {
+    toast(`${invId} failed — ${e.message}`,'error')
+  }
+}
+
+async function removeFromQueue(invId){
+  const q = QUEUE.find(x=>x.id===invId)
+  if(!q) return
+  if(!confirm(`Remove ${invId} from queue?`)) return
+  QUEUE = QUEUE.filter(x=>x.id!==invId)
+  renderQueue()
+  toast('Removed from queue','info')
+}
+
+async function refreshQueue(){
+  await loadAll()
+  renderQueue()
+  toast('Queue refreshed','info')
+}
+
+async function submitAll(){
+  const pending = QUEUE.filter(q=>q.status==='pending'||q.status==='submitted')
+  if(!pending.length){ toast('Queue is empty','info'); return }
+  toast(`Submitting ${pending.length} invoices…`,'info')
+  for (const q of pending) {
+    try {
+      await apiFetch(`/${CID}/einvoice/submit/${q._qid}`, { method:'POST' })
+    } catch(e) { /* continue */ }
+  }
+  await loadAll()
+  renderQueue()
+  toast('All submitted ✓','success')
+}
+
+// ===================== INVOICE TABLE =====================
+function statusBadge(s){
+  const m={cleared:'badge-cleared',failed:'badge-failed',queued:'badge-queued',draft:'badge-draft',submitted:'badge-submitted'};
+  const labels={cleared:'Cleared ✓',failed:'Failed',queued:'Queued',draft:'Draft',submitted:'Submitted'};
+  return `<span class="badge ${m[s]||'badge-draft'}"><span class="badge-dot"></span>${labels[s]||s}</span>`;
+}
+
+function renderInvoiceTable(){
+  const filter = document.getElementById('inv-filter-status')?.value||'';
+  const tbody = document.getElementById('invoice-table');
+  if(!tbody) return;
+  const list = filter ? INVOICES.filter(i=>i.status===filter) : INVOICES;
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state" style="padding:32px;"><div class="es-icon">🧾</div><h3>No invoices</h3><p>No matching invoices found</p></div></td></tr>`;return;}
+  tbody.innerHTML = list.map(inv=>`
+    <tr>
+      <td class="font-mono" style="font-weight:600;">${inv.id}</td>
+      <td style="font-size:12px;">${inv.type}</td>
+      <td>${inv.buyer}${inv.buyerTrn?`<br><span class="font-mono text-fg3" style="font-size:11px;">${inv.buyerTrn}</span>`:''}</td>
+      <td class="font-mono" style="font-size:12px;">${inv.date}</td>
+      <td class="font-mono" style="text-align:right;font-weight:600;">${inv.total.toFixed(2)}</td>
+      <td class="font-mono" style="text-align:right;color:var(--fg2);">${inv.vatAmt.toFixed(2)}</td>
+      <td>${statusBadge(inv.status)}</td>
+      <td class="font-mono text-fg3" style="font-size:11px;">${inv.uuid||'—'}</td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn btn-ghost btn-xs" onclick="showDetail('${inv.id}')">View</button>
+        ${inv.status==='failed'?`<button class="btn btn-amber btn-xs" onclick="retryInvoice('${inv.id}')">Retry</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+
+async function retryInvoice(id){
+  const inv = INVOICES.find(i=>i.id===id)
+  if(!inv) return
+  const q = QUEUE.find(x=>x._invId===inv._id) || QUEUE.find(x=>x.id===id)
+  if (!q) {
+    // Re-queue it
+    try {
+      await apiFetch(`/${CID}/einvoice/queue`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({invoice_id:inv._id}) })
+      toast(`${id} re-queued`,'info')
+      await loadAll(); renderInvoiceTable()
+    } catch(e) { toast(`Failed: ${e.message}`,'error') }
+    return
+  }
+  toast(`Retrying ${id}…`,'info')
+  try {
+    const res = await apiFetch(`/${CID}/einvoice/submit/${q._qid}`, { method:'POST' })
+    toast(`${id} cleared ✓`,'success')
+    await loadAll(); renderInvoiceTable()
+  } catch(e) { toast(`${id} failed — ${e.message}`,'error') }
+}
+
+// ===================== DETAIL MODAL =====================
+function showDetail(id){
+  const inv = INVOICES.find(i=>i.id===id);
+  if(!inv) return;
+  document.getElementById('detail-title').textContent = inv.id + ' · ' + inv.type;
+  document.getElementById('detail-body').innerHTML = `
+    <div class="grid-2 mb-4">
+      <div>
+        <div class="text-xs text-fg3">Buyer</div><div class="fw-700">${inv.buyer}</div>
+        ${inv.buyerTrn?`<div class="font-mono text-sm text-fg2">TRN: ${inv.buyerTrn}</div>`:''}
+      </div>
+      <div>
+        <div class="text-xs text-fg3">Issue Date</div>
+        <div class="font-mono">${inv.date}</div>
+      </div>
+      <div>
+        <div class="text-xs text-fg3">Status</div>
+        ${statusBadge(inv.status)}
+      </div>
+      <div>
+        <div class="text-xs text-fg3">ZATCA UUID</div>
+        <div class="font-mono text-sm">${inv.uuid||'Not yet assigned'}</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;font-size:13px;">
+      <div class="flex justify-between" style="width:240px;"><span>Subtotal</span><span class="font-mono">AED ${inv.subtotal.toFixed(2)}</span></div>
+      <div class="flex justify-between" style="width:240px;"><span>VAT (5%)</span><span class="font-mono">AED ${inv.vatAmt.toFixed(2)}</span></div>
+      <div class="divider" style="margin:4px 0;width:240px;"></div>
+      <div class="flex justify-between fw-700" style="width:240px;font-size:15px;"><span>Total</span><span class="font-mono">AED ${inv.total.toFixed(2)}</span></div>
+    </div>
+    ${inv.status==='cleared'?`
+    <div class="divider"></div>
+    <div class="text-xs text-fg3 mb-3">QR Code (Mock ZATCA Base45)</div>
+    <svg viewBox="0 0 80 80" width="80" height="80" style="border:1px solid var(--border);border-radius:6px;padding:4px;">
+      ${Array.from({length:8},(_,r)=>Array.from({length:8},(_,c)=>Math.random()>.5?`<rect x="${c*9+1}" y="${r*9+1}" width="8" height="8" fill="var(--fg)" rx="1"/>`:'').join('')).join('')}
+      <rect x="1" y="1" width="22" height="22" fill="none" stroke="var(--fg)" stroke-width="2"/>
+      <rect x="4" y="4" width="16" height="16" fill="var(--fg)" rx="1"/>
+      <rect x="57" y="1" width="22" height="22" fill="none" stroke="var(--fg)" stroke-width="2"/>
+      <rect x="60" y="4" width="16" height="16" fill="var(--fg)" rx="1"/>
+      <rect x="1" y="57" width="22" height="22" fill="none" stroke="var(--fg)" stroke-width="2"/>
+      <rect x="4" y="60" width="16" height="16" fill="var(--fg)" rx="1"/>
+    </svg>
+    <div class="text-xs text-fg3" style="margin-top:4px;">Mock QR — not a real ZATCA QR code</div>`:''}
+    <div class="divider"></div>
+    <div class="text-xs text-fg3 mb-3">Submission History</div>
+    <div class="log-code">${
+      inv.status==='cleared'
+        ? `[${inv.queuedAt}] QUEUED — INV ready for submission\n[${inv.queuedAt}] SIGNING — mock private key (sandbox)\n[${inv.clearedAt}] SENT   — mock ASP responded HTTP 200\n[${inv.clearedAt}] CLEARED — UUID: ${inv.uuid}`
+        : LOGS.filter(l=>l.msg.includes(inv.id)).map(l=>`[${l.ts}] ${l.level.padEnd(5)} ${l.msg}`).join('\n')||'No log entries'
+    }</div>
+  `;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+// ===================== VALIDATOR =====================
+function loadSampleInvoice(){
+  document.getElementById('val-json').value = JSON.stringify({
+    invoiceNumber:"INV-2026-0248",
+    invoiceTypeCode:"388",
+    issueDate:"2026-11-09",
+    supplyDate:"2026-11-09",
+    seller:{name:"Alnoor Typing & Photocopying",trn:"100234567890003",address:"Shop 12, Al Nahda, Dubai",country:"AE"},
+    buyer:{name:"Omar Al Mazrouei",trn:""},
+    lines:[
+      {description:"Emirates ID Typing",quantity:1,unitPrice:250,vatCategory:"S",vatRate:0.05,lineAmount:250,vatAmount:12.50},
+    ],
+    subtotal:250,vatAmount:12.50,total:262.50,currency:"AED",paymentMethod:"cash"
+  },null,2);
+}
+
+const VALIDATION_RULES = [
+  {key:'invoiceNumber',label:'Invoice Number present',check:d=>!!d.invoiceNumber},
+  {key:'invoiceTypeCode',label:'Invoice Type Code is 388/381/383',check:d=>['388','381','383'].includes(d.invoiceTypeCode)},
+  {key:'issueDate',label:'Issue Date (YYYY-MM-DD)',check:d=>/^\d{4}-\d{2}-\d{2}$/.test(d.issueDate)},
+  {key:'seller',label:'Seller info present',check:d=>!!(d.seller&&d.seller.name)},
+  {key:'sellerTRN',label:'Seller TRN — 15 digits ending in 003',check:d=>!!(d.seller&&/^\d{15}$/.test(d.seller.trn)&&d.seller.trn.endsWith('003'))},
+  {key:'sellerCountry',label:'Seller country code = AE',check:d=>!!(d.seller&&d.seller.country==='AE')},
+  {key:'buyer',label:'Buyer name present',check:d=>!!(d.buyer&&d.buyer.name)},
+  {key:'lines',label:'At least one invoice line',check:d=>Array.isArray(d.lines)&&d.lines.length>0},
+  {key:'vatCat',label:'All lines have valid VAT category (S/Z/E/O)',check:d=>Array.isArray(d.lines)&&d.lines.every(l=>['S','Z','E','O'].includes(l.vatCategory))},
+  {key:'subtotal',label:'Subtotal is numeric',check:d=>typeof d.subtotal==='number'},
+  {key:'vatAmount',label:'VAT amount is numeric',check:d=>typeof d.vatAmount==='number'},
+  {key:'total',label:'Total = subtotal + VAT',check:d=>Math.abs((d.subtotal+d.vatAmount)-d.total)<0.01},
+  {key:'currency',label:'Currency = AED',check:d=>d.currency==='AED'},
+];
+
+function runValidator(){
+  const raw = document.getElementById('val-json').value.trim();
+  if(!raw){toast('Paste invoice JSON first','error');return;}
+  let data;
+  try{data=JSON.parse(raw);}catch(e){
+    document.getElementById('val-results').innerHTML=`<div class="alert alert-danger"><span class="alert-icon">❌</span>Invalid JSON: ${e.message}</div>`;
+    document.getElementById('val-overall').className='badge badge-failed';
+    document.getElementById('val-overall').textContent='Invalid JSON';
+    return;
+  }
+  const results = VALIDATION_RULES.map(r=>{
+    let pass=false,warn=false;
+    try{pass=r.check(data);}catch(e){}
+    return {label:r.label,pass,warn};
+  });
+  const passCount=results.filter(r=>r.pass).length;
+  const failCount=results.filter(r=>!r.pass).length;
+  const overall=failCount===0;
+  const ob=document.getElementById('val-overall');
+  ob.className='badge '+(overall?'badge-cleared':'badge-failed');
+  ob.textContent=overall?`All ${passCount} checks passed`:`${failCount} check${failCount>1?'s':''} failed`;
+  document.getElementById('val-results').innerHTML=results.map(r=>`
+    <div class="vrow">
+      <div class="vrow-icon ${r.pass?'vrow-pass':'vrow-fail'}">${r.pass?'✓':'✕'}</div>
+      <div class="vrow-label">${r.label}</div>
+    </div>`).join('');
+}
+
+// ===================== LOGS =====================
+function renderLogs(){
+  const filter = document.getElementById('log-filter')?.value||'';
+  const list = filter ? LOGS.filter(l=>l.level===filter) : LOGS;
+  const el = document.getElementById('log-output')
+  if (!el) return
+  if (!list.length) { el.innerHTML = '<span style="color:var(--fg3)">No log entries yet</span>'; return }
+  el.innerHTML = list.map(l=>{
+    const cls = l.level==='ERROR'?'log-err':l.level==='WARN'?'log-warn':'log-info';
+    return `<span class="${cls}">[${l.ts}] ${l.level.padEnd(5,' ')} ${l.msg}</span>`;
+  }).join('\n');
+  const wb = document.getElementById('webhook-table');
+  if(wb) wb.innerHTML=`<tr><td colspan="5" style="text-align:center;color:var(--fg3);padding:16px;font-size:12px;">Webhook delivery tracking — coming soon</td></tr>`
+}
+
+// ===================== CREATE MODAL =====================
+let createStep=1;
+const invLines=[];
+
+function openCreateModal(){
+  createStep=1;
+  invLines.length=0;
+  addInvLine();
+  updateCreateStep();
+  document.getElementById('modal-create').classList.add('open');
+}
+
+function updateCreateStep(){
+  for(let i=1;i<=4;i++){
+    const p=document.getElementById('create-panel-'+i);
+    if(p) p.hidden=(i!==createStep);
+    const s=document.getElementById('step-'+i);
+    if(s){s.className='step'+(i<createStep?' done':i===createStep?' active':'');}
+  }
+  document.getElementById('btn-back').hidden=createStep===1;
+  const nb=document.getElementById('btn-next');
+  if(createStep===4){nb.textContent='✓ Done'; nb.className='btn btn-secondary';}
+  else if(createStep===3){nb.textContent='⚡ Submit to ASP'; nb.className='btn btn-green';}
+  else{nb.textContent='Next →'; nb.className='btn btn-primary';}
+}
+
+function createNext(){
+  if(createStep===1){
+    if(!document.getElementById('inv-buyer').value.trim()){toast('Enter buyer name','error');return;}
+  }
+  if(createStep===2){
+    if(!invLines.length){toast('Add at least one line','error');return;}
+    buildReviewXML();
+  }
+  if(createStep===3){
+    startSubmission();
+    return;
+  }
+  if(createStep===4){closeModal('modal-create');nav('invoices');return;}
+  createStep++;
+  updateCreateStep();
+}
+
+function createBack(){
+  if(createStep>1){createStep--;updateCreateStep();}
+}
+
+function addInvLine(){
+  const id='line-'+Date.now();
+  invLines.push({id,desc:'',vat:'S',qty:1,unit:0});
+  renderInvLines();
+}
+
+function renderInvLines(){
+  const tbody=document.getElementById('inv-lines-body');
+  if(!tbody) return;
+  tbody.innerHTML=invLines.map((l,i)=>`
+    <tr id="row-${l.id}">
+      <td><input style="width:100%;min-width:160px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--fg);"
+        value="${l.desc}" placeholder="Service description" oninput="invLines[${i}].desc=this.value;recalcInv()"></td>
+      <td><select style="padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--fg);"
+        onchange="invLines[${i}].vat=this.value;recalcInv()">
+        <option value="S"${l.vat==='S'?' selected':''}>S 5%</option>
+        <option value="Z"${l.vat==='Z'?' selected':''}>Z 0%</option>
+        <option value="O"${l.vat==='O'?' selected':''}>O OOS</option>
+        <option value="E"${l.vat==='E'?' selected':''}>E Exempt</option>
+      </select></td>
+      <td><input type="number" min="1" style="width:60px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
+        value="${l.qty}" oninput="invLines[${i}].qty=+this.value||1;recalcInv()"></td>
+      <td><input type="number" min="0" step="0.01" style="width:90px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
+        value="${l.unit}" oninput="invLines[${i}].unit=+this.value||0;recalcInv()"></td>
+      <td style="text-align:right;font-weight:600;font-family:'DM Mono',monospace;padding-right:8px;" id="amt-${l.id}">${(l.qty*l.unit).toFixed(2)}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="removeLine(${i})" style="color:var(--red);">✕</button></td>
+    </tr>`).join('');
+  recalcInv();
+}
+
+function removeLine(i){
+  invLines.splice(i,1);
+  renderInvLines();
+}
+
+function recalcInv(){
+  let sub=0,vatAmt=0;
+  invLines.forEach((l,i)=>{
+    const lineAmt=l.qty*l.unit;
+    const vatRate=l.vat==='S'?.05:0;
+    sub+=lineAmt;
+    vatAmt+=lineAmt*vatRate;
+    const el=document.getElementById('amt-'+l.id);
+    if(el) el.textContent=lineAmt.toFixed(2);
+  });
+  const total=sub+vatAmt;
+  const se=document.getElementById('inv-sub'),ve=document.getElementById('inv-vat-amt'),te=document.getElementById('inv-total-amt');
+  if(se)se.textContent=sub.toFixed(2);
+  if(ve)ve.textContent=vatAmt.toFixed(2);
+  if(te)te.textContent=total.toFixed(2);
+}
+
+function buildReviewXML(){
+  let sub=0,vatAmt=0;
+  invLines.forEach(l=>{const a=l.qty*l.unit;const r=l.vat==='S'?.05:0;sub+=a;vatAmt+=a*r;});
+  const total=sub+vatAmt;
+  const buyer=document.getElementById('inv-buyer').value;
+  const invNum=document.getElementById('inv-num').value;
+  const issueDate=document.getElementById('inv-date').value;
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>
+<!-- ZATCA UBL 2.1 — SANDBOX / MOCK — NOT REAL -->
+<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+  <cbc:ID>${invNum}</cbc:ID>
+  <cbc:IssueDate>${issueDate}</cbc:IssueDate>
+  <cbc:InvoiceTypeCode listID="UN/ECE 1001 Subset"
+    listAgencyID="6">${document.getElementById('inv-type').value}</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>AED</cbc:DocumentCurrencyCode>
+  <cac:AccountingSupplierParty>
+    <cac:Party>
+      <cac:PartyName><cbc:Name>Alnoor Typing &amp; Photocopying</cbc:Name></cac:PartyName>
+      <cac:PartyTaxScheme>
+        <cbc:CompanyID>100234567890003</cbc:CompanyID>
+        <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+      </cac:PartyTaxScheme>
+    </cac:Party>
+  </cac:AccountingSupplierParty>
+  <cac:AccountingCustomerParty>
+    <cac:Party>
+      <cac:PartyName><cbc:Name>${buyer}</cbc:Name></cac:PartyName>
+    </cac:Party>
+  </cac:AccountingCustomerParty>
+${invLines.map((l,i)=>`  <cac:InvoiceLine>
+    <cbc:ID>${i+1}</cbc:ID>
+    <cbc:InvoicedQuantity unitCode="EA">${l.qty}</cbc:InvoicedQuantity>
+    <cbc:LineExtensionAmount currencyID="AED">${(l.qty*l.unit).toFixed(2)}</cbc:LineExtensionAmount>
+    <cac:Item><cbc:Description>${l.desc||'Service'}</cbc:Description></cac:Item>
+    <cac:Price><cbc:PriceAmount currencyID="AED">${l.unit.toFixed(2)}</cbc:PriceAmount></cac:Price>
+    <cac:TaxTotal>
+      <cbc:TaxAmount currencyID="AED">${(l.qty*l.unit*(l.vat==='S'?.05:0)).toFixed(2)}</cbc:TaxAmount>
+      <cac:TaxSubtotal>
+        <cac:TaxCategory><cbc:ID>${l.vat}</cbc:ID>
+          <cbc:Percent>${l.vat==='S'?5:0}</cbc:Percent>
+          <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
+        </cac:TaxCategory>
+      </cac:TaxSubtotal>
+    </cac:TaxTotal>
+  </cac:InvoiceLine>`).join('\n')}
+  <cac:LegalMonetaryTotal>
+    <cbc:LineExtensionAmount currencyID="AED">${sub.toFixed(2)}</cbc:LineExtensionAmount>
+    <cbc:TaxExclusiveAmount currencyID="AED">${sub.toFixed(2)}</cbc:TaxExclusiveAmount>
+    <cbc:TaxInclusiveAmount currencyID="AED">${total.toFixed(2)}</cbc:TaxInclusiveAmount>
+    <cbc:PayableAmount currencyID="AED">${total.toFixed(2)}</cbc:PayableAmount>
+  </cac:LegalMonetaryTotal>
+</Invoice>`;
+  document.getElementById('review-xml').textContent=xml;
+  createStep++;
+  updateCreateStep();
+}
+
+async function startSubmission(){
+  document.getElementById('submit-sandbox-note').style.display='none';
+  document.getElementById('submit-progress').style.display='block';
+  document.getElementById('btn-next').disabled=true;
+  document.getElementById('btn-back').disabled=true;
+  const log=document.getElementById('submit-log');
+  const steps=[
+    {id:'ss-1',msg:'Signing invoice with mock private key (sandbox)…',delay:600},
+    {id:'ss-2',msg:'Sending UBL XML to mock ASP endpoint…',delay:1200},
+    {id:'ss-3',msg:'Mock ASP processing — simulating ZATCA clearance…',delay:2000},
+    {id:'ss-4',msg:'Recording UUID and updating submission log…',delay:2600},
+  ];
+  let logText='';
+  steps.forEach((s,i)=>{
+    setTimeout(()=>{
+      document.getElementById(s.id).className='step active';
+      if(i>0) document.getElementById(steps[i-1].id).className='step done';
+      logText+=`[${new Date().toTimeString().slice(0,8)}] INFO  ${s.msg}\n`;
+      log.textContent=logText; log.scrollTop=log.scrollHeight;
+    },s.delay);
+  });
+
+  setTimeout(async ()=>{
+    document.getElementById('ss-4').className='step done';
+    const invNum = document.getElementById('inv-num').value
+    try {
+      // Find the invoice_id in DB by invoice_number
+      const allInv = await apiFetch(`/${CID}/invoices`)
+      const dbInv  = allInv.find(i=>i.invoice_number===invNum)
+      let uuid = ''
+      if (dbInv) {
+        // Queue then immediately submit
+        const qRes = await apiFetch(`/${CID}/einvoice/queue`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({invoice_id: dbInv.id})
+        })
+        const sRes = await apiFetch(`/${CID}/einvoice/submit/${qRes.id}`, {method:'POST'})
+        uuid = sRes.uuid
+      } else {
+        uuid = 'ZTC-'+Math.random().toString(36).slice(2,10).toUpperCase()
+      }
+      logText+=`[${new Date().toTimeString().slice(0,8)}] INFO  CLEARED — UUID: ${uuid}\n`;
+      log.textContent=logText; log.scrollTop=log.scrollHeight;
+      document.getElementById('submit-result').style.display='block';
+      document.getElementById('submit-result').innerHTML=`
+        <div class="alert alert-success" style="margin-top:16px;">
+          <span class="alert-icon">✅</span>
+          <div>
+            <div style="font-weight:700;margin-bottom:4px;">Invoice Cleared (Sandbox)</div>
+            <div>ZATCA UUID: <span class="font-mono">${uuid}</span></div>
+            <div class="text-xs text-fg3 mt-1">Sandbox mode — no real legal effect</div>
+          </div>
+        </div>`;
+      await loadAll()
+      document.getElementById('btn-next').disabled=false;
+      document.getElementById('btn-next').textContent='✓ Done';
+      document.getElementById('btn-next').className='btn btn-secondary';
+      createStep=4;
+      toast('Invoice cleared ✓','success');
+    } catch(e) {
+      logText+=`[${new Date().toTimeString().slice(0,8)}] ERROR ${e.message}\n`;
+      log.textContent=logText;
+      document.getElementById('btn-next').disabled=false;
+      toast('Submission failed — '+e.message,'error');
+    }
+  }, 2800);
+}
+
+// ===================== ASP CONFIG =====================
+function saveASPConfig(){toast('Configuration saved (sandbox — not active)','info');}
+function saveSellerInfo(){toast('Seller info saved','success');}
+function testASPConnection(){
+  toast('Testing connection to mock ASP…','info');
+  setTimeout(()=>toast('Mock ASP reachable — Sandbox OK ✓','success'),1500);
+}
+
+// ===================== MODAL =====================
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-backdrop').forEach(b=>{
+  b.addEventListener('click',e=>{if(e.target===b)b.classList.remove('open');});
+});
+
+// ===================== TOAST =====================
+function toast(msg,type='info',dur=3200){
+  const s=document.getElementById('toast-stack');
+  const t=document.createElement('div');
+  const icons={success:'✅',error:'❌',info:'ℹ️',warn:'⚠️'};
+  t.className=`toast toast-${type==='error'?'error':type==='success'?'success':type==='warn'?'warn':'info'}`;
+  t.innerHTML=`<span>${icons[type]||icons.info}</span><span>${msg}</span>`;
+  s.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300);},dur);
+}
+
+// ===================== KEYBOARD =====================
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));
+  if(e.key==='n'&&!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) openCreateModal();
+});
+
+// ===================== ASP MODE TOGGLE =====================
+document.getElementById('asp-mode').addEventListener('change',function(){
+  const prod=this.value==='production';
+  ['asp-url','asp-clientid','asp-secret','asp-cert'].forEach(id=>{
+    document.getElementById(id).disabled=!prod;
+  });
+});
+
+// ===================== INIT =====================
+loadAll();
+</script>

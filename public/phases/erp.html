@@ -3868,7 +3868,7 @@ function loadAppearanceTab() {
 // ─── SETTINGS ────────────────────────────────────────────────
 async function loadSettings() {
   try {
-    const co = await apiFetch(`/${CID}`.replace('1','') + 'companies/' + CID)
+    const co = await apiFetch(`/companies/${CID}`)
     document.getElementById('set-name').value    = co.name    || ''
     document.getElementById('set-trn').value     = co.trn     || ''
     document.getElementById('set-phone').value   = co.phone   || ''

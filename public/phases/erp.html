@@ -498,7 +498,8 @@ const _SESSION = {
 
 function doLogout() {
   if (!confirm('Logout and return to the main screen?')) return;
-  try { window.top.location.reload(); } catch(e) { window.location.reload(); }
+  try { window.top.localStorage.removeItem('alnoor_session'); window.top.location.reload(); }
+  catch(e) { try { localStorage.removeItem('alnoor_session'); } catch(_){} window.location.reload(); }
 }
 </script>
 

@@ -426,6 +426,27 @@ app.post('/api/:cid/invoices', async (req, res) => {
   }
 })
 
+app.patch('/api/:cid/invoices/:id', async (req, res) => {
+  const { customer_name, issue_date, status, subtotal, vat_amount, total, notes } = req.body
+  const allowed = ['posted', 'draft', 'void']
+  if (status && !allowed.includes(status)) return res.status(400).json({ error: 'Invalid status' })
+  const fields = []
+  const params = []
+  if (customer_name !== undefined) { fields.push('customer_name=?'); params.push(customer_name) }
+  if (issue_date    !== undefined) { fields.push('issue_date=?');    params.push(issue_date) }
+  if (status        !== undefined) { fields.push('status=?');        params.push(status) }
+  if (subtotal      !== undefined) { fields.push('subtotal=?');      params.push(subtotal) }
+  if (vat_amount    !== undefined) { fields.push('vat_amount=?');    params.push(vat_amount) }
+  if (total         !== undefined) { fields.push('total=?');         params.push(total) }
+  if (notes         !== undefined) { fields.push('notes=?');         params.push(notes) }
+  if (!fields.length) return res.status(400).json({ error: 'Nothing to update' })
+  params.push(req.params.id, req.params.cid)
+  await pool.query(`UPDATE invoices SET ${fields.join(',')} WHERE id=? AND company_id=?`, params)
+  const [[inv]] = await pool.query('SELECT * FROM invoices WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  if (!inv) return res.status(404).json({ error: 'Not found' })
+  res.json(inv)
+})
+
 // Invoice stats for ERP dashboard
 app.get('/api/:cid/invoices/stats/summary', async (req, res) => {
   const cid = req.params.cid

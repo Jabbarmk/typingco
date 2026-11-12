@@ -588,7 +588,8 @@ textarea { resize: vertical; min-height: 80px; }
 
 function doLogout() {
   if (!confirm('Logout and return to the main screen?')) return;
-  try { window.top.location.reload(); } catch(e) { window.location.reload(); }
+  try { window.top.localStorage.removeItem('alnoor_session'); window.top.location.reload(); }
+  catch(e) { try { localStorage.removeItem('alnoor_session'); } catch(_){} window.location.reload(); }
 }
 </script>
 
@@ -1460,6 +1461,91 @@ function doLogout() {
   </div>
 </div>
 
+<!-- COMPANY INVOICES MODAL -->
+<div class="modal-overlay" id="company-invoices-modal" hidden onclick="if(event.target===this)closeModal('company-invoices-modal')">
+  <div class="modal" style="max-width:860px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="co-inv-title">Invoices</span>
+      <button class="close-btn" onclick="closeModal('company-invoices-modal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="co-inv-status-filter" class="input" style="width:140px;padding:6px 10px;font-size:12px;" onchange="renderCoInvoices()">
+          <option value="">All Statuses</option>
+          <option value="posted">Posted</option>
+          <option value="draft">Draft</option>
+          <option value="void">Void</option>
+        </select>
+        <input id="co-inv-search" type="text" class="input" placeholder="Search invoice # or customer…" style="width:220px;padding:6px 10px;font-size:12px;" oninput="renderCoInvoices()">
+        <span id="co-inv-count" style="margin-left:auto;font-size:12px;color:var(--fg3);"></span>
+      </div>
+      <div class="table-wrap" style="max-height:420px;overflow-y:auto;">
+        <table>
+          <thead><tr><th>Invoice #</th><th>Customer</th><th>Date</th><th>Total</th><th>VAT</th><th>Status</th><th>Notes</th><th style="min-width:90px;">Actions</th></tr></thead>
+          <tbody id="co-inv-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('company-invoices-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE EDIT MODAL -->
+<div class="modal-overlay" id="invoice-edit-modal" hidden onclick="if(event.target===this)closeModal('invoice-edit-modal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title">Edit Invoice <span id="inv-edit-num" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:400;"></span></span>
+      <button class="close-btn" onclick="closeModal('invoice-edit-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="inv-edit-id">
+      <input type="hidden" id="inv-edit-cid">
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="inv-edit-customer" class="input">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Issue Date</label>
+          <input type="date" id="inv-edit-date" class="input">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="inv-edit-status" class="input">
+            <option value="posted">Posted</option>
+            <option value="draft">Draft</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Subtotal (AED)</label>
+          <input type="number" id="inv-edit-subtotal" class="input" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label>VAT Amount (AED)</label>
+          <input type="number" id="inv-edit-vat" class="input" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Total (AED)</label>
+        <input type="number" id="inv-edit-total" class="input" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="inv-edit-notes" class="input" rows="3" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('invoice-edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInvoiceEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
 <script>
@@ -1527,9 +1613,10 @@ function renderCompanies(list) {
       <td style="font-size:12px;color:${c.renewal==='Overdue'?'var(--red)':'var(--fg2)'};">${c.renewal}</td>
       <td style="font-weight:600;font-variant-numeric:tabular-nums;">${c.mrr>0?'AED '+c.mrr.toLocaleString():'—'}</td>
       <td>
-        <div style="display:flex;gap:5px;">
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" onclick="viewCompany(${c.id})">View</button>
           <button class="btn btn-secondary btn-sm" onclick="manageCompany(${c.id})">Manage</button>
+          <button class="btn btn-secondary btn-sm" onclick="openCompanyInvoices(${c.id})" style="color:var(--accent);">Invoices</button>
         </div>
       </td>
     </tr>`).join('');
@@ -1545,6 +1632,94 @@ function filterCompanies() {
     (!status || c.status === status)
   );
   renderCompanies(filtered);
+}
+
+// ── Company Invoices ──────────────────────────────────────────
+let _coInvList = [];
+let _coInvCid  = null;
+
+async function openCompanyInvoices(cid) {
+  const c = companies.find(x => x.id === cid);
+  if (!c) return;
+  _coInvCid = cid;
+  document.getElementById('co-inv-title').textContent = c.name + ' — Invoices';
+  document.getElementById('co-inv-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--fg3);">Loading…</td></tr>';
+  document.getElementById('co-inv-status-filter').value = '';
+  document.getElementById('co-inv-search').value = '';
+  openModal('company-invoices-modal');
+  try {
+    _coInvList = await apiFetch(`/${cid}/invoices?limit=200`);
+    renderCoInvoices();
+  } catch(e) {
+    document.getElementById('co-inv-tbody').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function renderCoInvoices() {
+  const statusFilter = document.getElementById('co-inv-status-filter').value;
+  const q = (document.getElementById('co-inv-search').value || '').toLowerCase();
+  const filtered = _coInvList.filter(inv =>
+    (!statusFilter || inv.status === statusFilter) &&
+    (!q || (inv.invoice_number||'').toLowerCase().includes(q) || (inv.customer_name||'').toLowerCase().includes(q))
+  );
+  document.getElementById('co-inv-count').textContent = filtered.length + ' invoice' + (filtered.length !== 1 ? 's' : '');
+  const statusColors = { posted:'badge-green', draft:'badge-teal', void:'badge-red' };
+  document.getElementById('co-inv-tbody').innerHTML = filtered.length === 0
+    ? '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--fg3);">No invoices found</td></tr>'
+    : filtered.map(inv => `<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:12px;">${inv.invoice_number||'—'}</td>
+        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inv.customer_name||inv.customer_full_name||'—'}</td>
+        <td style="font-size:12px;">${inv.issue_date ? new Date(inv.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+        <td style="font-weight:600;">AED ${parseFloat(inv.total||0).toFixed(2)}</td>
+        <td style="font-size:12px;color:var(--fg3);">AED ${parseFloat(inv.vat_amount||0).toFixed(2)}</td>
+        <td><span class="badge ${statusColors[inv.status]||'badge-teal'}">${inv.status||'—'}</span></td>
+        <td style="font-size:12px;color:var(--fg3);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${inv.notes||'—'}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="openInvoiceEdit(${inv.id})">Edit</button></td>
+      </tr>`).join('');
+}
+
+function openInvoiceEdit(invId) {
+  const inv = _coInvList.find(x => x.id === invId);
+  if (!inv) return;
+  document.getElementById('inv-edit-id').value       = inv.id;
+  document.getElementById('inv-edit-cid').value      = _coInvCid;
+  document.getElementById('inv-edit-num').textContent = inv.invoice_number || '';
+  document.getElementById('inv-edit-customer').value = inv.customer_name || inv.customer_full_name || '';
+  document.getElementById('inv-edit-status').value   = inv.status || 'posted';
+  document.getElementById('inv-edit-subtotal').value = parseFloat(inv.subtotal||0).toFixed(2);
+  document.getElementById('inv-edit-vat').value      = parseFloat(inv.vat_amount||0).toFixed(2);
+  document.getElementById('inv-edit-total').value    = parseFloat(inv.total||0).toFixed(2);
+  document.getElementById('inv-edit-notes').value    = inv.notes || '';
+  if (inv.issue_date) {
+    try { document.getElementById('inv-edit-date').value = new Date(inv.issue_date).toISOString().slice(0,10); }
+    catch { document.getElementById('inv-edit-date').value = ''; }
+  }
+  openModal('invoice-edit-modal');
+}
+
+async function saveInvoiceEdit() {
+  const id      = parseInt(document.getElementById('inv-edit-id').value);
+  const cid     = parseInt(document.getElementById('inv-edit-cid').value);
+  const payload = {
+    customer_name: document.getElementById('inv-edit-customer').value.trim() || null,
+    issue_date:    document.getElementById('inv-edit-date').value || null,
+    status:        document.getElementById('inv-edit-status').value,
+    subtotal:      parseFloat(document.getElementById('inv-edit-subtotal').value) || 0,
+    vat_amount:    parseFloat(document.getElementById('inv-edit-vat').value) || 0,
+    total:         parseFloat(document.getElementById('inv-edit-total').value) || 0,
+    notes:         document.getElementById('inv-edit-notes').value.trim() || null,
+  };
+  try {
+    await apiFetch(`/${cid}/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    // Update local list
+    const inv = _coInvList.find(x => x.id === id);
+    if (inv) Object.assign(inv, payload);
+    renderCoInvoices();
+    closeModal('invoice-edit-modal');
+    showToast('Invoice updated');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
 }
 
 function viewCompany(id) {

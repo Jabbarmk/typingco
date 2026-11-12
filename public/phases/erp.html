@@ -1376,6 +1376,7 @@ function doLogout() {
         <button class="tab-btn" onclick="switchTab('s-services',this)">Services</button>
         <button class="tab-btn" onclick="switchTab('s-users',this)">Users</button>
         <button class="tab-btn" onclick="switchTab('s-sequences',this)">Sequences</button>
+        <button class="tab-btn" onclick="switchTab('s-appearance',this)">Appearance</button>
       </div>
       <!-- Company Settings -->
       <div class="tab-panel active" id="s-company">
@@ -1456,6 +1457,75 @@ function doLogout() {
             <div class="fg"><label>Journal Prefix</label><input value="JE-"></div>
           </div>
           <div style="margin-top:16px;"><button class="btn btn-primary" onclick="showToast('Sequences saved')">Save</button></div>
+        </div>
+      </div>
+
+      <!-- Appearance -->
+      <div class="tab-panel" id="s-appearance">
+        <div class="card card-body" style="max-width:640px;">
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Theme Color</div>
+          <div style="font-size:12px;color:var(--fg3);margin-bottom:20px;">Choose your accent color — applied across buttons, links, badges, and highlights.</div>
+
+          <!-- Preset swatches -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Presets</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;" id="color-presets">
+              <!-- filled by JS -->
+            </div>
+          </div>
+
+          <!-- Custom color picker -->
+          <div style="margin-bottom:24px;">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Custom Color</div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <!-- swatch that opens native picker -->
+              <div style="position:relative;flex-shrink:0;">
+                <div id="accent-swatch" onclick="document.getElementById('accent-native').click()"
+                  style="width:48px;height:48px;border-radius:10px;cursor:pointer;border:2px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.12);transition:transform .1s;"
+                  onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+                </div>
+                <input type="color" id="accent-native" style="position:absolute;opacity:0;width:0;height:0;" oninput="onNativeColorPick(this.value)">
+              </div>
+              <!-- hex text input -->
+              <div style="flex:1;min-width:140px;">
+                <div style="font-size:11px;color:var(--fg3);margin-bottom:4px;">Hex code</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <span style="font-size:14px;color:var(--fg3);font-family:'DM Mono',monospace;">#</span>
+                  <input id="accent-hex" maxlength="6" placeholder="2563eb"
+                    style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;padding:8px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);width:100px;text-transform:uppercase;letter-spacing:.05em;"
+                    oninput="onHexInput(this.value)" onkeydown="if(event.key==='Enter')applyAccentColor()">
+                  <button class="btn btn-secondary btn-sm" onclick="applyAccentColor()" style="white-space:nowrap;">Apply</button>
+                </div>
+              </div>
+              <!-- live preview badge -->
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);">
+                <div id="preview-dot" style="width:12px;height:12px;border-radius:50%;"></div>
+                <span style="font-size:12px;color:var(--fg2);">Preview</span>
+                <span id="preview-btn" style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;color:#fff;">Button</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dark mode toggle -->
+          <div style="margin-bottom:24px;padding:16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-weight:600;font-size:13px;">Dark Mode</div>
+                <div style="font-size:11px;color:var(--fg3);margin-top:2px;">Switch between light and dark interface</div>
+              </div>
+              <button id="theme-toggle-btn" onclick="toggleDarkMode()"
+                style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:13px;font-weight:600;color:var(--fg);">
+                <span id="theme-toggle-icon">🌙</span>
+                <span id="theme-toggle-label">Dark</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="saveAppearance()">Save Appearance</button>
+            <button class="btn btn-secondary" onclick="resetAppearance()">Reset to Default</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2699,6 +2769,7 @@ function switchTab(id, btn) {
   parent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   parent.querySelector('#' + id).classList.add('active');
+  if (id === 's-appearance') loadAppearanceTab();
 }
 
 function openModal(id) { document.getElementById(id).hidden = false; }
@@ -3617,6 +3688,179 @@ function exportReportCSV() {
   showToast('CSV exported')
 }
 
+// ══════════════════════════════════════════════════════════
+// APPEARANCE / THEME
+// ══════════════════════════════════════════════════════════
+const ACCENT_PRESETS = [
+  { name:'Blue',       hex:'2563eb' },
+  { name:'Indigo',     hex:'4f46e5' },
+  { name:'Violet',     hex:'7c3aed' },
+  { name:'Pink',       hex:'db2777' },
+  { name:'Rose',       hex:'e11d48' },
+  { name:'Orange',     hex:'ea580c' },
+  { name:'Amber',      hex:'d97706' },
+  { name:'Green',      hex:'059669' },
+  { name:'Teal',       hex:'0d9488' },
+  { name:'Cyan',       hex:'0891b2' },
+  { name:'Slate',      hex:'475569' },
+  { name:'Dark',       hex:'1e293b' },
+]
+
+function hexToRgb(hex) {
+  hex = hex.replace(/^#/,'')
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('')
+  const n = parseInt(hex, 16)
+  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 }
+}
+
+function lightenHex(hex, amount) {
+  // blend toward white by amount (0-1)
+  const {r,g,b} = hexToRgb(hex)
+  const lr = Math.round(r + (255-r)*amount)
+  const lg = Math.round(g + (255-g)*amount)
+  const lb = Math.round(b + (255-b)*amount)
+  return '#'+[lr,lg,lb].map(v=>v.toString(16).padStart(2,'0')).join('')
+}
+
+function darkenHex(hex, amount) {
+  const {r,g,b} = hexToRgb(hex)
+  const dr = Math.round(r * (1-amount))
+  const dg = Math.round(g * (1-amount))
+  const db = Math.round(b * (1-amount))
+  return '#'+[dr,dg,db].map(v=>v.toString(16).padStart(2,'0')).join('')
+}
+
+function applyAccentHex(hex) {
+  hex = hex.replace(/^#/,'')
+  if (!/^[0-9a-fA-F]{6}$/.test(hex)) return
+  const full = '#'+hex
+  const light = lightenHex(full, 0.88)
+  const dark  = darkenHex(full, 0.15)
+  const root  = document.documentElement
+  root.style.setProperty('--accent',       full)
+  root.style.setProperty('--accent-light', light)
+  root.style.setProperty('--sidebar-active', full)
+  // update sidebar highlight color
+  document.querySelectorAll('.nav-item.active').forEach(el => {
+    el.style.background = full
+  })
+  updateAccentUI(hex)
+}
+
+function updateAccentUI(hex) {
+  hex = hex.replace(/^#/,'')
+  const full = '#'+hex
+  const sw = document.getElementById('accent-swatch')
+  const nat = document.getElementById('accent-native')
+  const hx  = document.getElementById('accent-hex')
+  const dot = document.getElementById('preview-dot')
+  const btn = document.getElementById('preview-btn')
+  if (sw)  sw.style.background = full
+  if (nat) nat.value = full
+  if (hx)  hx.value = hex.toUpperCase()
+  if (dot) dot.style.background = full
+  if (btn) { btn.style.background = full; btn.style.boxShadow = `0 2px 8px ${full}66` }
+  // highlight matching preset
+  document.querySelectorAll('.preset-swatch').forEach(el => {
+    el.style.outline = el.dataset.hex === hex.toLowerCase() ? `3px solid ${full}` : 'none'
+    el.style.outlineOffset = '2px'
+  })
+}
+
+function onNativeColorPick(val) {
+  const hex = val.replace('#','')
+  applyAccentHex(hex)
+}
+
+function onHexInput(val) {
+  val = val.replace(/[^0-9a-fA-F]/g,'')
+  document.getElementById('accent-hex').value = val
+  if (val.length === 6) applyAccentHex(val)
+  else {
+    // partial preview
+    const sw = document.getElementById('accent-swatch')
+    const nat = document.getElementById('accent-native')
+    if (val.length >= 3) {
+      let full = val.length===3 ? val.split('').map(c=>c+c).join('') : val.padEnd(6,'0')
+      if (sw) sw.style.background = '#'+full
+      if (nat) nat.value = '#'+full
+    }
+  }
+}
+
+function applyAccentColor() {
+  const hex = (document.getElementById('accent-hex')?.value||'').replace(/^#/,'')
+  if (hex.length === 6) applyAccentHex(hex)
+  else showToast('Enter a valid 6-digit hex code','error')
+}
+
+function buildPresets() {
+  const el = document.getElementById('color-presets')
+  if (!el) return
+  el.innerHTML = ACCENT_PRESETS.map(p => `
+    <div class="preset-swatch" data-hex="${p.hex}"
+      title="${p.name} #${p.hex}"
+      onclick="applyAccentHex('${p.hex}');saveAppearance()"
+      style="width:36px;height:36px;border-radius:8px;background:#${p.hex};cursor:pointer;transition:transform .1s;border:2px solid rgba(0,0,0,.08);"
+      onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'">
+    </div>`).join('')
+}
+
+function toggleDarkMode() {
+  const root = document.documentElement
+  const isDark = root.getAttribute('data-theme') === 'dark'
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark')
+  updateThemeToggleBtn()
+  saveAppearance()
+}
+
+function updateThemeToggleBtn() {
+  const root   = document.documentElement
+  const isDark = root.getAttribute('data-theme') === 'dark'
+  const icon   = document.getElementById('theme-toggle-icon')
+  const label  = document.getElementById('theme-toggle-label')
+  if (icon)  icon.textContent  = isDark ? '☀️' : '🌙'
+  if (label) label.textContent = isDark ? 'Light' : 'Dark'
+}
+
+function saveAppearance() {
+  const hex   = (document.getElementById('accent-hex')?.value||'2563eb').replace(/^#/,'')
+  const theme = document.documentElement.getAttribute('data-theme') || 'light'
+  try { localStorage.setItem('alnoor_accent', hex); localStorage.setItem('alnoor_theme', theme) } catch(e){}
+  showToast('Appearance saved','success')
+}
+
+function resetAppearance() {
+  try { localStorage.removeItem('alnoor_accent'); localStorage.removeItem('alnoor_theme') } catch(e){}
+  document.documentElement.removeAttribute('data-theme')
+  document.documentElement.style.removeProperty('--accent')
+  document.documentElement.style.removeProperty('--accent-light')
+  document.documentElement.style.removeProperty('--sidebar-active')
+  updateAccentUI('2563eb')
+  updateThemeToggleBtn()
+  showToast('Reset to default','info')
+}
+
+function initAppearance() {
+  try {
+    const hex   = localStorage.getItem('alnoor_accent') || '2563eb'
+    const theme = localStorage.getItem('alnoor_theme')  || 'light'
+    if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark')
+    else document.documentElement.setAttribute('data-theme','light')
+    applyAccentHex(hex)
+    buildPresets()
+    updateThemeToggleBtn()
+  } catch(e){}
+}
+
+// Called when Appearance tab opens
+function loadAppearanceTab() {
+  buildPresets()
+  const hex = (localStorage.getItem('alnoor_accent') || '2563eb')
+  updateAccentUI(hex)
+  updateThemeToggleBtn()
+}
+
 // ─── SETTINGS ────────────────────────────────────────────────
 async function loadSettings() {
   try {
@@ -4228,6 +4472,7 @@ async function init() {
       populateAssignedSelects()
     } catch(e) {}
     loadSettings()
+    initAppearance()
 
   } catch(e) {
     showToast('⚠ Could not connect to API — showing demo data')
@@ -4261,6 +4506,7 @@ function loadDemoData() {
   ]
   renderCustomersPage(CUSTOMERS)
   renderCustDropdown(CUSTOMERS)
+  initAppearance()
 }
 
 // ─── CUSTOMERS PAGE ────────────────────────────────────────

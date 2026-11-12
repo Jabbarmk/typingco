@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-const API = 'http://localhost:5000/api'
+const API = '/api'
 const SESSION_KEY = 'alnoor_session'
 
 function getSession() {

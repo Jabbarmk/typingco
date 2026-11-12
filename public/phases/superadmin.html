@@ -1153,12 +1153,8 @@ function doLogout() {
       </div>
     </div>
 
-  </div>
-</div>
-
-<!-- CREATE COMPANY MODAL -->
-<!-- CREATE COMPANY — FULL PAGE -->
-<div class="page" id="page-create-company">
+    <!-- CREATE COMPANY — FULL PAGE -->
+    <div class="page" id="page-create-company">
   <div style="max-width:720px;margin:0 auto;">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
       <button class="btn btn-secondary btn-sm" onclick="closeCreateCompanyPage()" style="gap:6px;">
@@ -1277,8 +1273,8 @@ function doLogout() {
   </div>
 </div>
 
-<!-- MANAGE COMPANY — FULL PAGE -->
-<div class="page" id="page-manage-company">
+    <!-- MANAGE COMPANY — FULL PAGE -->
+    <div class="page" id="page-manage-company">
   <div style="max-width:720px;margin:0 auto;">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
       <button class="btn btn-secondary btn-sm" onclick="closeManageCompanyPage()" style="gap:6px;">
@@ -1385,7 +1381,10 @@ function doLogout() {
       </div>
     </div>
   </div>
-</div>
+    </div>
+
+  </div><!-- /.page-content -->
+</div><!-- /.main -->
 
 <!-- USER CREATE / EDIT MODAL -->
 <div class="modal-overlay" id="user-modal" hidden onclick="if(event.target===this)closeModal('user-modal')">

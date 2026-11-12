@@ -480,7 +480,7 @@ const _SESSION = {
   name:   _params.get('uname')  ? decodeURIComponent(_params.get('uname'))  : 'Staff',
   role:   _params.get('role')   || 'operator',
   coname: _params.get('coname') ? decodeURIComponent(_params.get('coname')) : '',
-}
+};
 // Populate sidebar + topbar with logged-in user info
 (function applySession() {
   const initials = _SESSION.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || '?'

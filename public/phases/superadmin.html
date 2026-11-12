@@ -599,7 +599,7 @@ function doLogout() {
       <div style="font-size:12px;color:var(--fg3);">Mon, 9 Nov 2026 · Asia/Dubai</div>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-primary btn-sm" onclick="openModal('create-company-modal')">
+      <button class="btn btn-primary btn-sm" onclick="showSAPage('create-company')">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         New Company
       </button>
@@ -856,7 +856,7 @@ function doLogout() {
             <option>Trial</option>
             <option>Suspended</option>
           </select>
-          <button class="btn btn-primary" onclick="openModal('create-company-modal')">
+          <button class="btn btn-primary" onclick="showSAPage('create-company')">
             <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Company
           </button>
@@ -978,7 +978,7 @@ function doLogout() {
               <span class="badge badge-purple" style="align-self:center;">18 companies</span>
             </div>
           </div>
-          <div class="plan-card" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;cursor:pointer;" onclick="openModal('create-company-modal')">
+          <div class="plan-card" style="border-style:dashed;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;cursor:pointer;" onclick="showSAPage('create-company')">
             <div style="font-size:28px;color:var(--fg3);margin-bottom:8px;">+</div>
             <div style="color:var(--fg2);font-weight:600;">Create Custom Plan</div>
           </div>
@@ -1157,20 +1157,29 @@ function doLogout() {
 </div>
 
 <!-- CREATE COMPANY MODAL -->
-<div class="modal-overlay" id="create-company-modal" hidden onclick="if(event.target===this)closeModal('create-company-modal')">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Create New Company</span>
-      <button class="close-btn" onclick="closeModal('create-company-modal')">×</button>
+<!-- CREATE COMPANY — FULL PAGE -->
+<div class="page" id="page-create-company">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeCreateCompanyPage()" style="gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <h2 style="font-size:20px;font-weight:800;margin:0;flex:1;">Create New Company</h2>
+      <button class="btn btn-primary" onclick="createCompany()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Create Company
+      </button>
     </div>
-    <div class="modal-body">
-      <div class="tabs" style="margin-bottom:16px;">
-        <button class="tab-btn active" onclick="switchTab('ctab-company',this)">Company Info</button>
-        <button class="tab-btn" onclick="switchTab('ctab-subscription',this)">Subscription</button>
-        <button class="tab-btn" onclick="switchTab('ctab-admin',this)">Admin User</button>
-      </div>
 
-      <div class="tab-panel active" id="ctab-company">
+    <div class="tabs" style="margin-bottom:20px;">
+      <button class="tab-btn active" onclick="switchTab('ctab-company',this)">Company Info</button>
+      <button class="tab-btn" onclick="switchTab('ctab-subscription',this)">Subscription</button>
+      <button class="tab-btn" onclick="switchTab('ctab-admin',this)">Admin User</button>
+    </div>
+
+    <div class="tab-panel active" id="ctab-company">
+      <div class="card card-body">
         <div class="form-grid">
           <div class="form-group full"><label>Company / Trade Name *</label><input id="new-company-name" placeholder="e.g. Al Noor Typing &amp; Photocopying Services"></div>
           <div class="form-group"><label>Legal Name</label><input placeholder="Official registered name"></div>
@@ -1189,8 +1198,10 @@ function doLogout() {
         </div>
         <div id="trn-msg" style="font-size:12px;margin-top:4px;"></div>
       </div>
+    </div>
 
-      <div class="tab-panel" id="ctab-subscription">
+    <div class="tab-panel" id="ctab-subscription">
+      <div class="card card-body">
         <div class="plan-grid" style="grid-template-columns:1fr 1fr;">
           <div class="plan-card" id="plan-starter" onclick="selectPlan('starter')">
             <div class="plan-name">Starter</div>
@@ -1221,8 +1232,10 @@ function doLogout() {
           <div class="form-group"><label>Notes</label><input placeholder="Any special terms…"></div>
         </div>
       </div>
+    </div>
 
-      <div class="tab-panel" id="ctab-admin">
+    <div class="tab-panel" id="ctab-admin">
+      <div class="card card-body">
         <div class="form-grid">
           <div class="form-group"><label>Admin First Name *</label><input id="admin-fname" placeholder="Ahmed"></div>
           <div class="form-group"><label>Admin Last Name *</label><input id="admin-lname" placeholder="Al Mazrouei"></div>
@@ -1242,8 +1255,9 @@ function doLogout() {
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('create-company-modal')">Cancel</button>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+      <button class="btn btn-secondary" onclick="closeCreateCompanyPage()">Cancel</button>
       <button class="btn btn-primary" onclick="createCompany()">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
         Create Company
@@ -1263,102 +1277,110 @@ function doLogout() {
   </div>
 </div>
 
-<!-- MANAGE COMPANY MODAL -->
-<div class="modal-overlay" id="manage-company-modal" hidden onclick="if(event.target===this)closeModal('manage-company-modal')">
-  <div class="modal" style="max-width:560px;">
-    <div class="modal-header">
-      <span class="modal-title" id="mgmt-co-title">Manage Company</span>
-      <button class="close-btn" onclick="closeModal('manage-company-modal')">×</button>
+<!-- MANAGE COMPANY — FULL PAGE -->
+<div class="page" id="page-manage-company">
+  <div style="max-width:720px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="closeManageCompanyPage()" style="gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <h2 id="mgmt-co-title" style="font-size:20px;font-weight:800;margin:0;flex:1;">Manage Company</h2>
+      <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" onclick="confirmSuspend()">Suspend</button>
+      <button class="btn btn-primary" onclick="saveManageCompany()">Save Changes</button>
     </div>
-    <div class="modal-body" style="max-height:70vh;overflow-y:auto;">
-      <input type="hidden" id="mgmt-id">
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Company Details</div>
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div class="form-group full" style="grid-column:1/-1;">
-          <label>Company Name *</label>
-          <input type="text" id="mgmt-name" style="width:100%;" placeholder="Company legal name">
-        </div>
-        <div class="form-group">
-          <label>TRN (Tax Registration)</label>
-          <input type="text" id="mgmt-trn" style="width:100%;" placeholder="100000000000003">
-        </div>
-        <div class="form-group">
-          <label>Emirate</label>
-          <select id="mgmt-emirate" style="width:100%;">
-            <option value="Abu Dhabi">Abu Dhabi</option>
-            <option value="Dubai">Dubai</option>
-            <option value="Sharjah">Sharjah</option>
-            <option value="Ajman">Ajman</option>
-            <option value="Umm Al Quwain">Umm Al Quwain</option>
-            <option value="Ras Al Khaimah">Ras Al Khaimah</option>
-            <option value="Fujairah">Fujairah</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Phone</label>
-          <input type="text" id="mgmt-phone" style="width:100%;" placeholder="+971 6 000 0000">
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="mgmt-email" style="width:100%;" placeholder="info@company.ae">
-        </div>
-        <div class="form-group full" style="grid-column:1/-1;">
-          <label>Address</label>
-          <input type="text" id="mgmt-address" style="width:100%;" placeholder="Shop No, Street, Area">
+    <input type="hidden" id="mgmt-id">
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <!-- Company details -->
+      <div class="card card-body" style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:14px;">Company Details</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Company Name *</label>
+            <input type="text" id="mgmt-name" placeholder="Company legal name">
+          </div>
+          <div class="form-group">
+            <label>TRN (Tax Registration)</label>
+            <input type="text" id="mgmt-trn" placeholder="100000000000003">
+          </div>
+          <div class="form-group">
+            <label>Emirate</label>
+            <select id="mgmt-emirate">
+              <option value="Abu Dhabi">Abu Dhabi</option>
+              <option value="Dubai">Dubai</option>
+              <option value="Sharjah">Sharjah</option>
+              <option value="Ajman">Ajman</option>
+              <option value="Umm Al Quwain">Umm Al Quwain</option>
+              <option value="Ras Al Khaimah">Ras Al Khaimah</option>
+              <option value="Fujairah">Fujairah</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="mgmt-phone" placeholder="+971 6 000 0000">
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="mgmt-email" placeholder="info@company.ae">
+          </div>
+          <div class="form-group full">
+            <label>Address</label>
+            <input type="text" id="mgmt-address" placeholder="Shop No, Street, Area">
+          </div>
         </div>
       </div>
 
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Subscription</div>
-      <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-group">
-          <label>Status</label>
-          <select id="mgmt-status" style="width:100%;">
-            <option>Active</option>
-            <option>Trial</option>
-            <option>Suspended</option>
-            <option>Cancelled</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Plan</label>
-          <select id="mgmt-plan" style="width:100%;">
-            <option>Starter</option>
-            <option>Professional</option>
-            <option>Enterprise</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Monthly Revenue (AED)</label>
-          <input type="number" id="mgmt-mrr" style="width:100%;" min="0" step="1">
-        </div>
-        <div class="form-group">
-          <label>Billing Cycle</label>
-          <select id="mgmt-billing" style="width:100%;">
-            <option value="monthly">Monthly</option>
-            <option value="quarterly">Quarterly</option>
-            <option value="annual">Annual</option>
-            <option value="trial">Trial</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Renewal Date</label>
-          <input type="date" id="mgmt-renewal" style="width:100%;">
-        </div>
-        <div class="form-group">
-          <label>Max Users</label>
-          <input type="number" id="mgmt-max-users" style="width:100%;" min="1" step="1" placeholder="e.g. 10">
-        </div>
-        <div class="form-group full" style="grid-column:1/-1;">
-          <label>Notes</label>
-          <textarea id="mgmt-notes" rows="2" style="width:100%;resize:vertical;" placeholder="Internal notes…"></textarea>
+      <!-- Subscription -->
+      <div class="card card-body" style="grid-column:1/-1;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:14px;">Subscription</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="mgmt-status">
+              <option>Active</option><option>Trial</option><option>Suspended</option><option>Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Plan</label>
+            <select id="mgmt-plan">
+              <option>Starter</option><option>Professional</option><option>Enterprise</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Monthly Revenue (AED)</label>
+            <input type="number" id="mgmt-mrr" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label>Billing Cycle</label>
+            <select id="mgmt-billing">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annual">Annual</option>
+              <option value="trial">Trial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Renewal Date</label>
+            <input type="date" id="mgmt-renewal">
+          </div>
+          <div class="form-group">
+            <label>Max Users</label>
+            <input type="number" id="mgmt-max-users" min="1" step="1" placeholder="e.g. 10">
+          </div>
+          <div class="form-group full">
+            <label>Notes</label>
+            <textarea id="mgmt-notes" rows="3" placeholder="Internal notes…" style="resize:vertical;"></textarea>
+          </div>
         </div>
       </div>
     </div>
-    <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center;">
-      <button class="btn btn-secondary" style="color:#ef4444;border-color:#fecaca;" onclick="confirmSuspend()">Suspend</button>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModal('manage-company-modal')">Cancel</button>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">
+      <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" onclick="confirmSuspend()">Suspend Company</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="closeManageCompanyPage()">Cancel</button>
         <button class="btn btn-primary" onclick="saveManageCompany()">Save Changes</button>
       </div>
     </div>
@@ -1575,7 +1597,7 @@ function manageCompany(id) {
   } else {
     document.getElementById('mgmt-renewal').value = '';
   }
-  openModal('manage-company-modal');
+  showSAPage('manage-company');
 }
 
 async function saveManageCompany() {
@@ -1616,7 +1638,7 @@ async function saveManageCompany() {
     if (planObj) c.plan_id = planObj.id;
     renderCompanies(companies);
     renderSubscriptions(companies);
-    closeModal('manage-company-modal');
+    closeManageCompanyPage();
     showToast(name + ' updated successfully');
   } catch(e) {
     showToast('Error saving: ' + e.message);
@@ -1674,6 +1696,22 @@ function showPage(id, btn) {
   document.getElementById('page-title').textContent = titles[id] || id;
   if (id === 'companies') { renderCompanies(companies); }
   if (id === 'subscriptions') { renderSubscriptions(companies); }
+}
+
+function showSAPage(which) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + which).classList.add('active');
+}
+
+function closeCreateCompanyPage() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-companies').classList.add('active');
+}
+
+function closeManageCompanyPage() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-companies').classList.add('active');
+  renderCompanies(companies);
 }
 
 // --- TABS ---
@@ -1746,7 +1784,7 @@ async function createCompany() {
       }),
     });
     companies.unshift(normalizeCompany(newCo, 0));
-    closeModal('create-company-modal');
+    closeCreateCompanyPage();
     showToast('Company "' + name + '" created successfully');
     showPage('companies', document.querySelector('.nav-item:nth-child(3)'));
   } catch(e) {
@@ -1933,7 +1971,7 @@ initAdmin();
 
 // Keyboard shortcut: N to open create company
 document.addEventListener('keydown', e => {
-  if (e.key === 'n' && !e.target.closest('input,textarea,select')) openModal('create-company-modal');
+  if (e.key === 'n' && !e.target.closest('input,textarea,select')) showSAPage('create-company');
   if (e.key === 'Escape') document.querySelectorAll('.modal-overlay').forEach(m => m.hidden = true);
 });
 </script>

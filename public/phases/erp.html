@@ -1883,70 +1883,90 @@ function doLogout() {
 </div>
 
 <!-- ══════════ NEW / EDIT QUOTATION MODAL ══════════ -->
-<div class="modal-overlay" id="qt-form-modal" hidden onclick="if(event.target===this)closeModal('qt-form-modal')">
-  <div class="modal modal-lg" style="max-width:860px;width:97vw;">
-    <div class="modal-header">
-      <span class="modal-title" id="qt-form-title">New Quotation</span>
-      <button class="close-btn" onclick="closeModal('qt-form-modal')">✕</button>
+<!-- ══════════ QUOTATION FORM — FULL PAGE ══════════ -->
+<div class="page" id="page-qt-form" style="display:none;">
+  <div style="max-width:860px;margin:0 auto;">
+    <!-- Page header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeQtForm()" style="gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <h2 id="qt-form-title" style="font-size:20px;font-weight:800;margin:0;flex:1;">New Quotation</h2>
+      <button class="btn btn-secondary" onclick="saveQuotation('draft')">Save Draft</button>
+      <button class="btn btn-primary" onclick="saveQuotation('sent')">Save & Mark Sent</button>
     </div>
-    <div class="modal-body">
-      <input type="hidden" id="qtf-id">
-      <!-- Lead row -->
-      <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;">
-          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:4px;">Lead / Customer</div>
-          <div id="qtf-lead-display" style="font-weight:600;font-size:14px;color:var(--fg);">— Not selected —</div>
-          <div id="qtf-lead-sub" style="font-size:12px;color:var(--fg3);"></div>
-        </div>
-        <input type="hidden" id="qtf-lead-id">
-        <input type="hidden" id="qtf-lead-name">
-        <input type="hidden" id="qtf-lead-phone">
-        <input type="hidden" id="qtf-lead-email">
-        <input type="hidden" id="qtf-lead-company">
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-sm" onclick="openLeadPickerForQt()">Select Lead</button>
-          <button class="btn btn-secondary btn-sm" onclick="openAddLeadForQt()">+ New Lead</button>
-        </div>
-      </div>
 
-      <!-- Dates & validity -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
-        <div class="form-group"><label>Issue Date *</label><input type="date" id="qtf-date"></div>
-        <div class="form-group"><label>Valid Until</label><input type="date" id="qtf-valid"></div>
-        <div class="form-group"><label>Notes</label><input id="qtf-notes" placeholder="Optional notes"></div>
-      </div>
+    <input type="hidden" id="qtf-id">
 
-      <!-- Line items -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-weight:700;font-size:13px;">Line Items</div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-sm" onclick="openServicePickerQt()">+ From Services</button>
-          <button class="btn btn-secondary btn-sm" onclick="addQtCustomLine()">+ Custom</button>
-        </div>
-      </div>
-      <div class="tw" style="margin-bottom:12px;">
-        <table id="qt-lines-table">
-          <thead><tr><th style="width:40%;">Description</th><th>VAT</th><th style="width:70px;">Qty</th><th style="width:90px;">Unit Price</th><th style="width:90px;text-align:right;">Amount</th><th style="width:36px;"></th></tr></thead>
-          <tbody id="qt-lines-tbody"></tbody>
-        </table>
-      </div>
-      <!-- Totals -->
-      <div style="display:flex;justify-content:flex-end;">
-        <div style="min-width:260px;">
-          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">Subtotal</span><span id="qtf-sub">AED 0.00</span></div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;align-items:center;">
-            <span style="color:var(--fg2);">Discount</span>
-            <div style="display:flex;align-items:center;gap:4px;">AED <input type="number" id="qtf-discount" value="0" min="0" step="0.01" style="width:70px;text-align:right;padding:3px 6px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:12px;" oninput="recalcQt()"></div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start;">
+      <!-- Left column -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Lead card -->
+        <div class="card card-body">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Lead / Customer</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:160px;">
+              <div id="qtf-lead-display" style="font-weight:700;font-size:15px;color:var(--fg);">— Not selected —</div>
+              <div id="qtf-lead-sub" style="font-size:12px;color:var(--fg3);margin-top:2px;"></div>
+            </div>
+            <input type="hidden" id="qtf-lead-id">
+            <input type="hidden" id="qtf-lead-name">
+            <input type="hidden" id="qtf-lead-phone">
+            <input type="hidden" id="qtf-lead-email">
+            <input type="hidden" id="qtf-lead-company">
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openLeadPickerForQt()">Select Lead</button>
+              <button class="btn btn-secondary btn-sm" onclick="openAddLeadForQt()">+ New Lead</button>
+            </div>
           </div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">VAT (5%)</span><span id="qtf-vat">AED 0.00</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:16px;font-weight:800;border-top:2px solid var(--border);margin-top:4px;"><span>Total</span><span id="qtf-total" style="color:var(--accent);">AED 0.00</span></div>
+        </div>
+
+        <!-- Line items -->
+        <div class="card card-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Line Items</div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-sm" onclick="openServicePickerQt()">+ From Services</button>
+              <button class="btn btn-secondary btn-sm" onclick="addQtCustomLine()">+ Custom Line</button>
+            </div>
+          </div>
+          <div class="tw">
+            <table id="qt-lines-table">
+              <thead><tr><th style="width:40%;">Description</th><th>VAT</th><th style="width:70px;">Qty</th><th style="width:100px;">Unit Price</th><th style="width:100px;text-align:right;">Amount</th><th style="width:36px;"></th></tr></thead>
+              <tbody id="qt-lines-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
-        <button class="btn btn-secondary" onclick="closeModal('qt-form-modal')">Cancel</button>
-        <button class="btn btn-secondary" onclick="saveQuotation('draft')">Save Draft</button>
-        <button class="btn btn-primary" onclick="saveQuotation('sent')">Save & Mark Sent</button>
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Dates -->
+        <div class="card card-body">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:10px;">Details</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="form-group" style="margin:0;"><label>Issue Date *</label><input type="date" id="qtf-date" style="width:100%;"></div>
+            <div class="form-group" style="margin:0;"><label>Valid Until</label><input type="date" id="qtf-valid" style="width:100%;"></div>
+            <div class="form-group" style="margin:0;"><label>Notes</label><textarea id="qtf-notes" rows="3" placeholder="Optional notes…" style="width:100%;resize:vertical;"></textarea></div>
+          </div>
+        </div>
+        <!-- Totals -->
+        <div class="card card-body">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:12px;">Summary</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--fg2);">Subtotal</span><span id="qtf-sub">AED 0.00</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+              <span style="color:var(--fg2);">Discount (AED)</span>
+              <input type="number" id="qtf-discount" value="0" min="0" step="0.01" style="width:80px;text-align:right;padding:4px 7px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:12px;" oninput="recalcQt()">
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--fg2);">VAT (5%)</span><span id="qtf-vat">AED 0.00</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;border-top:2px solid var(--border);padding-top:10px;margin-top:4px;"><span>Total</span><span id="qtf-total" style="color:var(--accent);">AED 0.00</span></div>
+          </div>
+        </div>
+        <!-- Actions -->
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="saveQuotation('sent')">Save & Mark Sent</button>
+        <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="saveQuotation('draft')">Save as Draft</button>
       </div>
     </div>
   </div>
@@ -1970,30 +1990,28 @@ function doLogout() {
 </div>
 
 <!-- ══════════ VIEW QUOTATION MODAL ══════════ -->
-<div class="modal-overlay" id="qt-view-modal" hidden onclick="if(event.target===this)closeModal('qt-view-modal')">
-  <div class="modal modal-lg" style="max-width:800px;width:97vw;">
-    <div class="modal-header">
-      <span class="modal-title" id="qtv-title">Quotation</span>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button class="btn btn-secondary btn-sm" id="qtv-whatsapp-btn" onclick="sendQtWhatsApp()">💬 WhatsApp</button>
+<!-- ══════════ QUOTATION VIEW — FULL PAGE ══════════ -->
+<div class="page" id="page-qt-view" style="display:none;">
+  <div style="max-width:860px;margin:0 auto;">
+    <!-- Page header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="closeQtView()" style="gap:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </button>
+      <h2 id="qtv-title" style="font-size:20px;font-weight:800;margin:0;font-family:'DM Mono',monospace;"></h2>
+      <span id="qtv-status-badge" style="margin-left:4px;"></span>
+      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-xs btn-secondary" onclick="setQtStatus('draft')">Draft</button>
+        <button class="btn btn-xs btn-secondary" onclick="setQtStatus('sent')">Sent</button>
+        <button class="btn btn-xs" style="background:var(--green-light);color:var(--green);border:1.5px solid var(--green);font-weight:700;" onclick="setQtStatus('accepted')">Accept</button>
+        <button class="btn btn-xs" style="background:var(--red-light);color:var(--red);border:1.5px solid var(--red);font-weight:700;" onclick="setQtStatus('rejected')">Reject</button>
+        <button class="btn btn-secondary btn-sm" onclick="sendQtWhatsApp()">💬 WhatsApp</button>
         <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨 Print / PDF</button>
         <button class="btn btn-primary btn-sm" id="qtv-invoice-btn" onclick="convertQtToInvoice()">⚡ Create Invoice</button>
-        <button class="close-btn" onclick="closeModal('qt-view-modal')">✕</button>
       </div>
     </div>
-    <div class="modal-body">
-      <!-- Status bar -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-        <span id="qtv-status-badge"></span>
-        <div style="margin-left:auto;display:flex;gap:6px;">
-          <button class="btn btn-xs btn-secondary" onclick="setQtStatus('draft')">Draft</button>
-          <button class="btn btn-xs btn-secondary" onclick="setQtStatus('sent')">Sent</button>
-          <button class="btn btn-xs" style="background:var(--green-light);color:var(--green);border:1px solid var(--green);" onclick="setQtStatus('accepted')">Accept</button>
-          <button class="btn btn-xs" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);" onclick="setQtStatus('rejected')">Reject</button>
-        </div>
-      </div>
-      <div id="qtv-body"></div>
-    </div>
+    <div id="qtv-body"></div>
   </div>
 </div>
 
@@ -2751,8 +2769,11 @@ function saveDraft() {
 
 // --- NAVIGATION ---
 function nav(id, btn) {
+  // Hide any open full-page sub-panels
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  ['page-qt-form','page-qt-view'].forEach(pid => { const el=document.getElementById(pid); if(el) el.style.display='none'; })
+  if (id !== 'quotations') { const qp=document.getElementById('page-quotations'); if(qp) qp.style.display=''; }
   document.getElementById('page-' + id).classList.add('active');
   if (btn) btn.classList.add('active');
   const titles = { dashboard:'Dashboard', pos:'POS / New Sale', quotations:'Quotations', sales:'Sales & Invoices', customers:'Customers', services:'Services', applications:'Applications', documents:'Documents', accounting:'Accounting', vat:'VAT / Tax', reports:'Reports', einvoice:'E-Invoice (UAE FTA)', settings:'Settings' };
@@ -2881,6 +2902,24 @@ const QT_STATUS_CFG = {
 function qtStatusBadge(s) {
   const c = QT_STATUS_CFG[s] || { label: s, cls: 'b-gray' }
   return `<span class="badge ${c.cls}">${c.label}</span>`
+}
+
+// ── Full-page navigation helpers ─────────────────────────
+function showQtPage(which) {
+  // Hide main content area, show the sub-page
+  document.getElementById('page-quotations').style.display = 'none'
+  document.getElementById('page-qt-form').style.display    = which === 'qt-form' ? '' : 'none'
+  document.getElementById('page-qt-view').style.display    = which === 'qt-view' ? '' : 'none'
+}
+
+function closeQtForm() {
+  document.getElementById('page-qt-form').style.display = 'none'
+  document.getElementById('page-quotations').style.display = ''
+}
+
+function closeQtView() {
+  document.getElementById('page-qt-view').style.display = 'none'
+  document.getElementById('page-quotations').style.display = ''
 }
 
 // ── Load ──────────────────────────────────────────────────
@@ -3045,7 +3084,7 @@ function openNewQuotation() {
   _qtLines = []
   renderQtLines()
   recalcQt()
-  openModal('qt-form-modal')
+  showQtPage('qt-form')
 }
 
 function openLeadPickerForQt() {
@@ -3208,7 +3247,7 @@ async function saveQuotation(status) {
       const res = await apiFetch(`/${CID}/quotations`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
       showToast(`${res.quote_number} created`,'success')
     }
-    closeModal('qt-form-modal')
+    closeQtForm()
     await loadQuotations()
   } catch(e) { showToast('Save failed: '+e.message,'error') }
 }
@@ -3270,8 +3309,8 @@ async function viewQuotation(id) {
       ${q.invoice_id?`<div style="margin-top:12px;padding:10px 14px;background:var(--green-light);border-radius:8px;font-size:12px;color:var(--green);font-weight:600;">✓ Invoiced</div>`:''}
     `
     // store full object for print/whatsapp
-    document.getElementById('qt-view-modal')._qtData = q
-    openModal('qt-view-modal')
+    document.getElementById('page-qt-view')._qtData = q
+    showQtPage('qt-view')
   } catch(e) { showToast('Failed to load quotation','error') }
 }
 
@@ -3290,7 +3329,7 @@ async function setQtStatus(status) {
 
 // ── Print / PDF ───────────────────────────────────────────
 function printQuotation() {
-  const q = document.getElementById('qt-view-modal')._qtData
+  const q = document.getElementById('page-qt-view')._qtData
   if (!q) return
   const lines = (q.lines||[]).map(l => `
     <tr>
@@ -3356,7 +3395,6 @@ function printQuotation() {
       This quotation is valid until ${valid}. Prices are subject to change after the validity date. UAE VAT Reg. No. as per company profile.
     </div>`
 
-  closeModal('qt-view-modal')
   openModal('qt-print-modal')
 }
 
@@ -3372,7 +3410,7 @@ function doPrintQt() {
 
 // ── WhatsApp ──────────────────────────────────────────────
 function sendQtWhatsApp() {
-  const q = document.getElementById('qt-view-modal')._qtData
+  const q = document.getElementById('page-qt-view')._qtData
   if (!q) return
   const phone   = (q.lead_phone||'').replace(/\D/g,'')
   const lines   = (q.lines||[]).map(l=>`• ${l.description} × ${parseFloat(l.quantity).toFixed(0)} = AED ${parseFloat(l.line_amount).toFixed(2)}`).join('\n')
@@ -3390,10 +3428,10 @@ function sendQtWhatsApp() {
 
 // ── Convert to Invoice ────────────────────────────────────
 async function convertQtToInvoice() {
-  const q = document.getElementById('qt-view-modal')._qtData
+  const q = document.getElementById('page-qt-view')._qtData
   if (!q) return
   if (!confirm(`Convert ${q.quote_number} to invoice? This will open the POS with pre-filled items.`)) return
-  closeModal('qt-view-modal')
+  closeQtView()
   // Store quotation data for POS to pick up
   window._pendingQtForInvoice = q
   nav('pos', document.querySelector('.nav-item[onclick*="pos"]'))

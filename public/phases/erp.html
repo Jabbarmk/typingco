@@ -2775,7 +2775,7 @@ function nav(id, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   ['page-qt-form','page-qt-view'].forEach(pid => { const el=document.getElementById(pid); if(el) el.style.display='none'; })
-  if (id !== 'quotations') { const qp=document.getElementById('page-quotations'); if(qp) qp.style.display=''; }
+  const qp=document.getElementById('page-quotations'); if(qp) qp.style.display='';
   document.getElementById('page-' + id).classList.add('active');
   if (btn) btn.classList.add('active');
   const titles = { dashboard:'Dashboard', pos:'POS / New Sale', quotations:'Quotations', sales:'Sales & Invoices', customers:'Customers', services:'Services', applications:'Applications', documents:'Documents', accounting:'Accounting', vat:'VAT / Tax', reports:'Reports', einvoice:'E-Invoice (UAE FTA)', settings:'Settings' };
@@ -2908,20 +2908,19 @@ function qtStatusBadge(s) {
 
 // ── Full-page navigation helpers ─────────────────────────
 function showQtPage(which) {
-  // Hide main content area, show the sub-page
   document.getElementById('page-quotations').style.display = 'none'
-  document.getElementById('page-qt-form').style.display    = which === 'qt-form' ? '' : 'none'
-  document.getElementById('page-qt-view').style.display    = which === 'qt-view' ? '' : 'none'
+  document.getElementById('page-qt-form').style.display    = which === 'qt-form' ? 'block' : 'none'
+  document.getElementById('page-qt-view').style.display    = which === 'qt-view' ? 'block' : 'none'
 }
 
 function closeQtForm() {
   document.getElementById('page-qt-form').style.display = 'none'
-  document.getElementById('page-quotations').style.display = ''
+  document.getElementById('page-quotations').style.display = 'block'
 }
 
 function closeQtView() {
   document.getElementById('page-qt-view').style.display = 'none'
-  document.getElementById('page-quotations').style.display = ''
+  document.getElementById('page-quotations').style.display = 'block'
 }
 
 // ── Load ──────────────────────────────────────────────────

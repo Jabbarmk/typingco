@@ -312,6 +312,49 @@ app.delete('/api/:cid/services/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+// ─── MIGRATE SERVICES TO ALL COMPANIES ─────────────────────
+// Copies all active services from :cid to every other active company.
+// Skips any service whose name already exists in the target company (case-insensitive).
+app.post('/api/:cid/services/migrate-to-all', async (req, res) => {
+  try {
+    const srcCid = parseInt(req.params.cid)
+    // Get source services
+    const [srcServices] = await pool.query(
+      'SELECT name, category, unit_price, vat_category, icon FROM services WHERE company_id=? AND is_active=1',
+      [srcCid]
+    )
+    if (!srcServices.length) return res.json({ copied: 0, companies: 0, skipped: 0 })
+
+    // Get all other active companies
+    const [companies] = await pool.query(
+      'SELECT id FROM companies WHERE id != ? AND status IN (\'active\',\'trial\')',
+      [srcCid]
+    )
+
+    let totalCopied = 0, totalSkipped = 0
+    for (const co of companies) {
+      // Get existing service names in this company (lowercase)
+      const [existing] = await pool.query(
+        'SELECT LOWER(name) AS n FROM services WHERE company_id=?',
+        [co.id]
+      )
+      const existingNames = new Set(existing.map(r => r.n))
+
+      for (const svc of srcServices) {
+        if (existingNames.has(svc.name.toLowerCase())) { totalSkipped++; continue }
+        await pool.query(
+          'INSERT INTO services (company_id, name, category, unit_price, vat_category, icon, is_active) VALUES (?,?,?,?,?,?,1)',
+          [co.id, svc.name, svc.category, svc.unit_price, svc.vat_category, svc.icon]
+        )
+        totalCopied++
+      }
+    }
+    res.json({ copied: totalCopied, companies: companies.length, skipped: totalSkipped })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // ─── CUSTOMERS PATCH/DELETE ────────────────────────────────
 app.patch('/api/:cid/customers/:id', async (req, res) => {
   const allowed = ['name','phone','email','nationality','id_type','id_number','emirate','customer_type','trn','notes']

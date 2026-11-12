@@ -1437,9 +1437,14 @@ function doLogout() {
       <!-- Services Settings -->
       <div class="tab-panel" id="s-services">
         <div class="card card-body">
-          <div style="display:flex;justify-content:space-between;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
             <span style="font-weight:600;">Services &amp; Pricing</span>
-            <button class="btn btn-primary btn-sm" onclick="openServiceModal()">+ Add Service</button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="migrateServicesToAll()" title="Copy all active services from this company to every other company (skips duplicates)">
+                📋 Migrate to All Companies
+              </button>
+              <button class="btn btn-primary btn-sm" onclick="openServiceModal()">+ Add Service</button>
+            </div>
           </div>
           <div class="tw">
             <table>
@@ -4335,6 +4340,20 @@ async function downloadInvoicePDF() {
     showToast('PDF error: ' + e.message, 'error')
   } finally {
     if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download PDF' }
+  }
+}
+
+async function migrateServicesToAll() {
+  if (!confirm('Copy all active services from this company to every other company?\n\nServices with the same name already in a target company will be skipped.')) return
+  const btn = document.querySelector('[onclick="migrateServicesToAll()"]')
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Migrating…' }
+  try {
+    const res = await apiFetch(`/${CID}/services/migrate-to-all`, { method: 'POST' })
+    showToast(`Done — copied ${res.copied} service(s) to ${res.companies} company(s), skipped ${res.skipped} duplicate(s)`, 'success')
+  } catch(e) {
+    showToast('Migration failed: ' + e.message, 'error')
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📋 Migrate to All Companies' }
   }
 }
 

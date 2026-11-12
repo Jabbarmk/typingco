@@ -1475,7 +1475,11 @@ function doLogout() {
       <button class="close-btn" onclick="closeModal('reset-pass-modal')">×</button>
     </div>
     <div class="modal-body">
-      <p style="margin:0 0 16px;color:var(--fg2);font-size:13px;">Set a new password for <strong id="reset-pass-co-name"></strong>'s admin account (<span id="reset-pass-email" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--fg3);"></span>).</p>
+      <p style="margin:0 0 8px;color:var(--fg2);font-size:13px;">Set a new password for <strong id="reset-pass-co-name"></strong>.</p>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>Select User</label>
+        <span id="reset-pass-email" style="font-size:12px;color:var(--fg3);">Loading…</span>
+      </div>
       <div class="form-group">
         <label>New Password</label>
         <div style="display:flex;gap:8px;">
@@ -1760,24 +1764,47 @@ async function openResetPasswordModal() {
   const id = parseInt(document.getElementById('mgmt-id').value);
   const c  = companies.find(x => x.id === id);
   if (!c) return;
-  document.getElementById('reset-pass-co-name').textContent = c.name;
-  document.getElementById('reset-pass-email').textContent   = '';
-  document.getElementById('reset-pass-input').value         = '';
+  document.getElementById('reset-pass-co-name').textContent  = c.name;
+  document.getElementById('reset-pass-email').textContent    = 'Loading…';
+  document.getElementById('reset-pass-input').value          = '';
   document.getElementById('reset-pass-result').style.display = 'none';
   _resetPassUserId = null;
   openModal('reset-pass-modal');
-  // Load company users to find the admin
   try {
-    const list = await apiFetch(`/users?company_id=${id}`);
-    const admin = list.find(u => u.role === 'admin') || list[0];
-    if (admin) {
-      _resetPassUserId = admin.id;
-      document.getElementById('reset-pass-email').textContent = admin.email || '';
-    } else {
-      document.getElementById('reset-pass-result').style.display = 'block';
-      document.getElementById('reset-pass-result').innerHTML = '<span style="color:var(--red);">No users found for this company.</span>';
+    // Try company_id match first, fall back to all users
+    let list = await apiFetch(`/users?company_id=${id}`);
+    if (!list.length) list = await apiFetch('/users');
+    // Build user select dropdown
+    const sel = document.getElementById('reset-pass-email');
+    if (list.length === 0) {
+      sel.outerHTML = `<span id="reset-pass-email" style="color:var(--red);">No users in system.</span>`;
+      return;
+    }
+    // Prefer admin role for this company, then any user for this company, then all
+    const sorted = [...list].sort((a,b) => {
+      const aMatch = a.company_id === id;
+      const bMatch = b.company_id === id;
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      if (a.role==='admin' && b.role!=='admin') return -1;
+      if (a.role!=='admin' && b.role==='admin') return 1;
+      return 0;
+    });
+    const opts = sorted.map(u =>
+      `<option value="${u.id}" ${u.company_id===id&&u.role==='admin'?'selected':''}>${u.name} (${u.email}) — ${u.role}${u.company_id===id?' ✓':''}</option>`
+    ).join('');
+    // Replace the span with a select
+    const emailEl = document.getElementById('reset-pass-email');
+    emailEl.outerHTML = `<select id="reset-pass-email" class="input" style="width:100%;font-size:12px;" onchange="_resetPassUserId=parseInt(this.value)">${opts}</select>`;
+    _resetPassUserId = sorted[0].id;
+    // Auto-select best match
+    const best = sorted.find(u => u.company_id===id && u.role==='admin') || sorted.find(u => u.company_id===id) || sorted[0];
+    if (best) {
+      _resetPassUserId = best.id;
+      document.getElementById('reset-pass-email').value = best.id;
     }
   } catch(e) {
+    document.getElementById('reset-pass-email').textContent = '';
     document.getElementById('reset-pass-result').style.display = 'block';
     document.getElementById('reset-pass-result').innerHTML = `<span style="color:var(--red);">Error loading users: ${e.message}</span>`;
   }
@@ -1791,16 +1818,21 @@ function genResetPassword() {
 }
 
 async function doResetPassword() {
-  if (!_resetPassUserId) { showToast('No admin user found for this company', 'error'); return; }
+  // Read selected user id from dropdown (may have changed via onchange)
+  const selEl = document.getElementById('reset-pass-email');
+  if (selEl && selEl.tagName === 'SELECT') _resetPassUserId = parseInt(selEl.value);
+  if (!_resetPassUserId) { showToast('No user selected', 'error'); return; }
   const pw = document.getElementById('reset-pass-input').value.trim();
   if (pw.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
   try {
     await apiFetch(`/users/${_resetPassUserId}`, { method: 'PATCH', body: JSON.stringify({ password: pw }) });
-    const email = document.getElementById('reset-pass-email').textContent;
+    const emailVal = selEl && selEl.tagName === 'SELECT'
+      ? selEl.options[selEl.selectedIndex].text.match(/\(([^)]+)\)/)?.[1] || ''
+      : (selEl?.textContent || '');
     document.getElementById('reset-pass-result').style.display = 'block';
     document.getElementById('reset-pass-result').innerHTML =
       `<span style="color:var(--green);">&#10003; Password updated.</span><br>
-       <span style="color:var(--fg2);font-size:12px;">Login: <strong style="font-family:'DM Mono',monospace;">${email}</strong> &nbsp;/&nbsp; Password: <strong style="font-family:'DM Mono',monospace;">${pw}</strong></span>`;
+       <span style="color:var(--fg2);font-size:12px;">Login: <strong style="font-family:'DM Mono',monospace;">${emailVal}</strong> &nbsp;/&nbsp; Password: <strong style="font-family:'DM Mono',monospace;">${pw}</strong></span>`;
     showToast('Password reset successfully');
   } catch(e) {
     showToast('Error: ' + e.message, 'error');

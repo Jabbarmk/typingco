@@ -83,7 +83,50 @@ app.post('/api/companies', async (req, res) => {
      VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
     [name, name_ar||null, trn||null, cr_number||null, email, phone||null, address||null, emirate||'Dubai', plan_id||null, status||'trial', trial_ends_at||null]
   )
-  const [[company]] = await pool.query('SELECT * FROM companies WHERE id=?', [r.insertId])
+  const newCid = r.insertId
+  // Seed default services for the new company
+  const DEFAULT_SERVICES = [
+    // Typing & Documents
+    ['Typing Service',           'typing',   10.00, 'S', '📝'],
+    ['Arabic Typing',            'typing',   15.00, 'S', '📝'],
+    ['Translation (English)',    'typing',   50.00, 'S', '🌐'],
+    ['Translation (Arabic)',     'typing',   50.00, 'S', '🌐'],
+    ['CV / Resume Writing',      'typing',   75.00, 'S', '📄'],
+    ['NOC Letter',               'typing',   30.00, 'S', '📄'],
+    ['Experience Letter',        'typing',   30.00, 'S', '📄'],
+    // Visa & EID
+    ['Visa Application',         'visa',    150.00, 'S', '🛂'],
+    ['Visa Renewal',             'visa',    120.00, 'S', '🛂'],
+    ['Visa Cancellation',        'visa',     80.00, 'S', '🛂'],
+    ['Emirates ID New',          'visa',    100.00, 'S', '🪪'],
+    ['Emirates ID Renewal',      'visa',     80.00, 'S', '🪪'],
+    ['Emirates ID Replacement',  'visa',     60.00, 'S', '🪪'],
+    ['Medical Fitness Test',     'visa',    270.00, 'S', '🏥'],
+    // Print & Scan
+    ['A4 Print (B&W)',           'print',     1.00, 'S', '🖨️'],
+    ['A4 Print (Colour)',        'print',     3.00, 'S', '🖨️'],
+    ['A3 Print',                 'print',     5.00, 'S', '🖨️'],
+    ['Lamination (A4)',          'print',    10.00, 'S', '🗂️'],
+    ['Scanning (per page)',      'print',     2.00, 'S', '🖨️'],
+    ['Photocopy',                'print',     0.50, 'S', '📋'],
+    // Government Services
+    ['MOL / MOHRE Application',  'govt',    200.00, 'S', '🏛️'],
+    ['Trade Licence Renewal',    'govt',    500.00, 'S', '🏛️'],
+    ['PRO Service',              'govt',    300.00, 'S', '🏛️'],
+    ['Attestation Service',      'govt',    150.00, 'S', '🏛️'],
+    // Other
+    ['Courier Service',          'other',    50.00, 'S', '📦'],
+    ['Notary Service',           'other',   200.00, 'S', '⚖️'],
+  ]
+  if (DEFAULT_SERVICES.length) {
+    const placeholders = DEFAULT_SERVICES.map(() => '(?,?,?,?,?,?,?)').join(',')
+    const values = DEFAULT_SERVICES.flatMap(([name, cat, price, vat, icon]) =>
+      [newCid, name, cat, price, vat, 1, icon])
+    await pool.query(
+      `INSERT INTO services (company_id,name,category,unit_price,vat_category,is_active,icon) VALUES ${placeholders}`,
+      values)
+  }
+  const [[company]] = await pool.query('SELECT * FROM companies WHERE id=?', [newCid])
   res.status(201).json(company)
 })
 

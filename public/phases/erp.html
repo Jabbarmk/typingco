@@ -394,6 +394,10 @@ select { width: auto; }
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.98 1.61h9.72a2 2 0 001.99-1.76L23 6H6"/></svg>
     <span>POS / New Sale</span>
   </button>
+  <button class="nav-item" onclick="nav('quotations',this)">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <span>Quotations</span>
+  </button>
   <button class="nav-item" onclick="nav('sales',this)">
     <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
     <span>Sales & Invoices</span>
@@ -762,7 +766,10 @@ function doLogout() {
         <div class="pos-cart" style="height:fit-content;position:sticky;top:70px;">
           <div class="cart-header">
             <span>Cart</span>
-            <button class="btn btn-secondary btn-xs" onclick="clearCart()">Clear</button>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-secondary btn-xs" onclick="openQtPickerForPOS()" title="Import from Quotation">📋 Quotation</button>
+              <button class="btn btn-secondary btn-xs" onclick="clearCart()">Clear</button>
+            </div>
           </div>
           <div class="cart-items" id="cart-items">
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--fg3);gap:6px;padding:20px;">
@@ -793,6 +800,69 @@ function doLogout() {
             </button>
             <button class="btn btn-secondary" style="width:100%;justify-content:center;" onclick="saveDraft()">Save as Draft</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUOTATIONS PAGE -->
+    <div class="page" id="page-quotations">
+      <!-- Toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="search-bar" style="min-width:220px;">
+            <svg width="13" height="13" fill="none" stroke="var(--fg3)" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="qt-search" placeholder="Search quotations…" oninput="filterQuotations()">
+          </div>
+          <select id="qt-filter-status" onchange="filterQuotations()" style="font-size:12px;padding:6px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+            <option value="invoiced">Invoiced</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary btn-sm" onclick="openLeadsModal()">👥 Leads</button>
+          <button class="btn btn-primary btn-sm" onclick="openNewQuotation()">+ New Quotation</button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;" id="qt-stat-row">
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Total</div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent);" id="qts-total">0</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Draft</div>
+          <div style="font-size:24px;font-weight:800;color:var(--fg2);" id="qts-draft">0</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Accepted</div>
+          <div style="font-size:24px;font-weight:800;color:var(--green);" id="qts-accepted">0</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Invoiced</div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent);" id="qts-invoiced">0</div>
+        </div>
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Total Value</div>
+          <div style="font-size:18px;font-weight:800;color:var(--fg);" id="qts-value">AED 0</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Quote #</th><th>Date</th><th>Lead / Customer</th><th>Company</th>
+              <th style="text-align:right;">Total</th><th>Valid Until</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="qt-tbody"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1682,6 +1752,232 @@ function doLogout() {
   </div>
 </div>
 
+<!-- ══════════ LEADS MODAL ══════════ -->
+<div class="modal-overlay" id="leads-modal" hidden onclick="if(event.target===this)closeModal('leads-modal')">
+  <div class="modal" style="max-width:680px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title">Leads</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Add Lead</button>
+        <button class="close-btn" onclick="closeModal('leads-modal')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+        <input type="text" id="lead-search" placeholder="Search leads…" oninput="filterLeads()"
+          style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;">
+      </div>
+      <div style="max-height:420px;overflow-y:auto;" id="leads-list-wrap">
+        <div id="leads-list" style="padding:8px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADD/EDIT LEAD MODAL ══════════ -->
+<div class="modal-overlay" id="lead-form-modal" hidden onclick="if(event.target===this)closeModal('lead-form-modal')">
+  <div class="modal" style="max-width:480px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="lead-form-title">Add Lead</span>
+      <button class="close-btn" onclick="closeModal('lead-form-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="lf-id">
+      <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="form-group"><label>Name *</label><input id="lf-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Phone</label><input id="lf-phone" placeholder="+971 50 123 4567"></div>
+        <div class="form-group"><label>Email</label><input id="lf-email" type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Company</label><input id="lf-company" placeholder="Company name"></div>
+        <div class="form-group"><label>Source</label>
+          <select id="lf-source">
+            <option value="walk_in">Walk-in</option>
+            <option value="phone">Phone</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="online">Online</option>
+            <option value="referral">Referral</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;"><label>Notes</label><textarea id="lf-notes" rows="2" style="width:100%;resize:vertical;"></textarea></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('lead-form-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveLead()">Save Lead</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ NEW / EDIT QUOTATION MODAL ══════════ -->
+<div class="modal-overlay" id="qt-form-modal" hidden onclick="if(event.target===this)closeModal('qt-form-modal')">
+  <div class="modal modal-lg" style="max-width:860px;width:97vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="qt-form-title">New Quotation</span>
+      <button class="close-btn" onclick="closeModal('qt-form-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="qtf-id">
+      <!-- Lead row -->
+      <div style="background:var(--surface2);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:4px;">Lead / Customer</div>
+          <div id="qtf-lead-display" style="font-weight:600;font-size:14px;color:var(--fg);">— Not selected —</div>
+          <div id="qtf-lead-sub" style="font-size:12px;color:var(--fg3);"></div>
+        </div>
+        <input type="hidden" id="qtf-lead-id">
+        <input type="hidden" id="qtf-lead-name">
+        <input type="hidden" id="qtf-lead-phone">
+        <input type="hidden" id="qtf-lead-email">
+        <input type="hidden" id="qtf-lead-company">
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="openLeadPickerForQt()">Select Lead</button>
+          <button class="btn btn-secondary btn-sm" onclick="openAddLeadForQt()">+ New Lead</button>
+        </div>
+      </div>
+
+      <!-- Dates & validity -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="form-group"><label>Issue Date *</label><input type="date" id="qtf-date"></div>
+        <div class="form-group"><label>Valid Until</label><input type="date" id="qtf-valid"></div>
+        <div class="form-group"><label>Notes</label><input id="qtf-notes" placeholder="Optional notes"></div>
+      </div>
+
+      <!-- Line items -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-weight:700;font-size:13px;">Line Items</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm" onclick="openServicePickerQt()">+ From Services</button>
+          <button class="btn btn-secondary btn-sm" onclick="addQtCustomLine()">+ Custom</button>
+        </div>
+      </div>
+      <div class="tw" style="margin-bottom:12px;">
+        <table id="qt-lines-table">
+          <thead><tr><th style="width:40%;">Description</th><th>VAT</th><th style="width:70px;">Qty</th><th style="width:90px;">Unit Price</th><th style="width:90px;text-align:right;">Amount</th><th style="width:36px;"></th></tr></thead>
+          <tbody id="qt-lines-tbody"></tbody>
+        </table>
+      </div>
+      <!-- Totals -->
+      <div style="display:flex;justify-content:flex-end;">
+        <div style="min-width:260px;">
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">Subtotal</span><span id="qtf-sub">AED 0.00</span></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;align-items:center;">
+            <span style="color:var(--fg2);">Discount</span>
+            <div style="display:flex;align-items:center;gap:4px;">AED <input type="number" id="qtf-discount" value="0" min="0" step="0.01" style="width:70px;text-align:right;padding:3px 6px;border-radius:6px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:12px;" oninput="recalcQt()"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">VAT (5%)</span><span id="qtf-vat">AED 0.00</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:16px;font-weight:800;border-top:2px solid var(--border);margin-top:4px;"><span>Total</span><span id="qtf-total" style="color:var(--accent);">AED 0.00</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeModal('qt-form-modal')">Cancel</button>
+        <button class="btn btn-secondary" onclick="saveQuotation('draft')">Save Draft</button>
+        <button class="btn btn-primary" onclick="saveQuotation('sent')">Save & Mark Sent</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SERVICE PICKER FOR QUOTATION ══════════ -->
+<div class="modal-overlay" id="qt-svc-picker" hidden onclick="if(event.target===this)closeModal('qt-svc-picker')">
+  <div class="modal" style="max-width:520px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title">Select Service</span>
+      <button class="close-btn" onclick="closeModal('qt-svc-picker')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+        <input type="text" id="qt-svc-search" placeholder="Search services…" oninput="filterQtSvc()"
+          style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;">
+      </div>
+      <div id="qt-svc-list" style="max-height:360px;overflow-y:auto;padding:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ VIEW QUOTATION MODAL ══════════ -->
+<div class="modal-overlay" id="qt-view-modal" hidden onclick="if(event.target===this)closeModal('qt-view-modal')">
+  <div class="modal modal-lg" style="max-width:800px;width:97vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="qtv-title">Quotation</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="btn btn-secondary btn-sm" id="qtv-whatsapp-btn" onclick="sendQtWhatsApp()">💬 WhatsApp</button>
+        <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨 Print / PDF</button>
+        <button class="btn btn-primary btn-sm" id="qtv-invoice-btn" onclick="convertQtToInvoice()">⚡ Create Invoice</button>
+        <button class="close-btn" onclick="closeModal('qt-view-modal')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <!-- Status bar -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <span id="qtv-status-badge"></span>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-xs btn-secondary" onclick="setQtStatus('draft')">Draft</button>
+          <button class="btn btn-xs btn-secondary" onclick="setQtStatus('sent')">Sent</button>
+          <button class="btn btn-xs" style="background:var(--green-light);color:var(--green);border:1px solid var(--green);" onclick="setQtStatus('accepted')">Accept</button>
+          <button class="btn btn-xs" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);" onclick="setQtStatus('rejected')">Reject</button>
+        </div>
+      </div>
+      <div id="qtv-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ PRINT PREVIEW MODAL ══════════ -->
+<div class="modal-overlay" id="qt-print-modal" hidden onclick="if(event.target===this)closeModal('qt-print-modal')">
+  <div class="modal modal-lg" style="max-width:820px;width:97vw;">
+    <div class="modal-header">
+      <span class="modal-title">Print Preview</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="doPrintQt()">🖨 Print / Save as PDF</button>
+        <button class="close-btn" onclick="closeModal('qt-print-modal')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" style="padding:0;background:#e5e7eb;">
+      <div style="padding:20px;overflow-y:auto;max-height:80vh;">
+        <div id="qt-print-area" style="background:#fff;max-width:740px;margin:0 auto;padding:48px;font-family:'Poppins',sans-serif;font-size:13px;color:#111;box-shadow:0 4px 24px rgba(0,0,0,.12);border-radius:4px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LEAD PICKER (for quotation) ══════════ -->
+<div class="modal-overlay" id="lead-picker-modal" hidden onclick="if(event.target===this)closeModal('lead-picker-modal')">
+  <div class="modal" style="max-width:520px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title">Select Lead</span>
+      <button class="close-btn" onclick="closeModal('lead-picker-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+        <input type="text" id="lead-pick-search" placeholder="Search leads…" oninput="filterLeadPicker()"
+          style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;">
+      </div>
+      <div id="lead-pick-list" style="max-height:360px;overflow-y:auto;padding:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ QUOTATION PICKER FOR POS ══════════ -->
+<div class="modal-overlay" id="qt-pos-picker" hidden onclick="if(event.target===this)closeModal('qt-pos-picker')">
+  <div class="modal" style="max-width:540px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title">Import from Quotation</span>
+      <button class="close-btn" onclick="closeModal('qt-pos-picker')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);">
+        <input type="text" id="qt-pos-search" placeholder="Search by quotation number or lead name…" oninput="filterQtPicker()"
+          style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;">
+      </div>
+      <div id="qt-pos-list" style="max-height:400px;overflow-y:auto;padding:8px;"></div>
+      <div style="padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:var(--fg3);">
+        Selecting a quotation will pre-fill the cart with its items. Only open (non-invoiced) quotations are shown.
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- INVOICE PREVIEW MODAL -->
 <div class="modal-overlay" id="invoice-modal" hidden onclick="if(event.target===this)closeModal('invoice-modal')">
   <div class="modal modal-lg">
@@ -2020,6 +2316,7 @@ async function postInvoice() {
     });
     savedId = saved.id;
     invoiceStore[savedId] = invHtml;
+    markQuotationInvoiced(savedId);
   } catch(e) {
     invoiceStore[invNum] = invHtml;
   }
@@ -2384,13 +2681,14 @@ function nav(id, btn) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
   if (btn) btn.classList.add('active');
-  const titles = { dashboard:'Dashboard', pos:'POS / New Sale', sales:'Sales & Invoices', customers:'Customers', services:'Services', applications:'Applications', documents:'Documents', accounting:'Accounting', vat:'VAT / Tax', reports:'Reports', einvoice:'E-Invoice (UAE FTA)', settings:'Settings' };
+  const titles = { dashboard:'Dashboard', pos:'POS / New Sale', quotations:'Quotations', sales:'Sales & Invoices', customers:'Customers', services:'Services', applications:'Applications', documents:'Documents', accounting:'Accounting', vat:'VAT / Tax', reports:'Reports', einvoice:'E-Invoice (UAE FTA)', settings:'Settings' };
   document.getElementById('page-title').textContent = titles[id] || id;
   if (id === 'vat')          loadVAT();
   if (id === 'settings')     loadSettings();
   if (id === 'accounting')   loadAccounting();
   if (id === 'applications') loadApplications();
   if (id === 'services')     loadServicesPage();
+  if (id === 'quotations')   loadQuotations();
   if (id === 'reports')      loadReports();
   if (id === 'einvoice')     loadEInvoicePage();
 }
@@ -2488,6 +2786,621 @@ function exportVAT() {
 // ─── REPORTS ─────────────────────────────────────────────────
 let _rptData = []  // last report rows for CSV export
 let _rptType = ''
+// ══════════════════════════════════════════════════════════
+// QUOTATION MODULE
+// ══════════════════════════════════════════════════════════
+let ALL_QUOTATIONS = []
+let ALL_LEADS      = []
+let _qtLines       = []   // lines being edited in form
+let _qtViewId      = null // currently viewed quotation id
+
+const QT_STATUS_CFG = {
+  draft:    { label:'Draft',    cls:'b-gray'   },
+  sent:     { label:'Sent',     cls:'b-blue'   },
+  accepted: { label:'Accepted', cls:'b-green'  },
+  rejected: { label:'Rejected', cls:'b-red'    },
+  invoiced: { label:'Invoiced', cls:'b-purple' },
+  expired:  { label:'Expired',  cls:'b-amber'  },
+}
+
+function qtStatusBadge(s) {
+  const c = QT_STATUS_CFG[s] || { label: s, cls: 'b-gray' }
+  return `<span class="badge ${c.cls}">${c.label}</span>`
+}
+
+// ── Load ──────────────────────────────────────────────────
+async function loadQuotations() {
+  try {
+    const [quotes, leads] = await Promise.all([
+      apiFetch(`/${CID}/quotations`),
+      apiFetch(`/${CID}/leads`),
+    ])
+    ALL_QUOTATIONS = quotes
+    ALL_LEADS      = leads
+    renderQuotationsTable()
+    updateQtStats()
+  } catch(e) { showToast('Failed to load quotations', 'error') }
+}
+
+function updateQtStats() {
+  document.getElementById('qts-total').textContent    = ALL_QUOTATIONS.length
+  document.getElementById('qts-draft').textContent    = ALL_QUOTATIONS.filter(q=>q.status==='draft').length
+  document.getElementById('qts-accepted').textContent = ALL_QUOTATIONS.filter(q=>q.status==='accepted').length
+  document.getElementById('qts-invoiced').textContent = ALL_QUOTATIONS.filter(q=>q.status==='invoiced').length
+  const total = ALL_QUOTATIONS.reduce((s,q)=>s+parseFloat(q.total||0),0)
+  document.getElementById('qts-value').textContent = 'AED '+total.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})
+}
+
+function renderQuotationsTable(list) {
+  const tbody = document.getElementById('qt-tbody')
+  if (!tbody) return
+  const rows = list || ALL_QUOTATIONS
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--fg3);">No quotations yet — create one to get started</td></tr>`
+    return
+  }
+  tbody.innerHTML = rows.map(q => {
+    const date = q.issue_date ? new Date(q.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'}) : '—'
+    const valid = q.valid_until ? new Date(q.valid_until).toLocaleDateString('en-AE',{day:'2-digit',month:'short'}) : '—'
+    const total = 'AED '+parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;">${q.quote_number}</td>
+      <td style="font-size:12px;">${date}</td>
+      <td style="font-weight:600;">${q.lead_name||'—'}</td>
+      <td style="font-size:12px;color:var(--fg2);">${q.lead_company||'—'}</td>
+      <td style="text-align:right;font-weight:700;">${total}</td>
+      <td style="font-size:12px;color:var(--fg2);">${valid}</td>
+      <td>${qtStatusBadge(q.status)}</td>
+      <td><button class="btn btn-secondary btn-xs" onclick="viewQuotation(${q.id})">View</button></td>
+    </tr>`
+  }).join('')
+}
+
+function filterQuotations() {
+  const q   = (document.getElementById('qt-search')?.value||'').toLowerCase()
+  const st  = document.getElementById('qt-filter-status')?.value||''
+  let list  = ALL_QUOTATIONS
+  if (st)  list = list.filter(r=>r.status===st)
+  if (q)   list = list.filter(r=>(r.quote_number+r.lead_name+r.lead_company).toLowerCase().includes(q))
+  renderQuotationsTable(list)
+}
+
+// ── Leads CRUD ────────────────────────────────────────────
+async function openLeadsModal() {
+  if (!ALL_LEADS.length) await loadQuotations()
+  renderLeadsList()
+  openModal('leads-modal')
+}
+
+function renderLeadsList(list) {
+  const el = document.getElementById('leads-list')
+  if (!el) return
+  const rows = list || ALL_LEADS
+  if (!rows.length) { el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--fg3);">No leads yet</div>`; return }
+  el.innerHTML = rows.map(l => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:8px;border-bottom:1px solid var(--border);">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">
+        ${l.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:13px;">${l.name}</div>
+        <div style="font-size:11px;color:var(--fg3);">${[l.phone,l.email,l.company_name].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-secondary btn-xs" onclick="editLead(${l.id})">Edit</button>
+        <button class="btn btn-xs" style="background:var(--red-light);color:var(--red);border:1px solid var(--red);" onclick="deleteLead(${l.id})">Del</button>
+      </div>
+    </div>`).join('')
+}
+
+function filterLeads() {
+  const q = (document.getElementById('lead-search')?.value||'').toLowerCase()
+  renderLeadsList(q ? ALL_LEADS.filter(l=>(l.name+l.phone+l.email+l.company_name).toLowerCase().includes(q)) : ALL_LEADS)
+}
+
+function openAddLead() { openModal('lead-form-modal'); resetLeadForm() }
+
+function resetLeadForm(lead) {
+  document.getElementById('lf-id').value      = lead?.id||''
+  document.getElementById('lf-name').value    = lead?.name||''
+  document.getElementById('lf-phone').value   = lead?.phone||''
+  document.getElementById('lf-email').value   = lead?.email||''
+  document.getElementById('lf-company').value = lead?.company_name||''
+  document.getElementById('lf-source').value  = lead?.source||'walk_in'
+  document.getElementById('lf-notes').value   = lead?.notes||''
+  document.getElementById('lead-form-title').textContent = lead ? 'Edit Lead' : 'Add Lead'
+}
+
+function editLead(id) {
+  const l = ALL_LEADS.find(x=>x.id===id)
+  if (!l) return
+  resetLeadForm(l)
+  openModal('lead-form-modal')
+}
+
+async function saveLead() {
+  const name = document.getElementById('lf-name').value.trim()
+  if (!name) { showToast('Name is required','error'); return }
+  const id   = document.getElementById('lf-id').value
+  const body = {
+    name,
+    phone:        document.getElementById('lf-phone').value.trim(),
+    email:        document.getElementById('lf-email').value.trim(),
+    company_name: document.getElementById('lf-company').value.trim(),
+    source:       document.getElementById('lf-source').value,
+    notes:        document.getElementById('lf-notes').value.trim(),
+  }
+  try {
+    if (id) {
+      await apiFetch(`/${CID}/leads/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    } else {
+      await apiFetch(`/${CID}/leads`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    }
+    showToast('Lead saved','success')
+    closeModal('lead-form-modal')
+    const leads = await apiFetch(`/${CID}/leads`)
+    ALL_LEADS = leads
+    renderLeadsList()
+  } catch(e) { showToast('Save failed: '+e.message,'error') }
+}
+
+async function deleteLead(id) {
+  if (!confirm('Delete this lead?')) return
+  await apiFetch(`/${CID}/leads/${id}`, { method:'DELETE' })
+  ALL_LEADS = ALL_LEADS.filter(l=>l.id!==id)
+  renderLeadsList()
+  showToast('Lead deleted','info')
+}
+
+// ── New Quotation form ────────────────────────────────────
+function openNewQuotation() {
+  document.getElementById('qtf-id').value = ''
+  document.getElementById('qt-form-title').textContent = 'New Quotation'
+  document.getElementById('qtf-lead-id').value      = ''
+  document.getElementById('qtf-lead-name').value    = ''
+  document.getElementById('qtf-lead-phone').value   = ''
+  document.getElementById('qtf-lead-email').value   = ''
+  document.getElementById('qtf-lead-company').value = ''
+  document.getElementById('qtf-lead-display').textContent = '— Not selected —'
+  document.getElementById('qtf-lead-sub').textContent = ''
+  document.getElementById('qtf-date').value    = new Date().toISOString().slice(0,10)
+  document.getElementById('qtf-valid').value   = new Date(Date.now()+30*864e5).toISOString().slice(0,10)
+  document.getElementById('qtf-notes').value   = ''
+  document.getElementById('qtf-discount').value = '0'
+  _qtLines = []
+  renderQtLines()
+  recalcQt()
+  openModal('qt-form-modal')
+}
+
+function openLeadPickerForQt() {
+  renderLeadPickerList()
+  openModal('lead-picker-modal')
+}
+
+function openAddLeadForQt() {
+  resetLeadForm()
+  openModal('lead-form-modal')
+  // after save, re-open picker — handled by saveLead refresh
+}
+
+function renderLeadPickerList(list) {
+  const el = document.getElementById('lead-pick-list')
+  if (!el) return
+  const rows = list || ALL_LEADS
+  if (!rows.length) { el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--fg3);">No leads — add one first</div>`; return }
+  el.innerHTML = rows.map(l => `
+    <div onclick="pickLeadForQt(${l.id})" style="cursor:pointer;padding:10px 12px;border-radius:8px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">
+        ${l.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()}
+      </div>
+      <div>
+        <div style="font-weight:600;font-size:13px;">${l.name}</div>
+        <div style="font-size:11px;color:var(--fg3);">${[l.phone,l.company_name].filter(Boolean).join(' · ')}</div>
+      </div>
+    </div>`).join('')
+}
+
+function filterLeadPicker() {
+  const q = (document.getElementById('lead-pick-search')?.value||'').toLowerCase()
+  renderLeadPickerList(q ? ALL_LEADS.filter(l=>(l.name+l.phone+l.company_name).toLowerCase().includes(q)) : ALL_LEADS)
+}
+
+function pickLeadForQt(id) {
+  const l = ALL_LEADS.find(x=>x.id===id)
+  if (!l) return
+  document.getElementById('qtf-lead-id').value      = l.id
+  document.getElementById('qtf-lead-name').value    = l.name
+  document.getElementById('qtf-lead-phone').value   = l.phone||''
+  document.getElementById('qtf-lead-email').value   = l.email||''
+  document.getElementById('qtf-lead-company').value = l.company_name||''
+  document.getElementById('qtf-lead-display').textContent = l.name
+  document.getElementById('qtf-lead-sub').textContent = [l.phone, l.company_name].filter(Boolean).join(' · ')
+  closeModal('lead-picker-modal')
+}
+
+// ── Line items ────────────────────────────────────────────
+function openServicePickerQt() {
+  renderQtSvcList()
+  openModal('qt-svc-picker')
+}
+
+function renderQtSvcList(list) {
+  const el = document.getElementById('qt-svc-list')
+  if (!el) return
+  const rows = (list || SERVICES || []).filter(s=>s.is_active)
+  el.innerHTML = rows.map(s => `
+    <div onclick="addQtServiceLine(${s.id})" style="cursor:pointer;padding:10px 14px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-weight:600;font-size:13px;">${s.name}</div>
+        <div style="font-size:11px;color:var(--fg3);">${s.category||''}</div>
+      </div>
+      <div style="font-weight:700;color:var(--accent);">AED ${parseFloat(s.unit_price).toFixed(2)}</div>
+    </div>`).join('')
+}
+
+function filterQtSvc() {
+  const q = (document.getElementById('qt-svc-search')?.value||'').toLowerCase()
+  renderQtSvcList(q ? (SERVICES||[]).filter(s=>s.name.toLowerCase().includes(q)) : null)
+}
+
+function addQtServiceLine(svcId) {
+  const s = (SERVICES||[]).find(x=>x.id===svcId)
+  if (!s) return
+  _qtLines.push({ service_id:s.id, description:s.name, quantity:1, unit_price:parseFloat(s.unit_price), vat_category:'S' })
+  renderQtLines()
+  recalcQt()
+  closeModal('qt-svc-picker')
+}
+
+function addQtCustomLine() {
+  _qtLines.push({ service_id:null, description:'', quantity:1, unit_price:0, vat_category:'S' })
+  renderQtLines()
+  recalcQt()
+}
+
+function removeQtLine(i) { _qtLines.splice(i,1); renderQtLines(); recalcQt() }
+
+function renderQtLines() {
+  const tbody = document.getElementById('qt-lines-tbody')
+  if (!tbody) return
+  if (!_qtLines.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--fg3);font-size:12px;">No items — add from services or add a custom line</td></tr>`
+    return
+  }
+  tbody.innerHTML = _qtLines.map((l,i) => {
+    const amt = (l.quantity * l.unit_price).toFixed(2)
+    return `<tr>
+      <td><input value="${l.description}" placeholder="Description" style="width:100%;padding:5px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--fg);"
+        oninput="_qtLines[${i}].description=this.value"></td>
+      <td><select style="padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;background:var(--surface);color:var(--fg);"
+        onchange="_qtLines[${i}].vat_category=this.value;recalcQt()">
+        <option value="S"${l.vat_category==='S'?' selected':''}>S 5%</option>
+        <option value="Z"${l.vat_category==='Z'?' selected':''}>Z 0%</option>
+        <option value="E"${l.vat_category==='E'?' selected':''}>E Exempt</option>
+        <option value="O"${l.vat_category==='O'?' selected':''}>O OOS</option>
+      </select></td>
+      <td><input type="number" min="0.001" step="0.001" value="${l.quantity}" style="width:60px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
+        oninput="_qtLines[${i}].quantity=+this.value||1;recalcQt()"></td>
+      <td><input type="number" min="0" step="0.01" value="${l.unit_price}" style="width:85px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
+        oninput="_qtLines[${i}].unit_price=+this.value||0;recalcQt()"></td>
+      <td style="text-align:right;font-weight:700;font-family:'DM Mono',monospace;padding-right:8px;">${amt}</td>
+      <td><button class="btn btn-ghost btn-xs" onclick="removeQtLine(${i})" style="color:var(--red);">✕</button></td>
+    </tr>`
+  }).join('')
+}
+
+function recalcQt() {
+  let sub = 0, vat = 0
+  _qtLines.forEach(l => {
+    const la = l.quantity * l.unit_price
+    sub += la
+    vat += l.vat_category === 'S' ? la * 0.05 : 0
+  })
+  const disc  = parseFloat(document.getElementById('qtf-discount')?.value||0)
+  const total = sub - disc + vat
+  const fmt   = n => 'AED '+n.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})
+  const se = document.getElementById('qtf-sub');   if(se) se.textContent = fmt(sub)
+  const ve = document.getElementById('qtf-vat');   if(ve) ve.textContent = fmt(vat)
+  const te = document.getElementById('qtf-total'); if(te) te.textContent = fmt(total)
+}
+
+// ── Save quotation ────────────────────────────────────────
+async function saveQuotation(status) {
+  const leadName = document.getElementById('qtf-lead-name').value.trim()
+  if (!leadName) { showToast('Select or enter a lead first','error'); return }
+  if (!_qtLines.length) { showToast('Add at least one line item','error'); return }
+  const id    = document.getElementById('qtf-id').value
+  const body  = {
+    lead_id:      parseInt(document.getElementById('qtf-lead-id').value)||null,
+    lead_name:    leadName,
+    lead_phone:   document.getElementById('qtf-lead-phone').value.trim(),
+    lead_email:   document.getElementById('qtf-lead-email').value.trim(),
+    lead_company: document.getElementById('qtf-lead-company').value.trim(),
+    issue_date:   document.getElementById('qtf-date').value,
+    valid_until:  document.getElementById('qtf-valid').value||null,
+    notes:        document.getElementById('qtf-notes').value.trim(),
+    discount_amt: parseFloat(document.getElementById('qtf-discount').value)||0,
+    lines:        _qtLines,
+    status,
+    created_by:   _SESSION.uid||null,
+  }
+  try {
+    if (id) {
+      await apiFetch(`/${CID}/quotations/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+      showToast('Quotation updated','success')
+    } else {
+      const res = await apiFetch(`/${CID}/quotations`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+      showToast(`${res.quote_number} created`,'success')
+    }
+    closeModal('qt-form-modal')
+    await loadQuotations()
+  } catch(e) { showToast('Save failed: '+e.message,'error') }
+}
+
+// ── View quotation ────────────────────────────────────────
+async function viewQuotation(id) {
+  try {
+    const q = await apiFetch(`/${CID}/quotations/${id}`)
+    _qtViewId = id
+    document.getElementById('qtv-title').textContent = q.quote_number
+    document.getElementById('qtv-status-badge').innerHTML = qtStatusBadge(q.status)
+
+    // Hide invoice button if already invoiced
+    const invBtn = document.getElementById('qtv-invoice-btn')
+    invBtn.style.display = q.status === 'invoiced' ? 'none' : ''
+
+    const issue   = q.issue_date   ? new Date(q.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
+    const valid   = q.valid_until  ? new Date(q.valid_until).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
+    const lines   = q.lines || []
+    const lineRows = lines.map(l => `
+      <tr>
+        <td>${l.description}</td>
+        <td style="text-align:center;">${parseFloat(l.quantity).toFixed(l.quantity%1?3:0)}</td>
+        <td style="text-align:right;">AED ${parseFloat(l.unit_price).toFixed(2)}</td>
+        <td style="text-align:center;">${l.vat_category}</td>
+        <td style="text-align:right;font-weight:700;">AED ${parseFloat(l.line_amount).toFixed(2)}</td>
+      </tr>`).join('')
+
+    const disc = parseFloat(q.discount_amt||0)
+    document.getElementById('qtv-body').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:3px;">Lead / Customer</div>
+          <div style="font-weight:700;font-size:15px;">${q.lead_name||'—'}</div>
+          ${q.lead_company?`<div style="color:var(--fg2);font-size:12px;">${q.lead_company}</div>`:''}
+          ${q.lead_phone?`<div style="color:var(--fg2);font-size:12px;">${q.lead_phone}</div>`:''}
+          ${q.lead_email?`<div style="color:var(--fg2);font-size:12px;">${q.lead_email}</div>`:''}
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:3px;">Issue Date</div>
+          <div style="font-weight:600;">${issue}</div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:3px;margin-top:8px;">Valid Until</div>
+          <div style="font-weight:600;">${valid}</div>
+        </div>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Description</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:center;">VAT</th><th style="text-align:right;">Amount</th></tr></thead>
+        <tbody>${lineRows}</tbody>
+      </table></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <div style="min-width:240px;">
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">Subtotal</span><span>AED ${parseFloat(q.subtotal||0).toFixed(2)}</span></div>
+          ${disc>0?`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">Discount</span><span style="color:var(--red);">-AED ${disc.toFixed(2)}</span></div>`:''}
+          <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span style="color:var(--fg2);">VAT (5%)</span><span>AED ${parseFloat(q.vat_amount||0).toFixed(2)}</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:17px;font-weight:800;border-top:2px solid var(--border);margin-top:4px;"><span>Total</span><span style="color:var(--accent);">AED ${parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        </div>
+      </div>
+      ${q.notes?`<div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--fg2);">${q.notes}</div>`:''}
+      ${q.invoice_id?`<div style="margin-top:12px;padding:10px 14px;background:var(--green-light);border-radius:8px;font-size:12px;color:var(--green);font-weight:600;">✓ Invoiced</div>`:''}
+    `
+    // store full object for print/whatsapp
+    document.getElementById('qt-view-modal')._qtData = q
+    openModal('qt-view-modal')
+  } catch(e) { showToast('Failed to load quotation','error') }
+}
+
+// ── Status update ─────────────────────────────────────────
+async function setQtStatus(status) {
+  if (!_qtViewId) return
+  try {
+    await apiFetch(`/${CID}/quotations/${_qtViewId}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})
+    })
+    showToast('Status updated','success')
+    await loadQuotations()
+    viewQuotation(_qtViewId)
+  } catch(e) { showToast('Update failed','error') }
+}
+
+// ── Print / PDF ───────────────────────────────────────────
+function printQuotation() {
+  const q = document.getElementById('qt-view-modal')._qtData
+  if (!q) return
+  const lines = (q.lines||[]).map(l => `
+    <tr>
+      <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;">${l.description}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;">${parseFloat(l.quantity).toFixed(l.quantity%1?3:0)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;">AED ${parseFloat(l.unit_price).toFixed(2)}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;">${l.vat_category}</td>
+      <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;">AED ${parseFloat(l.line_amount).toFixed(2)}</td>
+    </tr>`).join('')
+  const disc = parseFloat(q.discount_amt||0)
+  const issue = q.issue_date  ? new Date(q.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
+  const valid = q.valid_until ? new Date(q.valid_until).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
+
+  document.getElementById('qt-print-area').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;">
+      <div>
+        <div style="font-size:26px;font-weight:800;color:#1d4ed8;letter-spacing:-.02em;">${_SESSION.coname||'ALNOOR ERP'}</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px;">Typing &amp; Document Services</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:22px;font-weight:800;color:#111;letter-spacing:-.01em;">QUOTATION</div>
+        <div style="font-family:'DM Mono',monospace;font-size:14px;color:#1d4ed8;font-weight:700;">${q.quote_number}</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:4px;">Issue Date: ${issue}</div>
+        <div style="font-size:11px;color:#6b7280;">Valid Until: <strong>${valid}</strong></div>
+      </div>
+    </div>
+    <div style="border-top:3px solid #1d4ed8;margin-bottom:24px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+      <div style="background:#f8fafc;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:6px;">Bill To</div>
+        <div style="font-weight:700;font-size:15px;color:#111;">${q.lead_name||'—'}</div>
+        ${q.lead_company?`<div style="font-size:12px;color:#6b7280;">${q.lead_company}</div>`:''}
+        ${q.lead_phone?`<div style="font-size:12px;color:#6b7280;">${q.lead_phone}</div>`:''}
+        ${q.lead_email?`<div style="font-size:12px;color:#6b7280;">${q.lead_email}</div>`:''}
+      </div>
+      <div style="background:#eff6ff;border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:6px;">Status</div>
+        <div style="font-weight:700;font-size:14px;color:#1d4ed8;text-transform:capitalize;">${q.status}</div>
+        ${q.notes?`<div style="font-size:12px;color:#6b7280;margin-top:8px;">${q.notes}</div>`:''}
+      </div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px;">
+      <thead>
+        <tr style="background:#1d4ed8;color:#fff;">
+          <th style="padding:10px 10px;text-align:left;font-weight:600;">Description</th>
+          <th style="padding:10px 10px;text-align:center;font-weight:600;">Qty</th>
+          <th style="padding:10px 10px;text-align:right;font-weight:600;">Unit Price</th>
+          <th style="padding:10px 10px;text-align:center;font-weight:600;">VAT</th>
+          <th style="padding:10px 10px;text-align:right;font-weight:600;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>${lines}</tbody>
+    </table>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:32px;">
+      <div style="min-width:260px;">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #e5e7eb;"><span style="color:#6b7280;">Subtotal</span><span>AED ${parseFloat(q.subtotal||0).toFixed(2)}</span></div>
+        ${disc>0?`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #e5e7eb;"><span style="color:#6b7280;">Discount</span><span style="color:#ef4444;">-AED ${disc.toFixed(2)}</span></div>`:''}
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid #e5e7eb;"><span style="color:#6b7280;">VAT (5%)</span><span>AED ${parseFloat(q.vat_amount||0).toFixed(2)}</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:18px;font-weight:800;"><span>Total</span><span style="color:#1d4ed8;">AED ${parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #e5e7eb;padding-top:16px;text-align:center;font-size:11px;color:#9ca3af;">
+      This quotation is valid until ${valid}. Prices are subject to change after the validity date. UAE VAT Reg. No. as per company profile.
+    </div>`
+
+  closeModal('qt-view-modal')
+  openModal('qt-print-modal')
+}
+
+function doPrintQt() {
+  const area = document.getElementById('qt-print-area').innerHTML
+  const w = window.open('','_blank','width=860,height=900')
+  w.document.write(`<!DOCTYPE html><html><head><title>Quotation</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+    <style>*{box-sizing:border-box}body{font-family:'Poppins',sans-serif;margin:0;padding:40px;font-size:13px;}@media print{body{padding:0;}}</style>
+    </head><body>${area}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close()};}<\/script></body></html>`)
+  w.document.close()
+}
+
+// ── WhatsApp ──────────────────────────────────────────────
+function sendQtWhatsApp() {
+  const q = document.getElementById('qt-view-modal')._qtData
+  if (!q) return
+  const phone   = (q.lead_phone||'').replace(/\D/g,'')
+  const lines   = (q.lines||[]).map(l=>`• ${l.description} × ${parseFloat(l.quantity).toFixed(0)} = AED ${parseFloat(l.line_amount).toFixed(2)}`).join('\n')
+  const msg     = encodeURIComponent(
+    `*Quotation ${q.quote_number}*\n`+
+    `Date: ${q.issue_date||''} | Valid: ${q.valid_until||'—'}\n\n`+
+    `${lines}\n\n`+
+    `*Total: AED ${parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2})}* (incl. VAT)\n\n`+
+    `To accept, please reply to this message.\n`+
+    `— ${_SESSION.coname||'ALNOOR ERP'}`
+  )
+  const url = phone ? `https://wa.me/${phone}?text=${msg}` : `https://wa.me/?text=${msg}`
+  window.open(url, '_blank')
+}
+
+// ── Convert to Invoice ────────────────────────────────────
+async function convertQtToInvoice() {
+  const q = document.getElementById('qt-view-modal')._qtData
+  if (!q) return
+  if (!confirm(`Convert ${q.quote_number} to invoice? This will open the POS with pre-filled items.`)) return
+  closeModal('qt-view-modal')
+  // Store quotation data for POS to pick up
+  window._pendingQtForInvoice = q
+  nav('pos', document.querySelector('.nav-item[onclick*="pos"]'))
+  setTimeout(() => loadQuotationIntoPOS(q), 400)
+}
+
+function loadQuotationIntoPOS(q) {
+  // Clear current cart
+  if (typeof clearCart === 'function') clearCart()
+  // Set customer name
+  const custInput = document.getElementById('customer-search') || document.getElementById('cust-search')
+  if (custInput) { custInput.value = q.lead_name||''; custInput.dispatchEvent(new Event('input')) }
+  // Add each line to cart
+  ;(q.lines||[]).forEach(l => {
+    const id = l.service_id || (-(Date.now()+Math.random()*1000|0))
+    if (typeof addToCart === 'function') addToCart({ id, name:l.description, unit_price:parseFloat(l.unit_price), vat_category:l.vat_category })
+    else if (typeof cart !== 'undefined') {
+      cart.push({ id, name:l.description, icon:'📋', price:parseFloat(l.unit_price), qty:parseFloat(l.quantity)||1, vat:l.vat_category })
+      if (typeof recalcCart==='function') recalcCart()
+      if (typeof renderCart==='function') renderCart()
+    }
+  })
+  // Store qt id so after invoice is saved we mark it invoiced
+  window._pendingQtId = q.id
+  showToast(`${q.quote_number} loaded into POS — complete the sale to invoice it`, 'info')
+}
+
+// Called from POS after invoice is saved — mark quotation as invoiced
+async function markQuotationInvoiced(invoiceId) {
+  if (!window._pendingQtId) return
+  try {
+    await apiFetch(`/${CID}/quotations/${window._pendingQtId}`, {
+      method:'PATCH', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ status:'invoiced', invoice_id: invoiceId })
+    })
+    window._pendingQtId = null
+    showToast('Quotation marked as Invoiced ✓','success')
+    // Refresh quotation list in background
+    apiFetch(`/${CID}/quotations`).then(q => { ALL_QUOTATIONS = q; updateQtStats() }).catch(()=>{})
+  } catch(e) { /* silent */ }
+}
+
+// ── Quotation import in POS (search & select) ─────────────
+async function openQtPickerForPOS() {
+  if (!ALL_QUOTATIONS.length) {
+    try { ALL_QUOTATIONS = await apiFetch(`/${CID}/quotations`) } catch(e) {}
+  }
+  renderQtPickerList()
+  openModal('qt-pos-picker')
+}
+
+function renderQtPickerList(list) {
+  const el = document.getElementById('qt-pos-list')
+  if (!el) return
+  const rows = (list || ALL_QUOTATIONS).filter(q=>q.status!=='invoiced')
+  if (!rows.length) { el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--fg3);">No open quotations</div>`; return }
+  el.innerHTML = rows.map(q => `
+    <div onclick="pickQtForPOS(${q.id})" style="cursor:pointer;padding:12px 14px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-weight:700;font-size:13px;font-family:'DM Mono',monospace;">${q.quote_number}</div>
+        <div style="font-size:12px;color:var(--fg2);">${q.lead_name||'—'}${q.lead_company?' · '+q.lead_company:''}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-weight:700;color:var(--accent);">AED ${parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2})}</div>
+        <div>${qtStatusBadge(q.status)}</div>
+      </div>
+    </div>`).join('')
+}
+
+function filterQtPicker() {
+  const q = (document.getElementById('qt-pos-search')?.value||'').toLowerCase()
+  renderQtPickerList(q ? ALL_QUOTATIONS.filter(x=>(x.quote_number+x.lead_name).toLowerCase().includes(q)) : null)
+}
+
+async function pickQtForPOS(id) {
+  try {
+    const q = await apiFetch(`/${CID}/quotations/${id}`)
+    closeModal('qt-pos-picker')
+    loadQuotationIntoPOS(q)
+  } catch(e) { showToast('Failed to load quotation','error') }
+}
+
 function loadEInvoicePage() {
   const frame = document.getElementById('einvoice-frame')
   if (!frame) return

@@ -532,6 +532,130 @@ app.get('/api/:cid/accounting/summary', async (req, res) => {
   })
 })
 
+// ─── LEADS ─────────────────────────────────────────────────
+app.get('/api/:cid/leads', async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM leads WHERE company_id=? ORDER BY created_at DESC', [req.params.cid])
+  res.json(rows)
+})
+
+app.post('/api/:cid/leads', async (req, res) => {
+  const { name, phone, email, company_name, source, notes } = req.body
+  if (!name) return res.status(400).json({ error: 'Name required' })
+  const [r] = await pool.query(
+    'INSERT INTO leads (company_id,name,phone,email,company_name,source,notes) VALUES (?,?,?,?,?,?,?)',
+    [req.params.cid, name, phone||null, email||null, company_name||null, source||'walk_in', notes||null])
+  res.status(201).json({ id: r.insertId })
+})
+
+app.patch('/api/:cid/leads/:id', async (req, res) => {
+  const { name, phone, email, company_name, source, notes } = req.body
+  await pool.query(
+    'UPDATE leads SET name=?,phone=?,email=?,company_name=?,source=?,notes=? WHERE id=? AND company_id=?',
+    [name, phone||null, email||null, company_name||null, source||'walk_in', notes||null, req.params.id, req.params.cid])
+  res.json({ ok: true })
+})
+
+app.delete('/api/:cid/leads/:id', async (req, res) => {
+  await pool.query('DELETE FROM leads WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  res.json({ ok: true })
+})
+
+// ─── QUOTATIONS ─────────────────────────────────────────────
+app.get('/api/:cid/quotations', async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM quotations WHERE company_id=? ORDER BY created_at DESC', [req.params.cid])
+  res.json(rows)
+})
+
+app.get('/api/:cid/quotations/:id', async (req, res) => {
+  const [[q]] = await pool.query('SELECT * FROM quotations WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  if (!q) return res.status(404).json({ error: 'Not found' })
+  const [lines] = await pool.query('SELECT * FROM quotation_lines WHERE quotation_id=?', [q.id])
+  res.json({ ...q, lines })
+})
+
+app.post('/api/:cid/quotations', async (req, res) => {
+  const cid = req.params.cid
+  const { lead_id, lead_name, lead_phone, lead_email, lead_company,
+          issue_date, valid_until, notes, lines = [], discount_amt = 0, created_by } = req.body
+
+  // Auto-generate quote number
+  const [[{ n }]] = await pool.query('SELECT COUNT(*)+1 AS n FROM quotations WHERE company_id=?', [cid])
+  const quote_number = `QT-${new Date().getFullYear()}-${String(n).padStart(4,'0')}`
+
+  let subtotal = 0, vat_amount = 0
+  for (const l of lines) {
+    const la = parseFloat(l.quantity) * parseFloat(l.unit_price)
+    const va = l.vat_category === 'S' ? la * 0.05 : 0
+    subtotal += la; vat_amount += va
+  }
+  const total = subtotal - parseFloat(discount_amt) + vat_amount
+
+  const [r] = await pool.query(
+    `INSERT INTO quotations (company_id,quote_number,lead_id,lead_name,lead_phone,lead_email,lead_company,
+      issue_date,valid_until,subtotal,discount_amt,vat_amount,total,notes,created_by)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [cid, quote_number, lead_id||null, lead_name||null, lead_phone||null, lead_email||null, lead_company||null,
+     issue_date, valid_until||null, subtotal, discount_amt, vat_amount, total, notes||null, created_by||null])
+
+  const qid = r.insertId
+  for (const l of lines) {
+    const la = parseFloat(l.quantity) * parseFloat(l.unit_price)
+    const va = l.vat_category === 'S' ? la * 0.05 : 0
+    await pool.query(
+      `INSERT INTO quotation_lines (quotation_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount)
+       VALUES (?,?,?,?,?,?,?,?,?)`,
+      [qid, l.service_id||null, l.description, l.quantity, l.unit_price, l.vat_category||'S',
+       l.vat_category==='S'?0.05:0, la, va])
+  }
+  res.status(201).json({ id: qid, quote_number })
+})
+
+app.patch('/api/:cid/quotations/:id', async (req, res) => {
+  const { status, invoice_id, lead_name, lead_phone, lead_email, lead_company,
+          valid_until, notes, discount_amt, lines } = req.body
+  const fields = [], vals = []
+  if (status       !== undefined) { fields.push('status=?');       vals.push(status) }
+  if (invoice_id   !== undefined) { fields.push('invoice_id=?');   vals.push(invoice_id) }
+  if (lead_name    !== undefined) { fields.push('lead_name=?');    vals.push(lead_name) }
+  if (lead_phone   !== undefined) { fields.push('lead_phone=?');   vals.push(lead_phone) }
+  if (lead_email   !== undefined) { fields.push('lead_email=?');   vals.push(lead_email) }
+  if (lead_company !== undefined) { fields.push('lead_company=?'); vals.push(lead_company) }
+  if (valid_until  !== undefined) { fields.push('valid_until=?');  vals.push(valid_until) }
+  if (notes        !== undefined) { fields.push('notes=?');        vals.push(notes) }
+
+  if (lines !== undefined) {
+    let subtotal = 0, vat_amount = 0
+    await pool.query('DELETE FROM quotation_lines WHERE quotation_id=?', [req.params.id])
+    for (const l of lines) {
+      const la = parseFloat(l.quantity) * parseFloat(l.unit_price)
+      const va = l.vat_category === 'S' ? la * 0.05 : 0
+      subtotal += la; vat_amount += va
+      await pool.query(
+        `INSERT INTO quotation_lines (quotation_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
+        [req.params.id, l.service_id||null, l.description, l.quantity, l.unit_price,
+         l.vat_category||'S', l.vat_category==='S'?0.05:0, la, va])
+    }
+    const disc = parseFloat(discount_amt||0)
+    fields.push('subtotal=?','vat_amount=?','total=?','discount_amt=?')
+    vals.push(subtotal, vat_amount, subtotal - disc + vat_amount, disc)
+  }
+
+  if (fields.length) {
+    vals.push(req.params.id, req.params.cid)
+    await pool.query(`UPDATE quotations SET ${fields.join(',')} WHERE id=? AND company_id=?`, vals)
+  }
+  res.json({ ok: true })
+})
+
+app.delete('/api/:cid/quotations/:id', async (req, res) => {
+  await pool.query('DELETE FROM quotation_lines WHERE quotation_id=?', [req.params.id])
+  await pool.query('DELETE FROM quotations WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  res.json({ ok: true })
+})
+
 // ─── VAT / E-INVOICE ───────────────────────────────────────
 app.get('/api/:cid/einvoice/queue', async (req, res) => {
   const [rows] = await pool.query(`

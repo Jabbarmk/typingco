@@ -125,7 +125,8 @@ CREATE TABLE IF NOT EXISTS services (
   name         VARCHAR(150)  NOT NULL,
   category     VARCHAR(60),
   unit_price   DECIMAL(10,2) NOT NULL,
-  vat_category ENUM('S','Z','E','O') DEFAULT 'S',  -- S=5%, Z=0%, E=exempt, O=out-of-scope
+  vat_category ENUM('S','Z','E','O') DEFAULT 'S',
+  icon         VARCHAR(20)   DEFAULT NULL,
   is_active    TINYINT(1)    NOT NULL DEFAULT 1,
   created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id)
@@ -302,6 +303,62 @@ CREATE TABLE IF NOT EXISTS einvoice_logs (
   message      TEXT         NOT NULL,
   created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- ============================================================
+-- LEADS & QUOTATIONS
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS leads (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  company_id   INT           NOT NULL,
+  name         VARCHAR(150)  NOT NULL,
+  phone        VARCHAR(30),
+  email        VARCHAR(150),
+  company_name VARCHAR(150),
+  source       ENUM('walk_in','referral','online','phone','whatsapp','other') DEFAULT 'walk_in',
+  notes        TEXT,
+  created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+CREATE TABLE IF NOT EXISTS quotations (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  company_id    INT           NOT NULL,
+  quote_number  VARCHAR(30)   NOT NULL UNIQUE,
+  lead_id       INT           DEFAULT NULL,
+  lead_name     VARCHAR(150),
+  lead_phone    VARCHAR(30),
+  lead_email    VARCHAR(150),
+  lead_company  VARCHAR(150),
+  issue_date    DATE          NOT NULL,
+  valid_until   DATE          DEFAULT NULL,
+  subtotal      DECIMAL(12,2) DEFAULT 0.00,
+  discount_amt  DECIMAL(12,2) DEFAULT 0.00,
+  vat_amount    DECIMAL(12,2) DEFAULT 0.00,
+  total         DECIMAL(12,2) DEFAULT 0.00,
+  status        ENUM('draft','sent','accepted','rejected','invoiced','expired') DEFAULT 'draft',
+  notes         TEXT,
+  terms_text    TEXT,
+  invoice_id    INT           DEFAULT NULL,
+  created_by    INT           DEFAULT NULL,
+  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+CREATE TABLE IF NOT EXISTS quotation_lines (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  quotation_id   INT           NOT NULL,
+  service_id     INT           DEFAULT NULL,
+  description    VARCHAR(255)  NOT NULL,
+  quantity       DECIMAL(10,3) DEFAULT 1.000,
+  unit_price     DECIMAL(10,2) NOT NULL,
+  vat_category   ENUM('S','Z','E','O') DEFAULT 'S',
+  vat_rate       DECIMAL(5,4)  DEFAULT 0.0500,
+  line_amount    DECIMAL(12,2) NOT NULL,
+  vat_amount     DECIMAL(12,2) DEFAULT 0.00,
+  FOREIGN KEY (quotation_id) REFERENCES quotations(id) ON DELETE CASCADE
 );
 
 -- ============================================================

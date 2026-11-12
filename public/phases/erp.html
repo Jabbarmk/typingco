@@ -1391,6 +1391,7 @@ function doLogout() {
         <button class="tab-btn" onclick="switchTab('s-users',this)">Users</button>
         <button class="tab-btn" onclick="switchTab('s-sequences',this)">Sequences</button>
         <button class="tab-btn" onclick="switchTab('s-appearance',this)">Appearance</button>
+        <button class="tab-btn" onclick="switchTab('s-templates',this)">Templates</button>
       </div>
       <!-- Company Settings -->
       <div class="tab-panel active" id="s-company">
@@ -1539,6 +1540,22 @@ function doLogout() {
           <div style="display:flex;gap:10px;">
             <button class="btn btn-primary" onclick="saveAppearance()">Save Appearance</button>
             <button class="btn btn-secondary" onclick="resetAppearance()">Reset to Default</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates (T&C) -->
+      <div class="tab-panel" id="s-templates">
+        <div style="max-width:720px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <div style="font-size:15px;font-weight:700;">Terms &amp; Conditions Templates</div>
+              <div style="font-size:12px;color:var(--fg3);margin-top:2px;">Create reusable T&amp;C templates to attach to quotations.</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openTplModal()">+ New Template</button>
+          </div>
+          <div id="tpl-list" style="display:flex;flex-direction:column;gap:10px;">
+            <!-- filled by renderTplList() -->
           </div>
         </div>
       </div>
@@ -1892,7 +1909,7 @@ function doLogout() {
 <!-- ══════════ NEW / EDIT QUOTATION MODAL ══════════ -->
 <!-- ══════════ QUOTATION FORM — FULL PAGE ══════════ -->
 <div class="page" id="page-qt-form" style="display:none;">
-  <div style="max-width:860px;margin:0 auto;">
+  <div style="max-width:100%;margin:0;">
     <!-- Page header -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
       <button class="btn btn-secondary btn-sm" onclick="closeQtForm()" style="gap:6px;">
@@ -1958,6 +1975,16 @@ function doLogout() {
             <div class="form-group" style="margin:0;"><label>Notes</label><textarea id="qtf-notes" rows="3" placeholder="Optional notes…" style="width:100%;resize:vertical;"></textarea></div>
           </div>
         </div>
+        <!-- Terms & Conditions -->
+        <div class="card card-body">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);">Terms &amp; Conditions</div>
+            <button class="btn btn-ghost btn-xs" onclick="nav('settings',document.querySelector('.nav-item[onclick*=settings]'));setTimeout(()=>switchTab('s-templates',document.querySelector('.tab-btn[onclick*=s-templates]')),200)" style="font-size:11px;color:var(--accent);">Manage →</button>
+          </div>
+          <input type="hidden" id="qtf-terms-id">
+          <div id="qtf-terms-cards" style="display:flex;flex-direction:column;gap:6px;"></div>
+          <div id="qtf-terms-preview" style="display:none;margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--fg2);line-height:1.6;white-space:pre-wrap;max-height:100px;overflow-y:auto;border:1px solid var(--border);"></div>
+        </div>
         <!-- Totals -->
         <div class="card card-body">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:12px;">Summary</div>
@@ -1999,7 +2026,7 @@ function doLogout() {
 <!-- ══════════ VIEW QUOTATION MODAL ══════════ -->
 <!-- ══════════ QUOTATION VIEW — FULL PAGE ══════════ -->
 <div class="page" id="page-qt-view" style="display:none;">
-  <div style="max-width:860px;margin:0 auto;">
+  <div style="max-width:100%;margin:0;">
     <!-- Page header -->
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
       <button class="btn btn-secondary btn-sm" onclick="closeQtView()" style="gap:6px;">
@@ -2008,14 +2035,15 @@ function doLogout() {
       </button>
       <h2 id="qtv-title" style="font-size:20px;font-weight:800;margin:0;font-family:'DM Mono',monospace;"></h2>
       <span id="qtv-status-badge" style="margin-left:4px;"></span>
-      <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-xs btn-secondary" onclick="setQtStatus('draft')">Draft</button>
-        <button class="btn btn-xs btn-secondary" onclick="setQtStatus('sent')">Sent</button>
-        <button class="btn btn-xs" style="background:var(--green-light);color:var(--green);border:1.5px solid var(--green);font-weight:700;" onclick="setQtStatus('accepted')">Accept</button>
-        <button class="btn btn-xs" style="background:var(--red-light);color:var(--red);border:1.5px solid var(--red);font-weight:700;" onclick="setQtStatus('rejected')">Reject</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendQtWhatsApp()">💬 WhatsApp</button>
-        <button class="btn btn-secondary btn-sm" onclick="printQuotation()">🖨 Print / PDF</button>
-        <button class="btn btn-primary btn-sm" id="qtv-invoice-btn" onclick="convertQtToInvoice()">⚡ Create Invoice</button>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button id="qtv-btn-draft"    class="btn btn-secondary" style="padding:8px 18px;font-size:13px;" onclick="setQtStatus('draft')">Draft</button>
+        <button id="qtv-btn-sent"     class="btn btn-secondary" style="padding:8px 18px;font-size:13px;" onclick="setQtStatus('sent')">Sent</button>
+        <button id="qtv-btn-accept"   class="btn" style="padding:8px 18px;font-size:13px;font-weight:700;background:var(--green-light);color:var(--green);border:1.5px solid var(--green);" onclick="setQtStatus('accepted')">✓ Accept</button>
+        <button id="qtv-btn-reject"   class="btn" style="padding:8px 18px;font-size:13px;font-weight:700;background:var(--red-light);color:var(--red);border:1.5px solid var(--red);" onclick="setQtStatus('rejected')">✕ Reject</button>
+        <button class="btn btn-secondary" style="padding:8px 18px;font-size:13px;" onclick="sendQtWhatsApp()">💬 WhatsApp</button>
+        <button class="btn btn-secondary" style="padding:8px 18px;font-size:13px;" onclick="printQuotation()">🖨 Print / PDF</button>
+        <button class="btn btn-primary" id="qtv-invoice-btn" style="padding:8px 20px;font-size:13px;" onclick="convertQtToInvoice()">⚡ Create Invoice</button>
+        <button class="btn" id="qtv-view-invoice-btn" style="display:none;padding:8px 20px;font-size:13px;font-weight:700;background:var(--accent);color:#fff;" onclick="viewQtInvoice()">📄 View Invoice</button>
       </div>
     </div>
     <div id="qtv-body"></div>
@@ -2056,6 +2084,31 @@ function doLogout() {
           style="width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);color:var(--fg);font-size:13px;">
       </div>
       <div id="lead-pick-list" style="max-height:360px;overflow-y:auto;padding:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ T&C TEMPLATE MODAL ══════════ -->
+<div class="modal-overlay" id="tpl-modal" hidden onclick="if(event.target===this)closeModal('tpl-modal')">
+  <div class="modal" style="max-width:560px;width:95vw;">
+    <div class="modal-header">
+      <span class="modal-title" id="tpl-modal-title">New Template</span>
+      <button class="close-btn" onclick="closeModal('tpl-modal')">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="tpl-edit-id">
+      <div class="form-group" style="margin:0;">
+        <label>Template Name *</label>
+        <input type="text" id="tpl-name" placeholder="e.g. Standard T&C, Government Projects…" style="width:100%;">
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Terms &amp; Conditions Text *</label>
+        <textarea id="tpl-body" rows="8" placeholder="Enter the full terms and conditions text…" style="width:100%;resize:vertical;font-size:13px;line-height:1.6;"></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button class="btn btn-secondary" onclick="closeModal('tpl-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveTpl()">Save Template</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2797,6 +2850,7 @@ function switchTab(id, btn) {
   btn.classList.add('active');
   parent.querySelector('#' + id).classList.add('active');
   if (id === 's-appearance') loadAppearanceTab();
+  if (id === 's-templates')  loadTemplatesTab();
 }
 
 function openModal(id) { document.getElementById(id).hidden = false; }
@@ -3082,6 +3136,10 @@ function openNewQuotation() {
   document.getElementById('qtf-valid').value   = new Date(Date.now()+30*864e5).toISOString().slice(0,10)
   document.getElementById('qtf-notes').value   = ''
   document.getElementById('qtf-discount').value = '0'
+  populateQtTermsDropdown()
+  document.getElementById('qtf-terms-id').value = ''
+  document.getElementById('qtf-terms-preview').style.display = 'none'
+  document.getElementById('qtf-terms-preview').textContent = ''
   _qtLines = []
   renderQtLines()
   recalcQt()
@@ -3143,14 +3201,14 @@ function openServicePickerQt() {
 function renderQtSvcList(list) {
   const el = document.getElementById('qt-svc-list')
   if (!el) return
-  const rows = (list || SERVICES || []).filter(s=>s.is_active)
+  const rows = (list || SERVICES || []).filter(s=> s.is_active !== false)
   el.innerHTML = rows.map(s => `
     <div onclick="addQtServiceLine(${s.id})" style="cursor:pointer;padding:10px 14px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
       <div>
         <div style="font-weight:600;font-size:13px;">${s.name}</div>
-        <div style="font-size:11px;color:var(--fg3);">${s.category||''}</div>
+        <div style="font-size:11px;color:var(--fg3);">${s.cat||s.category||''}</div>
       </div>
-      <div style="font-weight:700;color:var(--accent);">AED ${parseFloat(s.unit_price).toFixed(2)}</div>
+      <div style="font-weight:700;color:var(--accent);">AED ${parseFloat(s.unit_price||s.price||0).toFixed(2)}</div>
     </div>`).join('')
 }
 
@@ -3162,7 +3220,7 @@ function filterQtSvc() {
 function addQtServiceLine(svcId) {
   const s = (SERVICES||[]).find(x=>x.id===svcId)
   if (!s) return
-  _qtLines.push({ service_id:s.id, description:s.name, quantity:1, unit_price:parseFloat(s.unit_price), vat_category:'S' })
+  _qtLines.push({ service_id:s.id, description:s.name, quantity:1, unit_price:parseFloat(s.unit_price||s.price||0), vat_category:'S' })
   renderQtLines()
   recalcQt()
   closeModal('qt-svc-picker')
@@ -3196,13 +3254,19 @@ function renderQtLines() {
         <option value="O"${l.vat_category==='O'?' selected':''}>O OOS</option>
       </select></td>
       <td><input type="number" min="0.001" step="0.001" value="${l.quantity}" style="width:60px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
-        oninput="_qtLines[${i}].quantity=+this.value||1;recalcQt()"></td>
+        oninput="_qtLines[${i}].quantity=+this.value||1;updateQtAmt(${i});recalcQt()"></td>
       <td><input type="number" min="0" step="0.01" value="${l.unit_price}" style="width:85px;padding:5px 7px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface);color:var(--fg);"
-        oninput="_qtLines[${i}].unit_price=+this.value||0;recalcQt()"></td>
-      <td style="text-align:right;font-weight:700;font-family:'DM Mono',monospace;padding-right:8px;">${amt}</td>
+        oninput="_qtLines[${i}].unit_price=+this.value||0;updateQtAmt(${i});recalcQt()"></td>
+      <td id="qt-amt-${i}" style="text-align:right;font-weight:700;font-family:'DM Mono',monospace;padding-right:8px;">${amt}</td>
       <td><button class="btn btn-ghost btn-xs" onclick="removeQtLine(${i})" style="color:var(--red);">✕</button></td>
     </tr>`
   }).join('')
+}
+
+function updateQtAmt(i) {
+  const l = _qtLines[i]
+  const el = document.getElementById('qt-amt-'+i)
+  if (el) el.textContent = (l.quantity * l.unit_price).toFixed(2)
 }
 
 function recalcQt() {
@@ -3236,6 +3300,7 @@ async function saveQuotation(status) {
     valid_until:  document.getElementById('qtf-valid').value||null,
     notes:        document.getElementById('qtf-notes').value.trim(),
     discount_amt: parseFloat(document.getElementById('qtf-discount').value)||0,
+    terms_text:   getSelectedTermsText(),
     lines:        _qtLines,
     status,
     created_by:   _SESSION.uid||null,
@@ -3261,9 +3326,57 @@ async function viewQuotation(id) {
     document.getElementById('qtv-title').textContent = q.quote_number
     document.getElementById('qtv-status-badge').innerHTML = qtStatusBadge(q.status)
 
-    // Hide invoice button if already invoiced
-    const invBtn = document.getElementById('qtv-invoice-btn')
-    invBtn.style.display = q.status === 'invoiced' ? 'none' : ''
+    // Update status buttons to reflect current status
+    const statusMap = {
+      draft:    { key:'draft',  activeBg:'var(--fg)',        activeColor:'var(--surface)', activeBorder:'var(--fg)' },
+      sent:     { key:'sent',   activeBg:'#1d4ed8',          activeColor:'#fff',           activeBorder:'#1d4ed8'  },
+      accepted: { key:'accept', activeBg:'var(--green)',     activeColor:'#fff',           activeBorder:'var(--green)'  },
+      rejected: { key:'reject', activeBg:'var(--red)',       activeColor:'#fff',           activeBorder:'var(--red)'   },
+      invoiced: { key:'accept', activeBg:'var(--green)',     activeColor:'#fff',           activeBorder:'var(--green)'  },
+    }
+    // Reset all 4 buttons to default ghost look
+    ;[
+      { id:'qtv-btn-draft',  bg:'',                     color:'var(--fg)',   border:'1.5px solid var(--border)' },
+      { id:'qtv-btn-sent',   bg:'',                     color:'var(--fg)',   border:'1.5px solid var(--border)' },
+      { id:'qtv-btn-accept', bg:'var(--green-light)',   color:'var(--green)',border:'1.5px solid var(--green)'  },
+      { id:'qtv-btn-reject', bg:'var(--red-light)',     color:'var(--red)',  border:'1.5px solid var(--red)'    },
+    ].forEach(({id, bg, color, border}) => {
+      const b = document.getElementById(id)
+      if (!b) return
+      b.style.background  = bg
+      b.style.color       = color
+      b.style.border      = border
+      b.style.fontWeight  = '600'
+      b.style.opacity     = '0.6'
+    })
+    // Fill the active button
+    const active = statusMap[q.status]
+    if (active) {
+      const b = document.getElementById('qtv-btn-'+active.key)
+      if (b) {
+        b.style.background = active.activeBg
+        b.style.color      = active.activeColor
+        b.style.border     = '1.5px solid '+active.activeBorder
+        b.style.fontWeight = '800'
+        b.style.opacity    = '1'
+      }
+    }
+    // All non-active buttons slightly dimmed but visible
+    ;['qtv-btn-draft','qtv-btn-sent','qtv-btn-accept','qtv-btn-reject'].forEach(id => {
+      const b = document.getElementById(id)
+      if (!b || b.style.opacity === '1') return
+      b.style.opacity = '0.65'
+    })
+
+    // Create Invoice vs View Invoice button
+    const invBtn     = document.getElementById('qtv-invoice-btn')
+    const viewInvBtn = document.getElementById('qtv-view-invoice-btn')
+    const isInvoiced = q.status === 'invoiced'
+    invBtn.style.display     = isInvoiced ? 'none' : ''
+    viewInvBtn.style.display = isInvoiced ? '' : 'none'
+    viewInvBtn.dataset.invoiceId = q.invoice_id || ''
+    // Store full quotation on page for other functions
+    document.getElementById('page-qt-view')._qtInvoiceId = q.invoice_id || null
 
     const issue   = q.issue_date   ? new Date(q.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
     const valid   = q.valid_until  ? new Date(q.valid_until).toLocaleDateString('en-AE',{day:'2-digit',month:'long',year:'numeric'}) : '—'
@@ -3307,6 +3420,7 @@ async function viewQuotation(id) {
         </div>
       </div>
       ${q.notes?`<div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--fg2);">${q.notes}</div>`:''}
+      ${q.terms_text?`<div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--fg3);margin-bottom:6px;">Terms &amp; Conditions</div><div style="font-size:12px;color:var(--fg2);line-height:1.6;white-space:pre-wrap;">${q.terms_text}</div></div>`:''}
       ${q.invoice_id?`<div style="margin-top:12px;padding:10px 14px;background:var(--green-light);border-radius:8px;font-size:12px;color:var(--green);font-weight:600;">✓ Invoiced</div>`:''}
     `
     // store full object for print/whatsapp
@@ -3392,6 +3506,7 @@ function printQuotation() {
         <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:18px;font-weight:800;"><span>Total</span><span style="color:#1d4ed8;">AED ${parseFloat(q.total||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
       </div>
     </div>
+    ${q.terms_text?`<div style="margin-bottom:24px;padding:14px 16px;border:1px solid #e5e7eb;border-radius:8px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;margin-bottom:8px;">Terms &amp; Conditions</div><div style="font-size:12px;color:#374151;line-height:1.7;white-space:pre-wrap;">${q.terms_text}</div></div>`:''}
     <div style="border-top:1px solid #e5e7eb;padding-top:16px;text-align:center;font-size:11px;color:#9ca3af;">
       This quotation is valid until ${valid}. Prices are subject to change after the validity date. UAE VAT Reg. No. as per company profile.
     </div>`
@@ -3440,21 +3555,29 @@ async function convertQtToInvoice() {
 }
 
 function loadQuotationIntoPOS(q) {
-  // Clear current cart
-  if (typeof clearCart === 'function') clearCart()
-  // Set customer name
-  const custInput = document.getElementById('customer-search') || document.getElementById('cust-search')
-  if (custInput) { custInput.value = q.lead_name||''; custInput.dispatchEvent(new Event('input')) }
-  // Add each line to cart
+  clearCart()
+  // Select customer — try to match in CUSTOMERS list, fall back to lead name as walk-in
+  const matched = (CUSTOMERS||[]).find(c =>
+    c.id === q.lead_id ||
+    (q.lead_name && c.name.toLowerCase() === q.lead_name.toLowerCase()) ||
+    (q.lead_phone && c.phone && c.phone.replace(/\D/g,'') === q.lead_phone.replace(/\D/g,''))
+  )
+  if (matched) {
+    selectCustomer(matched.name, (matched.phone||'') + (matched.emirate ? ' · '+matched.emirate : ''), matched.id)
+  } else if (q.lead_name) {
+    // No match — inject as a named walk-in so the invoice carries the lead name
+    selectedCustomer = { name: q.lead_name, meta: q.lead_phone||'', id: null }
+    document.getElementById('sel-cust-name').textContent = q.lead_name
+    document.getElementById('sel-cust-meta').textContent = q.lead_phone||''
+    document.getElementById('selected-customer').style.display = 'flex'
+  }
+  // Push each line directly into cart (addToCart only accepts a numeric service ID from SERVICES)
+  let seq = -1
   ;(q.lines||[]).forEach(l => {
-    const id = l.service_id || (-(Date.now()+Math.random()*1000|0))
-    if (typeof addToCart === 'function') addToCart({ id, name:l.description, unit_price:parseFloat(l.unit_price), vat_category:l.vat_category })
-    else if (typeof cart !== 'undefined') {
-      cart.push({ id, name:l.description, icon:'📋', price:parseFloat(l.unit_price), qty:parseFloat(l.quantity)||1, vat:l.vat_category })
-      if (typeof recalcCart==='function') recalcCart()
-      if (typeof renderCart==='function') renderCart()
-    }
+    const id = l.service_id && l.service_id > 0 ? l.service_id : seq--
+    cart.push({ id, name: l.description, icon:'📋', price: parseFloat(l.unit_price)||0, qty: parseFloat(l.quantity)||1, cat:'custom' })
   })
+  renderCart()
   // Store qt id so after invoice is saved we mark it invoiced
   window._pendingQtId = q.id
   showToast(`${q.quote_number} loaded into POS — complete the sale to invoice it`, 'info')
@@ -3470,9 +3593,28 @@ async function markQuotationInvoiced(invoiceId) {
     })
     window._pendingQtId = null
     showToast('Quotation marked as Invoiced ✓','success')
+    // Flip buttons live if quotation view is still open
+    const invBtn     = document.getElementById('qtv-invoice-btn')
+    const viewInvBtn = document.getElementById('qtv-view-invoice-btn')
+    if (invBtn)     { invBtn.style.display = 'none' }
+    if (viewInvBtn) { viewInvBtn.style.display = ''; viewInvBtn.dataset.invoiceId = invoiceId }
+    document.getElementById('page-qt-view')._qtInvoiceId = invoiceId
+    // Update status badge + buttons live
+    const badge = document.getElementById('qtv-status-badge')
+    if (badge) badge.innerHTML = qtStatusBadge('invoiced')
+    if (_qtViewId) viewQuotation(_qtViewId)
     // Refresh quotation list in background
     apiFetch(`/${CID}/quotations`).then(q => { ALL_QUOTATIONS = q; updateQtStats() }).catch(()=>{})
   } catch(e) { /* silent */ }
+}
+
+// Navigate to the invoice created from this quotation
+function viewQtInvoice() {
+  const invoiceId = document.getElementById('page-qt-view')._qtInvoiceId
+  if (!invoiceId) { showToast('Invoice ID not found','error'); return }
+  closeQtView()
+  nav('sales', document.querySelector('.nav-item[onclick*="sales"]'))
+  setTimeout(() => viewSavedInvoice(invoiceId), 400)
 }
 
 // ── Quotation import in POS (search & select) ─────────────
@@ -3895,6 +4037,149 @@ function initAppearance() {
     updateThemeToggleBtn()
   } catch(e){}
 }
+
+// ══════════ TERMS & CONDITIONS TEMPLATES ══════════
+
+function getTplStore() {
+  try { return JSON.parse(localStorage.getItem('alnoor_tpl_terms')||'[]') } catch(e) { return [] }
+}
+function saveTplStore(arr) {
+  try { localStorage.setItem('alnoor_tpl_terms', JSON.stringify(arr)) } catch(e) {}
+}
+
+function renderTplList() {
+  const el = document.getElementById('tpl-list')
+  if (!el) return
+  const arr = getTplStore()
+  if (!arr.length) {
+    el.innerHTML = `<div style="padding:24px;text-align:center;color:var(--fg3);font-size:13px;border:1.5px dashed var(--border);border-radius:10px;">No templates yet. Click <strong>+ New Template</strong> to create one.</div>`
+    return
+  }
+  el.innerHTML = arr.map(t => `
+    <div style="padding:14px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-weight:700;font-size:14px;">${t.name}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-xs" onclick="openTplModal(${t.id})">Edit</button>
+          <button class="btn btn-ghost btn-xs" style="color:var(--red);" onclick="deleteTpl(${t.id})">Delete</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--fg3);line-height:1.5;white-space:pre-wrap;max-height:60px;overflow:hidden;">${t.body.length>200?t.body.slice(0,200)+'…':t.body}</div>
+    </div>`).join('')
+}
+
+function openTplModal(id) {
+  const el = document.getElementById('tpl-modal')
+  document.getElementById('tpl-edit-id').value = id||''
+  if (id) {
+    const t = getTplStore().find(x=>x.id===id)
+    if (!t) return
+    document.getElementById('tpl-modal-title').textContent = 'Edit Template'
+    document.getElementById('tpl-name').value = t.name
+    document.getElementById('tpl-body').value = t.body
+  } else {
+    document.getElementById('tpl-modal-title').textContent = 'New Template'
+    document.getElementById('tpl-name').value = ''
+    document.getElementById('tpl-body').value = ''
+  }
+  openModal('tpl-modal')
+}
+
+function saveTpl() {
+  const name = document.getElementById('tpl-name').value.trim()
+  const body = document.getElementById('tpl-body').value.trim()
+  if (!name) { showToast('Template name is required','error'); return }
+  if (!body) { showToast('Template text is required','error'); return }
+  const arr  = getTplStore()
+  const idVal = document.getElementById('tpl-edit-id').value
+  if (idVal) {
+    const idx = arr.findIndex(x=>x.id===parseInt(idVal))
+    if (idx>-1) arr[idx] = { ...arr[idx], name, body }
+  } else {
+    arr.push({ id: Date.now(), name, body })
+  }
+  saveTplStore(arr)
+  renderTplList()
+  closeModal('tpl-modal')
+  showToast('Template saved','success')
+}
+
+function deleteTpl(id) {
+  if (!confirm('Delete this template?')) return
+  saveTplStore(getTplStore().filter(t=>t.id!==id))
+  renderTplList()
+  showToast('Template deleted','info')
+}
+
+function populateQtTermsDropdown() {
+  const container = document.getElementById('qtf-terms-cards')
+  const hidden    = document.getElementById('qtf-terms-id')
+  const prev      = document.getElementById('qtf-terms-preview')
+  if (!container) return
+  const arr = getTplStore()
+  hidden.value = ''
+  if (prev) { prev.style.display='none'; prev.textContent='' }
+  if (!arr.length) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--fg3);padding:8px 0;">No templates yet. <span style="color:var(--accent);cursor:pointer;" onclick="nav('settings',document.querySelector('.nav-item[onclick*=settings]'));setTimeout(()=>switchTab('s-templates',document.querySelector('.tab-btn[onclick*=s-templates]')),200)">Create one →</span></div>`
+    return
+  }
+  container.innerHTML = arr.map(t => `
+    <div id="qtf-tpl-card-${t.id}" onclick="selectQtTpl(${t.id})"
+      style="cursor:pointer;padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s;"
+      onmouseover="if(document.getElementById('qtf-terms-id').value!='${t.id}')this.style.borderColor='var(--accent)'"
+      onmouseout="if(document.getElementById('qtf-terms-id').value!='${t.id}'){this.style.borderColor='var(--border)';this.style.background='var(--surface)'}">
+      <div style="width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;" id="qtf-tpl-radio-${t.id}"></div>
+      <div style="font-size:13px;font-weight:600;flex:1;">${t.name}</div>
+    </div>`).join('')
+}
+
+function selectQtTpl(id) {
+  const hidden = document.getElementById('qtf-terms-id')
+  const prev   = document.getElementById('qtf-terms-preview')
+  const arr    = getTplStore()
+  // If clicking the already-selected one — deselect
+  if (hidden.value == id) {
+    hidden.value = ''
+    if (prev) { prev.style.display='none'; prev.textContent='' }
+    arr.forEach(t => resetQtTplCard(t.id, false))
+    return
+  }
+  hidden.value = id
+  arr.forEach(t => resetQtTplCard(t.id, t.id === id))
+  const tpl = arr.find(t=>t.id===id)
+  if (tpl && prev) { prev.textContent = tpl.body; prev.style.display='block' }
+}
+
+function resetQtTplCard(id, active) {
+  const card  = document.getElementById('qtf-tpl-card-'+id)
+  const radio = document.getElementById('qtf-tpl-radio-'+id)
+  if (!card || !radio) return
+  if (active) {
+    card.style.borderColor = 'var(--accent)'
+    card.style.background  = 'var(--accent-light,rgba(37,99,235,.07))'
+    radio.style.borderColor     = 'var(--accent)'
+    radio.style.backgroundColor = 'var(--accent)'
+    radio.innerHTML = '<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="#fff"/></svg>'
+  } else {
+    card.style.borderColor      = 'var(--border)'
+    card.style.background       = 'var(--surface)'
+    radio.style.borderColor     = 'var(--border)'
+    radio.style.backgroundColor = ''
+    radio.innerHTML = ''
+  }
+}
+
+function onQtTermsChange() {} // kept for compat — now handled by selectQtTpl
+
+function getSelectedTermsText() {
+  const id = parseInt(document.getElementById('qtf-terms-id')?.value||0)
+  if (!id) return ''
+  const t = getTplStore().find(x=>x.id===id)
+  return t ? t.body : ''
+}
+
+// ── Called when Templates tab opens ──────────────────────
+function loadTemplatesTab() { renderTplList() }
 
 // Called when Appearance tab opens
 function loadAppearanceTab() {

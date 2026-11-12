@@ -472,6 +472,15 @@ select { width: auto; }
 </div>
 
 <script>
+// Read company/user from URL params (declared early so applySession can use them)
+const _params  = new URLSearchParams(window.location.search)
+const CID      = parseInt(_params.get('cid') || '1')
+const _SESSION = {
+  uid:    parseInt(_params.get('uid') || '0'),
+  name:   _params.get('uname')  ? decodeURIComponent(_params.get('uname'))  : 'Staff',
+  role:   _params.get('role')   || 'operator',
+  coname: _params.get('coname') ? decodeURIComponent(_params.get('coname')) : '',
+}
 // Populate sidebar + topbar with logged-in user info
 (function applySession() {
   const initials = _SESSION.name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || '?'
@@ -2101,15 +2110,7 @@ function doLogout() {
 <script>
 // ─── API CONFIG ────────────────────────────────────────────
 const API  = '/api'
-// Read company/user from URL params injected by App.jsx login
-const _params  = new URLSearchParams(window.location.search)
-const CID      = parseInt(_params.get('cid') || '1')
-const _SESSION = {
-  uid:    parseInt(_params.get('uid') || '0'),
-  name:   _params.get('uname')  ? decodeURIComponent(_params.get('uname'))  : 'Staff',
-  role:   _params.get('role')   || 'operator',
-  coname: _params.get('coname') ? decodeURIComponent(_params.get('coname')) : '',
-}
+// _params, CID, _SESSION declared in the first <script> block above
 
 const fmt = n => Number(n||0).toLocaleString('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2})
 

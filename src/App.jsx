@@ -62,8 +62,8 @@ function LoginPage({ onLogin }) {
             fontSize: 28, fontWeight: 900, color: '#fff',
             boxShadow: '0 8px 32px rgba(37,99,235,.4)',
             marginBottom: 16,
-          }}>A</div>
-          <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, letterSpacing: '-.02em' }}>ALNOOR ERP</div>
+          }}>T</div>
+          <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, letterSpacing: '-.02em' }}>TypinGo</div>
           <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 13, marginTop: 4 }}>Typing & Document Services Platform</div>
         </div>
 
@@ -151,7 +151,7 @@ function LoginPage({ onLogin }) {
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: 24, color: 'rgba(255,255,255,.2)', fontSize: 12 }}>
-          ALNOOR ERP v2.0 · Sharjah, UAE
+          TypinGo v2.0 · Sharjah, UAE
         </div>
       </div>
     </div>
@@ -205,20 +205,20 @@ export default function App() {
       }}>
         <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, fontWeight: 700,
           letterSpacing: '.1em', textTransform: 'uppercase', marginRight: 16, whiteSpace: 'nowrap' }}>
-          ALNOOR ERP
+          TypinGo
         </div>
 
         {/* Phase tabs — superadmin sees both, company staff see only ERP */}
         {isSuperAdmin && (
           <>
             <PhaseTab id="superadmin" label="Super Admin" sub="Platform" icon="🏢" active={phase} onClick={setPhase} />
-            <PhaseTab id="erp"        label="Typing ERP"  sub="Preview"  icon="⚡" active={phase} onClick={setPhase} />
+            <PhaseTab id="erp"        label="Company ERP" sub="Preview"  icon="⚡" active={phase} onClick={setPhase} />
           </>
         )}
         {!isSuperAdmin && (
           <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>⚡</span>
-            <span>{user.company_name || 'Typing ERP'}</span>
+            <span>{user.company_name || 'TypinGo'}</span>
             <span style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', background: 'rgba(255,255,255,.08)', padding: '2px 7px', borderRadius: 10, textTransform: 'capitalize' }}>{user.role}</span>
           </div>
         )}

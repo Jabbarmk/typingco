@@ -151,7 +151,7 @@ function LoginPage({ onLogin }) {
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12 }}>
-          <div style={{ color: 'rgba(255,255,255,.2)', marginBottom: 6 }}>TypinGo v2.0 · Sharjah, UAE</div>
+          <div style={{ color: 'rgba(255,255,255,.2)', marginBottom: 6 }}>TypinGo v2.0</div>
           <div style={{ color: 'rgba(255,255,255,.18)' }}>
             Powered by{' '}
             <a href="https://www.smartflix.ae" target="_blank" rel="noopener noreferrer"

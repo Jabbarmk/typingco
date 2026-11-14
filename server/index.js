@@ -427,24 +427,49 @@ app.post('/api/:cid/invoices', async (req, res) => {
 })
 
 app.patch('/api/:cid/invoices/:id', async (req, res) => {
-  const { customer_name, issue_date, status, subtotal, vat_amount, total, notes } = req.body
+  const { customer_name, customer_trn, issue_date, status, subtotal, vat_amount, total, notes, payment_method, lines } = req.body
   const allowed = ['posted', 'draft', 'void']
   if (status && !allowed.includes(status)) return res.status(400).json({ error: 'Invalid status' })
   const fields = []
   const params = []
-  if (customer_name !== undefined) { fields.push('customer_name=?'); params.push(customer_name) }
-  if (issue_date    !== undefined) { fields.push('issue_date=?');    params.push(issue_date) }
-  if (status        !== undefined) { fields.push('status=?');        params.push(status) }
-  if (subtotal      !== undefined) { fields.push('subtotal=?');      params.push(subtotal) }
-  if (vat_amount    !== undefined) { fields.push('vat_amount=?');    params.push(vat_amount) }
-  if (total         !== undefined) { fields.push('total=?');         params.push(total) }
-  if (notes         !== undefined) { fields.push('notes=?');         params.push(notes) }
-  if (!fields.length) return res.status(400).json({ error: 'Nothing to update' })
-  params.push(req.params.id, req.params.cid)
-  await pool.query(`UPDATE invoices SET ${fields.join(',')} WHERE id=? AND company_id=?`, params)
-  const [[inv]] = await pool.query('SELECT * FROM invoices WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
-  if (!inv) return res.status(404).json({ error: 'Not found' })
-  res.json(inv)
+  if (customer_name   !== undefined) { fields.push('customer_name=?');   params.push(customer_name) }
+  if (customer_trn    !== undefined) { fields.push('customer_trn=?');    params.push(customer_trn) }
+  if (issue_date      !== undefined) { fields.push('issue_date=?');      params.push(issue_date) }
+  if (status          !== undefined) { fields.push('status=?');          params.push(status) }
+  if (subtotal        !== undefined) { fields.push('subtotal=?');        params.push(subtotal) }
+  if (vat_amount      !== undefined) { fields.push('vat_amount=?');      params.push(vat_amount) }
+  if (total           !== undefined) { fields.push('total=?');           params.push(total) }
+  if (notes           !== undefined) { fields.push('notes=?');           params.push(notes) }
+  if (payment_method  !== undefined) { fields.push('payment_method=?');  params.push(payment_method) }
+  const conn = await pool.getConnection()
+  try {
+    await conn.beginTransaction()
+    if (fields.length) {
+      await conn.query(`UPDATE invoices SET ${fields.join(',')} WHERE id=? AND company_id=?`, [...params, req.params.id, req.params.cid])
+    }
+    if (lines !== undefined) {
+      await conn.query('DELETE FROM invoice_lines WHERE invoice_id=?', [req.params.id])
+      if (lines.length) {
+        const lineVals = lines.filter(l => l.description).map(l => {
+          const net = parseFloat(l.quantity||1) * parseFloat(l.unit_price||0)
+          const vat = net * 0.05
+          return [req.params.id, null, l.description, l.quantity||1, l.unit_price||0, 'S', 0.05, net, vat]
+        })
+        if (lineVals.length) {
+          await conn.query(
+            'INSERT INTO invoice_lines (invoice_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount) VALUES ?',
+            [lineVals])
+        }
+      }
+    }
+    await conn.commit()
+    const [[inv]] = await conn.query('SELECT * FROM invoices WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+    if (!inv) return res.status(404).json({ error: 'Not found' })
+    res.json(inv)
+  } catch(e) {
+    await conn.rollback()
+    res.status(500).json({ error: e.message })
+  } finally { conn.release() }
 })
 
 // Invoice stats for ERP dashboard

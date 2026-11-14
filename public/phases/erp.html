@@ -2165,6 +2165,87 @@ function doLogout() {
   </div>
 </div>
 
+<!-- EDIT INVOICE MODAL -->
+<div class="modal-overlay" id="edit-invoice-modal" hidden onclick="if(event.target===this)closeModal('edit-invoice-modal')">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title">Edit Invoice <span id="edit-inv-num" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:400;color:var(--fg3);"></span></span>
+      <button class="close-btn" onclick="closeModal('edit-invoice-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-inv-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Customer Name</label>
+          <input type="text" id="edit-inv-customer" class="input">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Customer TRN</label>
+          <input type="text" id="edit-inv-trn" class="input" placeholder="Optional">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Issue Date</label>
+          <input type="date" id="edit-inv-date" class="input">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Payment Method</label>
+          <select id="edit-inv-payment" class="input">
+            <option value="cash">Cash</option>
+            <option value="card">Card</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="cheque">Cheque</option>
+            <option value="online">Online</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Status</label>
+          <select id="edit-inv-status" class="input">
+            <option value="posted">Posted</option>
+            <option value="draft">Draft</option>
+            <option value="void">Void</option>
+          </select>
+        </div>
+      </div>
+      <!-- Line items -->
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Line Items</div>
+      <div id="edit-inv-lines" style="margin-bottom:12px;"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addEditInvLine()" style="margin-bottom:12px;">+ Add Line</button>
+      <!-- Totals -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label>Subtotal (AED)</label>
+          <input type="number" id="edit-inv-subtotal" class="input" step="0.01" min="0" oninput="recalcEditInv()">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>VAT (AED)</label>
+          <input type="number" id="edit-inv-vat" class="input" step="0.01" min="0" oninput="recalcEditInv()">
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label>Total (AED)</label>
+          <input type="number" id="edit-inv-total" class="input" step="0.01" min="0" style="font-weight:700;">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Notes</label>
+        <textarea id="edit-inv-notes" class="input" rows="2" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('edit-invoice-modal')">Cancel</button>
+      <button class="btn btn-secondary" onclick="viewSavedInvoiceFromEdit()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Preview
+      </button>
+      <button class="btn btn-primary" onclick="saveInvoiceEdits()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-container" id="toast-container"></div>
 
 <script>
@@ -5171,8 +5252,9 @@ function renderSalesTable(invoices) {
       <td style="font-weight:600;">AED ${parseFloat(inv.total||0).toFixed(2)}</td>
       <td>${inv.payment_method||'Cash'}</td>
       <td><span class="badge ${statusMap[status]||'b-green'}">${status.charAt(0).toUpperCase()+status.slice(1)}</span></td>
-      <td style="display:flex;gap:4px;align-items:center;">
+      <td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-secondary btn-xs" onclick="viewSavedInvoice(${inv.id})">View</button>
+        ${['admin','superadmin'].includes(_SESSION.role) ? `<button class="btn btn-xs" style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);font-size:10px;padding:2px 7px;" onclick="openEditInvoice(${inv.id})">Edit</button>` : ''}
         ${inv.einvoice_status && inv.einvoice_status !== 'none'
           ? `<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--green-light);color:var(--green);font-weight:600;">${inv.einvoice_status==='cleared'?'E-INV ✓':'E-INV '+inv.einvoice_status}</span>`
           : `<button class="btn btn-xs" style="background:var(--accent-light);color:var(--accent);border:1px solid var(--accent);font-size:10px;padding:2px 7px;" onclick="queueEInvoice(${inv.id},'${inv.invoice_number}')">⚡ E-Inv</button>`
@@ -5248,6 +5330,113 @@ async function viewSavedInvoice(id) {
     document.getElementById('invoice-content').innerHTML = html
     openModal('invoice-modal')
   } catch(e) { showToast('Could not load invoice') }
+}
+
+// ── Edit Invoice ──────────────────────────────────────────────
+let _editInvData = null
+
+async function openEditInvoice(id) {
+  try {
+    const inv = await apiFetch(`/${CID}/invoices/${id}`)
+    _editInvData = inv
+    document.getElementById('edit-inv-id').value       = inv.id
+    document.getElementById('edit-inv-num').textContent = inv.invoice_number
+    document.getElementById('edit-inv-customer').value = inv.customer_name || ''
+    document.getElementById('edit-inv-trn').value      = inv.customer_trn || ''
+    document.getElementById('edit-inv-payment').value  = inv.payment_method || 'cash'
+    document.getElementById('edit-inv-status').value   = inv.status || 'posted'
+    document.getElementById('edit-inv-subtotal').value = parseFloat(inv.subtotal||0).toFixed(2)
+    document.getElementById('edit-inv-vat').value      = parseFloat(inv.vat_amount||0).toFixed(2)
+    document.getElementById('edit-inv-total').value    = parseFloat(inv.total||0).toFixed(2)
+    document.getElementById('edit-inv-notes').value    = inv.notes || ''
+    if (inv.issue_date) {
+      try { document.getElementById('edit-inv-date').value = new Date(inv.issue_date).toISOString().slice(0,10) } catch {}
+    }
+    renderEditInvLines(inv.lines || [])
+    openModal('edit-invoice-modal')
+  } catch(e) { showToast('Could not load invoice: ' + e.message, 'error') }
+}
+
+function renderEditInvLines(lines) {
+  document.getElementById('edit-inv-lines').innerHTML = lines.map((l,i) => `
+    <div style="display:grid;grid-template-columns:3fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px;" id="edit-line-${i}">
+      <input type="text" class="input" placeholder="Description" value="${(l.description||'').replace(/"/g,'&quot;')}"
+        style="font-size:12px;padding:6px 8px;" oninput="updateEditLine(${i})">
+      <input type="number" class="input" placeholder="Qty" value="${l.quantity||1}"
+        style="font-size:12px;padding:6px 8px;" step="0.001" min="0" oninput="updateEditLine(${i})">
+      <input type="number" class="input" placeholder="Unit Price" value="${parseFloat(l.unit_price||0).toFixed(2)}"
+        style="font-size:12px;padding:6px 8px;" step="0.01" min="0" oninput="updateEditLine(${i})">
+      <button class="btn btn-secondary btn-xs" style="color:var(--red);padding:4px 8px;" onclick="removeEditLine(${i})">✕</button>
+    </div>`).join('')
+}
+
+function addEditInvLine() {
+  const lines = getEditInvLines()
+  lines.push({ description:'', quantity:1, unit_price:0 })
+  renderEditInvLines(lines)
+}
+
+function removeEditLine(i) {
+  const lines = getEditInvLines()
+  lines.splice(i, 1)
+  renderEditInvLines(lines)
+  recalcEditInvFromLines()
+}
+
+function updateEditLine(i) { recalcEditInvFromLines() }
+
+function getEditInvLines() {
+  const rows = document.getElementById('edit-inv-lines').children
+  return Array.from(rows).map(row => {
+    const inputs = row.querySelectorAll('input')
+    return { description: inputs[0].value, quantity: parseFloat(inputs[1].value)||1, unit_price: parseFloat(inputs[2].value)||0 }
+  })
+}
+
+function recalcEditInvFromLines() {
+  const lines = getEditInvLines()
+  const subtotal = lines.reduce((s,l) => s + l.quantity * l.unit_price, 0)
+  const vat = subtotal * 0.05
+  document.getElementById('edit-inv-subtotal').value = subtotal.toFixed(2)
+  document.getElementById('edit-inv-vat').value      = vat.toFixed(2)
+  document.getElementById('edit-inv-total').value    = (subtotal + vat).toFixed(2)
+}
+
+function recalcEditInv() {
+  const sub = parseFloat(document.getElementById('edit-inv-subtotal').value) || 0
+  const vat = parseFloat(document.getElementById('edit-inv-vat').value) || 0
+  document.getElementById('edit-inv-total').value = (sub + vat).toFixed(2)
+}
+
+async function saveInvoiceEdits() {
+  const id = parseInt(document.getElementById('edit-inv-id').value)
+  const lines = getEditInvLines()
+  const payload = {
+    customer_name:  document.getElementById('edit-inv-customer').value.trim() || null,
+    customer_trn:   document.getElementById('edit-inv-trn').value.trim() || null,
+    issue_date:     document.getElementById('edit-inv-date').value || null,
+    payment_method: document.getElementById('edit-inv-payment').value,
+    status:         document.getElementById('edit-inv-status').value,
+    subtotal:       parseFloat(document.getElementById('edit-inv-subtotal').value) || 0,
+    vat_amount:     parseFloat(document.getElementById('edit-inv-vat').value) || 0,
+    total:          parseFloat(document.getElementById('edit-inv-total').value) || 0,
+    notes:          document.getElementById('edit-inv-notes').value.trim() || null,
+    lines,
+  }
+  try {
+    await apiFetch(`/${CID}/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+    delete invoiceStore[id]  // clear cached preview so it reloads fresh
+    closeModal('edit-invoice-modal')
+    showToast('Invoice updated ✓', 'success')
+    const invs = await apiFetch(`/${CID}/invoices`)
+    renderSalesTable(invs)
+  } catch(e) { showToast('Save failed: ' + e.message, 'error') }
+}
+
+function viewSavedInvoiceFromEdit() {
+  const id = parseInt(document.getElementById('edit-inv-id').value)
+  closeModal('edit-invoice-modal')
+  viewSavedInvoice(id)
 }
 
 const APP_STATUSES = ['new','doc_pending','ready_to_submit','submitted','processing','completed','rejected']

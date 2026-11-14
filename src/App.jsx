@@ -150,8 +150,16 @@ function LoginPage({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: 'center', marginTop: 24, color: 'rgba(255,255,255,.2)', fontSize: 12 }}>
-          TypinGo v2.0 · Sharjah, UAE
+        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12 }}>
+          <div style={{ color: 'rgba(255,255,255,.2)', marginBottom: 6 }}>TypinGo v2.0 · Sharjah, UAE</div>
+          <div style={{ color: 'rgba(255,255,255,.18)' }}>
+            Powered by{' '}
+            <a href="https://www.smartflix.ae" target="_blank" rel="noopener noreferrer"
+              style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none', fontWeight: 600, transition: 'color .15s' }}
+              onMouseOver={e => e.target.style.color='rgba(255,255,255,.8)'}
+              onMouseOut={e => e.target.style.color='rgba(255,255,255,.4)'}
+            >Smartflix</a>
+          </div>
         </div>
       </div>
     </div>

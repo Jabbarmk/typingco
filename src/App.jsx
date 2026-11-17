@@ -42,92 +42,68 @@ function LoginPage({ onLogin }) {
     }
   }
 
+  const inputStyle = {
+    width: '100%', padding: '12px 14px', borderRadius: 12, border: '1.5px solid #E2E8F0',
+    background: '#fff', color: '#17233C', fontSize: 16, minHeight: 46,
+    outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
+    transition: 'border-color .15s, box-shadow .15s',
+  }
+  const focusOn  = e => { e.target.style.borderColor = '#2563EB'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,.12)' }
+  const focusOff = e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none' }
+  const labelStyle = { display: 'block', color: '#64748B', fontSize: 12, fontWeight: 600, marginBottom: 7, letterSpacing: '.03em', textTransform: 'uppercase' }
+
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(135deg, #060d1f 0%, #0f1e3d 60%, #0a1628 100%)',
+      minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'linear-gradient(160deg, #ffffff 0%, #f6f8ff 45%, #eef2ff 100%)',
       fontFamily: "'Poppins', system-ui, sans-serif",
-      padding: '20px',
+      padding: '20px', boxSizing: 'border-box',
     }}>
-      {/* Background pattern */}
-      <div style={{ position: 'fixed', inset: 0, opacity: .04, backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '28px 28px', pointerEvents: 'none' }} />
-
       <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
-        {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{
-            width: 64, height: 64, borderRadius: 18,
-            background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 28, fontWeight: 900, color: '#fff',
-            boxShadow: '0 8px 32px rgba(37,99,235,.4)',
-            marginBottom: 16,
-          }}>T</div>
-          <div style={{ color: '#fff', fontSize: 22, fontWeight: 800, letterSpacing: '-.02em' }}>TypinGo</div>
-          <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 13, marginTop: 4 }}>Typing & Document Services Platform</div>
+        {/* Logo + slogan */}
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <img src="/typingo-logo.png" alt="Typingo — from Smartflix"
+            style={{ width: '100%', maxWidth: 340, height: 'auto', display: 'block', margin: '0 auto', mixBlendMode: 'multiply', filter: 'brightness(1.03) contrast(1.06)' }} />
+          <div style={{ color: '#64748B', fontSize: 13, marginTop: 6 }}>Typing & Document Services Platform</div>
         </div>
 
         {/* Card */}
         <div style={{
-          background: 'rgba(255,255,255,.04)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,.1)', borderRadius: 20,
-          padding: '36px 32px',
-          boxShadow: '0 24px 64px rgba(0,0,0,.4)',
+          background: '#fff', border: '1px solid #E2E8F0', borderRadius: 20,
+          padding: '32px 28px', boxShadow: '0 20px 50px rgba(20,33,61,.08), 0 2px 6px rgba(20,33,61,.04)',
         }}>
-          <div style={{ color: '#fff', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Sign in</div>
-          <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 13, marginBottom: 28 }}>Enter your credentials to access the system</div>
+          <div style={{ color: '#17233C', fontSize: 18, fontWeight: 700, marginBottom: 6 }}>Sign in</div>
+          <div style={{ color: '#64748B', fontSize: 13, marginBottom: 24 }}>Enter your credentials to access the system</div>
 
           <form onSubmit={handleSubmit}>
-            {/* Email */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', color: 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 600, marginBottom: 7, letterSpacing: '.03em', textTransform: 'uppercase' }}>Email</label>
-              <input
-                type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="your@email.com" required autoFocus
-                style={{
-                  width: '100%', padding: '11px 14px', borderRadius: 10, border: '1.5px solid rgba(255,255,255,.12)',
-                  background: 'rgba(255,255,255,.07)', color: '#fff', fontSize: 14,
-                  outline: 'none', boxSizing: 'border-box',
-                  transition: 'border-color .15s',
-                }}
-                onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
-              />
+              <label style={labelStyle}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="your@email.com" required autoFocus style={inputStyle} onFocus={focusOn} onBlur={focusOff} />
             </div>
 
-            {/* Password */}
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', color: 'rgba(255,255,255,.6)', fontSize: 12, fontWeight: 600, marginBottom: 7, letterSpacing: '.03em', textTransform: 'uppercase' }}>Password</label>
+            <div style={{ marginBottom: 22 }}>
+              <label style={labelStyle}>Password</label>
               <div style={{ position: 'relative' }}>
-                <input
-                  type={showPw ? 'text' : 'password'} value={password} onChange={e => setPass(e.target.value)}
-                  placeholder="••••••••" required
-                  style={{
-                    width: '100%', padding: '11px 44px 11px 14px', borderRadius: 10, border: '1.5px solid rgba(255,255,255,.12)',
-                    background: 'rgba(255,255,255,.07)', color: '#fff', fontSize: 14,
-                    outline: 'none', boxSizing: 'border-box',
-                    transition: 'border-color .15s',
-                  }}
-                  onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,.12)'}
-                />
-                <button type="button" onClick={() => setShowPw(!showPw)} style={{
-                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.4)', padding: 2,
+                <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPass(e.target.value)}
+                  placeholder="••••••••" required style={{ ...inputStyle, paddingRight: 48 }} onFocus={focusOn} onBlur={focusOff} />
+                <button type="button" onClick={() => setShowPw(!showPw)} aria-label={showPw ? 'Hide password' : 'Show password'} style={{
+                  position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', width: 40, height: 40,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {showPw
-                    ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                    : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    ? <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    : <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   }
                 </button>
               </div>
             </div>
 
-            {/* Error */}
             {error && (
               <div style={{
-                background: 'rgba(239,68,68,.15)', border: '1px solid rgba(239,68,68,.3)',
-                borderRadius: 8, padding: '10px 14px', color: '#fca5a5', fontSize: 13, marginBottom: 18,
+                background: '#FEF2F2', border: '1px solid #FECACA',
+                borderRadius: 10, padding: '10px 14px', color: '#B91C1C', fontSize: 13, marginBottom: 18,
                 display: 'flex', alignItems: 'center', gap: 8,
               }}>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -135,13 +111,12 @@ function LoginPage({ onLogin }) {
               </div>
             )}
 
-            {/* Submit */}
             <button type="submit" disabled={loading} style={{
-              width: '100%', padding: '12px', borderRadius: 10, border: 'none',
-              background: loading ? 'rgba(37,99,235,.5)' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-              color: '#fff', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
+              width: '100%', padding: '12px', minHeight: 48, borderRadius: 12, border: 'none',
+              background: loading ? '#93B4F5' : 'linear-gradient(135deg, #2563EB, #4F46E5)',
+              color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit', letterSpacing: '.01em',
-              boxShadow: loading ? 'none' : '0 4px 16px rgba(37,99,235,.4)',
+              boxShadow: loading ? 'none' : '0 6px 18px rgba(37,99,235,.3)',
               transition: 'all .15s',
             }}>
               {loading ? 'Signing in…' : 'Sign In →'}
@@ -150,15 +125,12 @@ function LoginPage({ onLogin }) {
         </div>
 
         {/* Footer */}
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 12 }}>
-          <div style={{ color: 'rgba(255,255,255,.2)', marginBottom: 6 }}>TypinGo v2.0</div>
-          <div style={{ color: 'rgba(255,255,255,.18)' }}>
+        <div style={{ textAlign: 'center', marginTop: 22, fontSize: 12 }}>
+          <div style={{ color: '#94A3B8', marginBottom: 6 }}>TypinGo v2.0</div>
+          <div style={{ color: '#94A3B8' }}>
             Powered by{' '}
             <a href="https://www.smartflix.ae" target="_blank" rel="noopener noreferrer"
-              style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none', fontWeight: 600, transition: 'color .15s' }}
-              onMouseOver={e => e.target.style.color='rgba(255,255,255,.8)'}
-              onMouseOut={e => e.target.style.color='rgba(255,255,255,.4)'}
-            >Smartflix</a>
+              style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}>Smartflix</a>
           </div>
         </div>
       </div>
@@ -203,18 +175,16 @@ export default function App() {
   const adminSrc = `/phases/superadmin.html?uid=${user.id}&uname=${encodeURIComponent(user.name)}`
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* Top bar */}
-      <div style={{
-        background: '#060d1f', borderBottom: '1px solid rgba(255,255,255,.08)',
-        display: 'flex', alignItems: 'center', padding: '0 16px',
-        height: 44, flexShrink: 0, zIndex: 200, gap: 0,
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
+      {/* Top bar — platform switcher, Super Admin only (staff use the ERP's own header) */}
+      {isSuperAdmin && <div style={{
+        background: '#fff', borderBottom: '1px solid #E2E8F0',
+        display: 'flex', alignItems: 'center', padding: '0 12px',
+        height: 48, flexShrink: 0, zIndex: 200, gap: 0, overflowX: 'auto',
         fontFamily: "'Poppins',system-ui,sans-serif",
       }}>
-        <div style={{ color: 'rgba(255,255,255,.4)', fontSize: 11, fontWeight: 700,
-          letterSpacing: '.1em', textTransform: 'uppercase', marginRight: 16, whiteSpace: 'nowrap' }}>
-          TypinGo
-        </div>
+        <style>{`@media (max-width: 640px){ .tb-hide-sm{display:none !important} .tb-tab{padding:0 10px !important} }`}</style>
+        <img className="tb-hide-sm" src="/typingo-logo.png" alt="Typingo" style={{ height: 28, width: 'auto', marginRight: 12, mixBlendMode: 'multiply', flexShrink: 0 }} />
 
         {/* Phase tabs — superadmin sees both, company staff see only ERP */}
         {isSuperAdmin && (
@@ -223,35 +193,28 @@ export default function App() {
             <PhaseTab id="erp"        label="Company ERP" sub="Preview"  icon="⚡" active={phase} onClick={setPhase} />
           </>
         )}
-        {!isSuperAdmin && (
-          <div style={{ color: '#fff', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>⚡</span>
-            <span>{user.company_name || 'TypinGo'}</span>
-            <span style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', background: 'rgba(255,255,255,.08)', padding: '2px 7px', borderRadius: 10, textTransform: 'capitalize' }}>{user.role}</span>
-          </div>
-        )}
 
         {/* Right side: DB status + user + logout */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, fontSize: 11 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <div className="tb-hide-sm" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 7, height: 7, borderRadius: '50%', background: dbOk === null ? '#f59e0b' : dbOk ? '#10b981' : '#ef4444' }} />
-            <span style={{ color: 'rgba(255,255,255,.35)' }}>{dbOk ? 'DB online' : dbOk === false ? 'DB offline' : '…'}</span>
+            <span style={{ color: '#64748B' }}>{dbOk ? 'DB online' : dbOk === false ? 'DB offline' : '…'}</span>
           </div>
-          <span style={{ color: 'rgba(255,255,255,.15)' }}>|</span>
+          <span className="tb-hide-sm" style={{ color: '#CBD5E1' }}>|</span>
           {/* User pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.07)', borderRadius: 20, padding: '3px 10px 3px 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F1F5F9', borderRadius: 20, padding: '3px 10px 3px 4px' }}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
               {user.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
             </div>
-            <span style={{ color: 'rgba(255,255,255,.7)', fontSize: 12, fontWeight: 500 }}>{user.name.split(' ')[0]}</span>
+            <span className="tb-hide-sm" style={{ color: '#17233C', fontSize: 12, fontWeight: 500 }}>{user.name.split(' ')[0]}</span>
           </div>
           {/* Logout */}
           <button onClick={handleLogout} title="Logout" style={{
-            background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,.35)',
-            display: 'flex', alignItems: 'center', padding: '4px 6px', borderRadius: 6, transition: 'all .15s',
+            background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8',
+            display: 'flex', alignItems: 'center', padding: '8px', borderRadius: 8, transition: 'all .15s',
           }}
-            onMouseOver={e => { e.currentTarget.style.background='rgba(239,68,68,.2)'; e.currentTarget.style.color='#fca5a5' }}
-            onMouseOut={e => { e.currentTarget.style.background='none'; e.currentTarget.style.color='rgba(255,255,255,.35)' }}
+            onMouseOver={e => { e.currentTarget.style.background='#FEE2E2'; e.currentTarget.style.color='#DC2626' }}
+            onMouseOut={e => { e.currentTarget.style.background='none'; e.currentTarget.style.color='#94A3B8' }}
           >
             <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -260,7 +223,7 @@ export default function App() {
             </svg>
           </button>
         </div>
-      </div>
+      </div>}
 
       {dbOk === false && (
         <div style={{ background: '#7f1d1d', color: '#fecaca', fontSize: 12, padding: '6px 16px', textAlign: 'center', flexShrink: 0 }}>
@@ -284,16 +247,16 @@ export default function App() {
 function PhaseTab({ id, label, sub, icon, active, onClick }) {
   const isActive = active === id
   return (
-    <button onClick={() => onClick(id)} style={{
+    <button className="tb-tab" onClick={() => onClick(id)} style={{
       display: 'flex', alignItems: 'center', gap: 6,
-      padding: '0 14px', height: 44, background: 'transparent', border: 'none',
-      borderBottom: `2px solid ${isActive ? '#2563eb' : 'transparent'}`,
-      color: isActive ? '#fff' : 'rgba(255,255,255,.5)',
+      padding: '0 14px', height: 48, background: 'transparent', border: 'none',
+      borderBottom: `2px solid ${isActive ? '#2563EB' : 'transparent'}`,
+      color: isActive ? '#17233C' : '#64748B',
       cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 600 : 400,
       fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap',
     }}>
       <span>{icon}</span><span>{label}</span>
-      <span style={{ fontSize: 10, opacity: .55 }}>{sub}</span>
+      <span className="tb-hide-sm" style={{ fontSize: 10, opacity: .55 }}>{sub}</span>
     </button>
   )
 }

@@ -305,6 +305,18 @@ CREATE TABLE IF NOT EXISTS einvoice_logs (
   FOREIGN KEY (company_id) REFERENCES companies(id)
 );
 
+CREATE TABLE IF NOT EXISTS einvoice_settings (
+  company_id     INT PRIMARY KEY,
+  mode           ENUM('sandbox','production') NOT NULL DEFAULT 'sandbox',
+  peppol_id      VARCHAR(100),
+  asp_name       VARCHAR(120),
+  base_url       VARCHAR(255),
+  client_id      VARCHAR(255),
+  client_secret  VARCHAR(255),
+  updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
 -- ============================================================
 -- LEADS & QUOTATIONS
 -- ============================================================

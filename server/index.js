@@ -814,20 +814,110 @@ app.post('/api/:cid/einvoice/queue', async (req, res) => {
   res.status(201).json({ id: r.insertId })
 })
 
-// Mock submit (sandbox)
+// ─── E-INVOICE SETTINGS (per company: Peppol ID + ASP API) ──
+await pool.query(`CREATE TABLE IF NOT EXISTS einvoice_settings (
+  company_id     INT PRIMARY KEY,
+  mode           ENUM('sandbox','production') NOT NULL DEFAULT 'sandbox',
+  peppol_id      VARCHAR(100),
+  asp_name       VARCHAR(120),
+  base_url       VARCHAR(255),
+  client_id      VARCHAR(255),
+  client_secret  VARCHAR(255),
+  updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+)`)
+
+async function getEinvSettings(cid) {
+  const [[r]] = await pool.query('SELECT * FROM einvoice_settings WHERE company_id=?', [cid])
+  return r || { company_id: +cid, mode: 'sandbox', peppol_id: null, asp_name: null, base_url: null, client_id: null, client_secret: null }
+}
+// Secrets are never returned to the browser
+function publicEinv(r) {
+  return { mode: r.mode, peppol_id: r.peppol_id || '', asp_name: r.asp_name || '', base_url: r.base_url || '',
+           client_id: r.client_id || '', has_client_secret: !!r.client_secret, updated_at: r.updated_at || null }
+}
+function einvMissing(r) {
+  const m = []
+  if (!r.peppol_id)      m.push('Peppol ID')
+  if (!r.base_url)       m.push('API base URL')
+  if (!r.client_id)      m.push('Client ID')
+  if (!r.client_secret)  m.push('Client secret')
+  return m
+}
+
+app.get('/api/:cid/einvoice/settings', async (req, res) => {
+  res.json(publicEinv(await getEinvSettings(req.params.cid)))
+})
+
+app.put('/api/:cid/einvoice/settings', async (req, res) => {
+  const cid = req.params.cid
+  const b = req.body || {}
+  const cur = await getEinvSettings(cid)
+  const mode = b.mode === 'production' ? 'production' : 'sandbox'
+  const next = {
+    mode,
+    peppol_id: (b.peppol_id ?? cur.peppol_id ?? '').toString().trim() || null,
+    asp_name:  (b.asp_name  ?? cur.asp_name  ?? '').toString().trim() || null,
+    base_url:  (b.base_url  ?? cur.base_url  ?? '').toString().trim() || null,
+    client_id: (b.client_id ?? cur.client_id ?? '').toString().trim() || null,
+    // blank secret = keep the saved one
+    client_secret: (b.client_secret && b.client_secret.toString().trim()) ? b.client_secret.toString().trim() : cur.client_secret,
+  }
+  if (next.base_url && !/^https:\/\//i.test(next.base_url)) return res.status(400).json({ error: 'API base URL must start with https://' })
+  if (next.peppol_id && !/^[A-Za-z0-9:._-]{3,100}$/.test(next.peppol_id)) return res.status(400).json({ error: 'Peppol ID may only contain letters, digits and : . _ -' })
+  if (mode === 'production') {
+    const miss = einvMissing(next)
+    if (miss.length) return res.status(400).json({ error: 'Production mode needs: ' + miss.join(', ') })
+  }
+  await pool.query(
+    `INSERT INTO einvoice_settings (company_id,mode,peppol_id,asp_name,base_url,client_id,client_secret)
+     VALUES (?,?,?,?,?,?,?)
+     ON DUPLICATE KEY UPDATE mode=VALUES(mode), peppol_id=VALUES(peppol_id), asp_name=VALUES(asp_name),
+       base_url=VALUES(base_url), client_id=VALUES(client_id), client_secret=VALUES(client_secret)`,
+    [cid, next.mode, next.peppol_id, next.asp_name, next.base_url, next.client_id, next.client_secret])
+  res.json(publicEinv(await getEinvSettings(cid)))
+})
+
+// Connection test: sandbox always OK; production checks config + that the ASP host answers (no credentials sent)
+app.post('/api/:cid/einvoice/test', async (req, res) => {
+  const r = await getEinvSettings(req.params.cid)
+  if (r.mode !== 'production') return res.json({ ok: true, mode: 'sandbox', message: 'Sandbox mode — built-in mock ASP is reachable' })
+  const miss = einvMissing(r)
+  if (miss.length) return res.status(400).json({ ok: false, error: 'Missing: ' + miss.join(', ') })
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000)
+    const resp = await fetch(r.base_url, { method: 'GET', signal: ctl.signal }); clearTimeout(t)
+    res.json({ ok: true, mode: 'production', message: `ASP host reachable (HTTP ${resp.status}). Credentials are not verified by this check.` })
+  } catch (e) {
+    res.status(502).json({ ok: false, error: 'Cannot reach ' + r.base_url + ' — ' + (e.name === 'AbortError' ? 'timed out' : e.message) })
+  }
+})
+
+// Submit: company's own mode decides. Sandbox = mock clearance. Production = needs a live ASP adapter (not implemented yet).
 app.post('/api/:cid/einvoice/submit/:qid', async (req, res) => {
-  const qid = req.params.qid
+  const { cid, qid } = req.params
+  const [[q]] = await pool.query('SELECT * FROM einvoice_queue WHERE id=? AND company_id=?', [qid, cid])
+  if (!q) return res.status(404).json({ error: 'Queue item not found' })
+  const cfg = await getEinvSettings(cid)
+
+  if (cfg.mode === 'production') {
+    const miss = einvMissing(cfg)
+    const msg = miss.length
+      ? 'Production submission blocked — missing: ' + miss.join(', ')
+      : `Production submission to ${cfg.asp_name || cfg.base_url} is not available yet: the live ASP adapter has not been built for this provider`
+    await pool.query("UPDATE einvoice_queue SET status='failed', last_attempt=NOW(), attempts=attempts+1 WHERE id=?", [qid])
+    await pool.query("UPDATE invoices SET einvoice_status='failed' WHERE id=?", [q.invoice_id])
+    await pool.query("INSERT INTO einvoice_logs (company_id,invoice_id,level,message) VALUES (?,?,'ERROR',?)", [cid, q.invoice_id, msg])
+    return res.status(409).json({ error: msg })
+  }
+
   const uuid = 'ZTC-' + Math.random().toString(36).slice(2, 10).toUpperCase()
   await pool.query(
-    "UPDATE einvoice_queue SET status='cleared', asp_uuid=?, last_attempt=NOW(), attempts=attempts+1 WHERE id=?",
-    [uuid, qid])
-  const [[q]] = await pool.query('SELECT * FROM einvoice_queue WHERE id=?', [qid])
-  await pool.query(
-    "UPDATE invoices SET einvoice_status='cleared', einvoice_uuid=? WHERE id=?",
-    [uuid, q.invoice_id])
+    "UPDATE einvoice_queue SET status='cleared', asp_uuid=?, last_attempt=NOW(), attempts=attempts+1 WHERE id=?", [uuid, qid])
+  await pool.query("UPDATE invoices SET einvoice_status='cleared', einvoice_uuid=? WHERE id=?", [uuid, q.invoice_id])
   await pool.query(
     "INSERT INTO einvoice_logs (company_id,invoice_id,level,message) VALUES (?,?,'INFO',?)",
-    [req.params.cid, q.invoice_id, `CLEARED — UUID: ${uuid} (sandbox mock)`])
+    [cid, q.invoice_id, `CLEARED — UUID: ${uuid} (sandbox mock)${cfg.peppol_id ? ' · Peppol ID ' + cfg.peppol_id : ''}`])
   res.json({ uuid, status: 'cleared' })
 })
 

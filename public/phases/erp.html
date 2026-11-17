@@ -470,6 +470,8 @@ input[type=checkbox], input[type=radio] { min-height: 0; width: auto; }
 .svc-btn:active { transform: scale(.98); border-color: var(--accent); background: var(--accent-light); }
 .svc-btn .svc-icon { width: 40px; height: 40px; border-radius: 11px; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
 .svc-btn .svc-icon svg { width: 20px; height: 20px; }
+.svc-btn .svc-icon { font-size: 22px; line-height: 1; }
+.cart-ico { font-size: 18px; margin-right: 6px; }
 .svc-btn .svc-name { font-size: 13px; padding-right: 36px; overflow-wrap: anywhere; }
 .svc-btn .svc-price { margin-top: auto; padding-top: 6px; font-size: 13px; color: var(--fg); font-weight: 800; }
 .svc-add { position: absolute; right: 10px; bottom: 10px; width: 36px; height: 36px; border-radius: 10px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(37,99,235,.3); }
@@ -1608,6 +1610,30 @@ function doLogout() {
         <button class="tab-btn" onclick="switchTab('s-sequences',this)">Sequences</button>
         <button class="tab-btn" onclick="switchTab('s-appearance',this)">Appearance</button>
         <button class="tab-btn" onclick="switchTab('s-templates',this)">Templates</button>
+        <button class="tab-btn" onclick="switchTab('s-einvoice',this)">E-Invoice</button>
+      </div>
+      <!-- E-Invoice (Peppol / ASP) Settings -->
+      <div class="tab-panel" id="s-einvoice">
+        <div class="card card-body">
+          <div style="font-weight:700;font-size:15px;margin-bottom:4px;">E-Invoice — Peppol &amp; ASP connection</div>
+          <div style="font-size:12.5px;color:var(--fg2);margin-bottom:16px;">These details belong to this company only. Sandbox clears invoices with a built-in mock. Production needs your Peppol ID and your Accredited Service Provider's API details.</div>
+          <div class="form-grid">
+            <div class="fg"><label>Mode</label>
+              <select id="ei-mode"><option value="sandbox">Sandbox (Mock)</option><option value="production">Production (Live)</option></select>
+            </div>
+            <div class="fg"><label>Peppol ID</label><input id="ei-peppol" placeholder="e.g. 0235:1234567890" autocomplete="off"></div>
+            <div class="fg"><label>ASP provider name</label><input id="ei-asp" placeholder="Your accredited service provider" autocomplete="off"></div>
+            <div class="fg"><label>API base URL</label><input id="ei-url" placeholder="https://…" autocomplete="off"></div>
+            <div class="fg"><label>Client ID / API key</label><input id="ei-cid" autocomplete="off"></div>
+            <div class="fg"><label>Client secret</label><input id="ei-secret" type="password" autocomplete="new-password" placeholder="Enter secret"></div>
+          </div>
+          <div style="font-size:11px;color:var(--fg3);margin-top:8px;" id="ei-hint">The secret is never shown after saving. Leave it blank to keep the saved one.</div>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="saveEInvSettings()">Save</button>
+            <button class="btn btn-secondary" onclick="testEInvSettings()">Test connection</button>
+            <button class="btn btn-secondary" onclick="nav('einvoice',document.querySelectorAll('.nav-item')[11])">Open E-Invoice module</button>
+          </div>
+        </div>
       </div>
       <!-- Company Settings -->
       <div class="tab-panel active" id="s-company">
@@ -1809,21 +1835,8 @@ function doLogout() {
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">Icon (emoji)</label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;" id="svc-icon-picker">
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🏛️')">🏛️</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'⌨️')">⌨️</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'✈️')">✈️</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🖨️')">🖨️</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'📄')">📄</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'💊')">💊</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🔖')">🔖</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🌐')">🌐</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🪪')">🪪</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🔏')">🔏</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'💰')">💰</span>
-              <span style="font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:6px;" onclick="selectSvcIcon(this,'🖊️')">🖊️</span>
-            </div>
+            <label class="form-label">Icon <span style="font-weight:400;color:var(--fg3);">— pick one, or Auto to match by service name</span></label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;" id="svc-icon-picker"></div>
             <input type="hidden" id="svc-icon" value="📄">
           </div>
           <div class="g2">
@@ -2538,7 +2551,7 @@ function renderServices(list) {
   const grid = document.getElementById('services-grid');
   grid.innerHTML = list.map(s => `
     <div class="svc-btn" data-id="${s.id}" role="button" tabindex="0" onclick="addToCart(${s.id})" onkeydown="if(event.key==='Enter')addToCart(${s.id})">
-      <div class="svc-icon">${svcIcon(s.cat)}</div>
+      <div class="svc-icon"><span class="svc-emoji">${s.icon || '📦'}</span></div>
       <div class="svc-name">${s.name.replace('\n','<br>')}</div>
       <div class="svc-price">AED ${s.price % 1 === 0 ? s.price.toLocaleString() : s.price.toFixed(2)}</div>
       <span class="svc-add">${PLUS_SVG}</span>
@@ -2601,7 +2614,7 @@ function renderCart() {
   container.innerHTML = cart.map((c,i) => `
     <div class="cart-item">
       <div class="cart-item-top">
-        <div class="cart-item-name">${c.name.replace('\n',' ')}${c.id < 0 ? ' <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:1px 7px;border-radius:10px;font-weight:700;">custom</span>' : ''}</div>
+        <div class="cart-item-name"><span class="cart-ico">${c.icon||'📦'}</span>${c.name.replace('\n',' ')}${c.id < 0 ? ' <span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:1px 7px;border-radius:10px;font-weight:700;">custom</span>' : ''}</div>
         <button class="qty-btn" style="color:var(--red);flex-shrink:0;" onclick="changeQty(${c.id},-999)" title="Remove" aria-label="Remove item">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
         </button>
@@ -3176,7 +3189,7 @@ function nav(id, btn) {
   document.getElementById('page-title').textContent = titles[id] || id;
   uiAfterNav(id);
   if (id === 'vat')          loadVAT();
-  if (id === 'settings')     loadSettings();
+  if (id === 'settings')   { loadSettings(); loadEInvSettings(); }
   if (id === 'accounting')   loadAccounting();
   if (id === 'applications') loadApplications();
   if (id === 'services')     loadServicesPage();
@@ -4557,6 +4570,38 @@ async function loadSettings() {
   loadSettingsUsers()
 }
 
+async function loadEInvSettings() {
+  try {
+    const c = await apiFetch(`/${CID}/einvoice/settings`)
+    document.getElementById('ei-mode').value   = c.mode
+    document.getElementById('ei-peppol').value = c.peppol_id
+    document.getElementById('ei-asp').value    = c.asp_name
+    document.getElementById('ei-url').value    = c.base_url
+    document.getElementById('ei-cid').value    = c.client_id
+    const sec = document.getElementById('ei-secret'); sec.value = ''
+    sec.placeholder = c.has_client_secret ? '•••••••• saved' : 'Enter secret'
+  } catch(e) {}
+}
+function _einvErr(e) { try { return JSON.parse(e.message).error || e.message } catch(_) { return e.message } }
+async function saveEInvSettings() {
+  const body = {
+    mode: document.getElementById('ei-mode').value,
+    peppol_id: document.getElementById('ei-peppol').value.trim(),
+    asp_name: document.getElementById('ei-asp').value.trim(),
+    base_url: document.getElementById('ei-url').value.trim(),
+    client_id: document.getElementById('ei-cid').value.trim(),
+    client_secret: document.getElementById('ei-secret').value,
+  }
+  try {
+    await apiFetch(`/${CID}/einvoice/settings`, { method:'PUT', body: JSON.stringify(body) })
+    showToast('E-invoice settings saved'); loadEInvSettings()
+  } catch(e) { showToast(_einvErr(e), 'error') }
+}
+async function testEInvSettings() {
+  try { const r = await apiFetch(`/${CID}/einvoice/test`, { method:'POST' }); showToast(r.message || 'OK') }
+  catch(e) { showToast(_einvErr(e), 'error') }
+}
+
 async function saveCompanySettings() {
   const body = {
     name:      document.getElementById('set-name').value.trim(),
@@ -4701,7 +4746,7 @@ async function loadSettingsServices() {
     const rows = await apiFetch(`/${CID}/services?all=1`)
     if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--fg3);padding:20px;">No services yet</td></tr>'; return }
     tbody.innerHTML = rows.map(s => `<tr>
-      <td style="font-weight:600;">${s.name}</td>
+      <td style="font-weight:600;"><span style="font-size:20px;margin-right:8px;vertical-align:middle;">${resolveIcon(s.icon, s.category, s.name)}</span>${s.name}</td>
       <td><span class="badge b-blue">${s.category||'—'}</span></td>
       <td style="font-family:'DM Mono',monospace;">AED ${parseFloat(s.unit_price).toFixed(2)}</td>
       <td><span class="badge ${s.vat_category==='S'?'b-blue':'b-gray'}">${s.vat_category==='S'?'STD 5%':s.vat_category==='Z'?'Zero 0%':s.vat_category==='E'?'Exempt':'OOS'}</span></td>
@@ -4889,11 +4934,31 @@ const ICON_MAP = {
   'passport':'🛂','government':'🏛️','typing':'⌨️','visa':'✈️','print':'🖨️',
   'photocopy':'🖨️','legal':'🔏','translation':'🌐','medical':'💊','other':'📄'
 }
-function resolveIcon(raw, category) {
-  if (!raw || raw === '?' || raw === '??') return CAT_DEFAULT_ICONS[(category||'other').toLowerCase()] || '📄'
-  return ICON_MAP[raw] || raw
+// Related-icon rules by service name (first match wins). Used when a service has no icon chosen (Auto).
+const NAME_ICON_RULES = [
+  [/emirates\s*id|\beid\b|id card/, '🪪'], [/passport/, '🛂'], [/renew/, '🔄'], [/visa|immigration|entry permit|exit/, '✈️'],
+  [/medical|health|fitness/, '🏥'], [/mohre|labou?r|worker|employment/, '👷'], [/trade|licen[cs]e|\bded\b|establishment/, '📜'],
+  [/attest|notar|legali[sz]|poa|power of attorney/, '🔏'], [/translat/, '🌐'], [/insurance/, '🛡️'], [/tenan|ejari|rent|lease/, '🏠'],
+  [/bank|account open/, '🏦'], [/driv|rta|vehicle|car /, '🚗'], [/vat|tax/, '🧾'], [/certificate|degree|education/, '🎓'],
+  [/colou?r/, '🎨'], [/scan/, '📠'], [/laminat/, '🗂️'], [/bind/, '📚'], [/photocopy|copy|print/, '🖨️'],
+  [/courier|delivery|shipping/, '📦'], [/company|business|office|sponsor/, '🏢'], [/typing|type/, '⌨️'], [/payment|fee|fine/, '💰']
+]
+function resolveIcon(raw, category, name) {
+  const generic = !raw || raw === '?' || raw === '??' || raw === '📄' || raw === 'other'
+  if (!generic) return ICON_MAP[raw] || raw
+  const n = (name || '').toLowerCase()
+  for (const [re, ic] of NAME_ICON_RULES) if (re.test(n)) return ic
+  return CAT_DEFAULT_ICONS[(category||'other').toLowerCase()] || '📄'
 }
 
+const SVC_ICON_CHOICES = ['🪪','🛂','✈️','🔄','🏥','👷','📜','🔏','🌐','🛡️','🏠','🏦','🚗','🧾','🎓','⌨️','🏛️','🖨️','🎨','📠','🗂️','📚','📦','🏢','💰','🖊️','💊','🔖']
+function buildSvcIconPicker() {
+  const box = document.getElementById('svc-icon-picker'); if (!box) return
+  const chip = 'font-size:22px;cursor:pointer;padding:4px 8px;border:2px solid transparent;border-radius:8px;min-width:40px;text-align:center;'
+  box.innerHTML = `<span data-auto="1" style="${chip}font-size:12px;font-weight:700;line-height:28px;" onclick="selectSvcIcon(this,'📄')">✨ Auto</span>` +
+    SVC_ICON_CHOICES.map(e => `<span style="${chip}" onclick="selectSvcIcon(this,'${e}')">${e}</span>`).join('')
+}
+buildSvcIconPicker()
 function selectSvcIcon(el, emoji) {
   document.querySelectorAll('#svc-icon-picker span').forEach(s => s.style.border = '2px solid transparent')
   el.style.border = '2px solid var(--accent)'
@@ -4917,9 +4982,11 @@ async function openServiceModal(id) {
       document.getElementById('svc-price').value    = s.unit_price
       document.getElementById('svc-vat').value      = s.vat_category||'S'
       document.getElementById('svc-active').checked = !!s.is_active
-      const icon = resolveIcon(s.icon, s.category)
+      const icon = resolveIcon(s.icon, s.category, s.name)
       document.getElementById('svc-icon').value = icon
-      const match = [...document.querySelectorAll('#svc-icon-picker span')].find(sp => sp.textContent === icon)
+      const isAuto = (!s.icon || ['?','??','📄','other'].includes(s.icon))
+      document.getElementById('svc-icon').value = isAuto ? '📄' : icon
+      const match = isAuto ? document.querySelector('#svc-icon-picker span[data-auto]') : [...document.querySelectorAll('#svc-icon-picker span')].find(sp => sp.textContent === icon)
       if (match) { match.style.border='2px solid var(--accent)'; match.style.background='var(--accent-light)' }
     }
   } else {
@@ -4929,6 +4996,8 @@ async function openServiceModal(id) {
     document.getElementById('svc-vat').value      = 'S'
     document.getElementById('svc-active').checked = true
     document.getElementById('svc-icon').value     = '📄'
+    const au = document.querySelector('#svc-icon-picker span[data-auto]')
+    if (au) { au.style.border = '2px solid var(--accent)'; au.style.background = 'var(--accent-light)' }
   }
   document.getElementById('service-modal').style.display = 'flex'
 }
@@ -4971,7 +5040,7 @@ async function refreshPOSServices() {
     const catMap = { government:'typing', photocopy:'print', print:'print', visa:'visa', typing:'typing' }
     SERVICES = svcs.map(s => {
       const rawCat = (s.category||'other').toLowerCase()
-      const icon = resolveIcon(s.icon, s.category)
+      const icon = resolveIcon(s.icon, s.category, s.name)
       return { id:s.id, name:s.name, icon, price:parseFloat(s.unit_price||0), cat:catMap[rawCat]||rawCat }
     })
     renderServices(SERVICES)
@@ -5020,7 +5089,7 @@ function renderServicesCards(svcs) {
   if (!grid) return
   if (!svcs.length) { grid.innerHTML = '<div style="color:var(--fg3);padding:24px;text-align:center;grid-column:1/-1;">No services found</div>'; return }
   grid.innerHTML = svcs.map(s => {
-    const icon   = resolveIcon(s.icon, s.category)
+    const icon   = resolveIcon(s.icon, s.category, s.name)
     const vatLbl = { S:'5% VAT', Z:'Zero-rated', E:'Exempt', O:'OOS' }[s.vat_category] || ''
     return `<div style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;border:1.5px solid ${s.is_active?'var(--border)':'var(--red)22'};">
       <div style="display:flex;align-items:center;gap:10px;">
@@ -5118,7 +5187,7 @@ async function init() {
       return {
         id: s.id,
         name: s.name,
-        icon: resolveIcon(s.icon, s.category),
+        icon: resolveIcon(s.icon, s.category, s.name),
         price: parseFloat(s.unit_price || s.price || 0),
         cat,
       }

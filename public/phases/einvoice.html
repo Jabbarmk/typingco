@@ -239,9 +239,9 @@ tr:hover td{background:var(--surface2);}
 <!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-mark">AN</div>
+    <div class="logo-mark" id="eb-mark">E</div>
     <div>
-      <div class="logo-text">ALNOOR Typing</div>
+      <div class="logo-text" id="eb-name">E-Invoice</div>
       <div class="logo-sub">E-Invoice Module</div>
     </div>
   </div>
@@ -596,9 +596,9 @@ tr:hover td{background:var(--surface2);}
         <div class="placeholder-banner">
           <div class="pb-icon">🔑</div>
           <div>
-            <h3>PLACEHOLDER — Real ASP Credentials Required</h3>
-            <p>To connect a live UAE Accredited Service Provider, obtain API credentials from your chosen ASP (e.g. Fintech Galaxy, Keyloop, SAP, etc.). Enter the Production Base URL, Client ID, and Certificate below. <strong>All credentials are stored encrypted — never shown after save.</strong> Never enter live credentials in a sandbox/demo environment.</p>
-            <span class="pb-badge">⚠ PLACEHOLDER SETTINGS — NOT ACTIVE IN SANDBOX</span>
+            <h3>Your company's Peppol &amp; ASP connection</h3>
+            <p>These settings belong to <strong id="eb-co-label">your company</strong> only. In <strong>Sandbox</strong> mode invoices are cleared by a built-in mock. <strong>Production</strong> needs your Peppol ID and your Accredited Service Provider's API details. The secret is stored on the server and is never shown again after saving.</p>
+            <span class="pb-badge" id="asp-status-badge">Sandbox — no real submissions</span>
           </div>
         </div>
         <div class="grid-2" style="gap:18px;align-items:flex-start;">
@@ -612,39 +612,40 @@ tr:hover td{background:var(--surface2);}
                     <option value="sandbox" selected>Sandbox (Mock)</option>
                     <option value="production">Production (Live)</option>
                   </select>
-                  <div class="hint">Sandbox uses the built-in mock adapter. Production requires real ASP credentials.</div>
+                  <div class="hint">Sandbox uses the built-in mock adapter. Production requires all fields below.</div>
+                </div>
+              </div>
+              <div class="form-row cols-1">
+                <div class="field">
+                  <label>Peppol ID</label>
+                  <input id="asp-peppol" placeholder="e.g. 0235:1234567890" autocomplete="off">
+                  <div class="hint">Your Peppol participant ID (scheme:identifier) as registered with your ASP</div>
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
                   <label>ASP Provider Name</label>
-                  <input id="asp-name" value="Mock ASP (Built-in)" placeholder="e.g. Fintech Galaxy, Keyloop">
+                  <input id="asp-name" placeholder="e.g. your accredited service provider" autocomplete="off">
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
-                  <label>Base API URL <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
-                  <input id="asp-url" value="" placeholder="https://your-asp-provider.com/api/v1" disabled>
-                  <div class="hint">Only active in Production mode</div>
+                  <label>API Base URL</label>
+                  <input id="asp-url" placeholder="https://your-asp-provider.com/api/v1" autocomplete="off">
+                  <div class="hint">Must start with https://</div>
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
-                  <label>Client ID <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
-                  <input id="asp-clientid" value="" placeholder="Enter Client ID" type="password" disabled>
+                  <label>Client ID / API Key</label>
+                  <input id="asp-clientid" placeholder="Enter Client ID" autocomplete="off">
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
-                  <label>Client Secret <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
-                  <input id="asp-secret" value="" placeholder="Enter Client Secret" type="password" disabled>
-                  <div class="hint">Stored encrypted — never shown after save</div>
-                </div>
-              </div>
-              <div class="form-row cols-1">
-                <div class="field">
-                  <label>TLS Certificate (PEM) <span style="color:var(--fg3);font-weight:400;">(PLACEHOLDER)</span></label>
-                  <textarea id="asp-cert" placeholder="-----BEGIN CERTIFICATE-----&#10;(paste PEM here)&#10;-----END CERTIFICATE-----" disabled style="height:90px;"></textarea>
+                  <label>Client Secret</label>
+                  <input id="asp-secret" placeholder="Enter Client Secret" type="password" autocomplete="new-password">
+                  <div class="hint" id="asp-secret-hint">Never shown after save. Leave blank to keep the saved secret.</div>
                 </div>
               </div>
               <button class="btn btn-primary" onclick="saveASPConfig()">Save Configuration</button>
@@ -657,30 +658,30 @@ tr:hover td{background:var(--surface2);}
               <div class="form-row cols-1">
                 <div class="field">
                   <label>Seller Name (Arabic)</label>
-                  <input value="النور للطباعة والتصوير" id="seller-ar">
+                  <input id="seller-ar" placeholder="اسم الشركة">
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
                   <label>Seller Name (English)</label>
-                  <input value="Alnoor Typing & Photocopying" id="seller-en">
+                  <input id="seller-en" placeholder="Company name">
                 </div>
               </div>
               <div class="form-row">
                 <div class="field">
                   <label>TRN (VAT Registration Number)</label>
-                  <input value="100234567890003" id="seller-trn" maxlength="15" class="font-mono">
+                  <input id="seller-trn" maxlength="15" class="font-mono" placeholder="15-digit TRN">
                   <div class="hint">15 digits, ends in 003</div>
                 </div>
                 <div class="field">
                   <label>CR Number</label>
-                  <input value="CN-2021-0045" id="seller-cr">
+                  <input id="seller-cr" placeholder="CR number">
                 </div>
               </div>
               <div class="form-row cols-1">
                 <div class="field">
                   <label>Street Address</label>
-                  <input value="Shop 12, Al Nahda Complex, Dubai" id="seller-addr">
+                  <input id="seller-addr" placeholder="Street address">
                 </div>
               </div>
               <div class="form-row">
@@ -755,7 +756,7 @@ tr:hover td{background:var(--surface2);}
             <div class="form-row cols-1">
               <div class="field">
                 <label>Notes / Footer</label>
-                <textarea>Thank you for visiting ALNOOR Typing Centre. This is a computer-generated e-invoice compliant with UAE FTA requirements.</textarea>
+                <textarea>Thank you for your business. This is a computer-generated e-invoice compliant with UAE FTA requirements.</textarea>
               </div>
             </div>
             <button class="btn btn-primary" onclick="toast('Template saved','success')">Save Template</button>
@@ -1208,7 +1209,7 @@ function loadSampleInvoice(){
     invoiceTypeCode:"388",
     issueDate:"2026-11-09",
     supplyDate:"2026-11-09",
-    seller:{name:"Alnoor Typing & Photocopying",trn:"100234567890003",address:"Shop 12, Al Nahda, Dubai",country:"AE"},
+    seller:{name:SELLER.name,trn:SELLER.trn,address:SELLER.address,country:"AE"},
     buyer:{name:"Omar Al Mazrouei",trn:""},
     lines:[
       {description:"Emirates ID Typing",quantity:1,unitPrice:250,vatCategory:"S",vatRate:0.05,lineAmount:250,vatAmount:12.50},
@@ -1383,7 +1384,7 @@ function buildReviewXML(){
   const invNum=document.getElementById('inv-num').value;
   const issueDate=document.getElementById('inv-date').value;
   const xml=`<?xml version="1.0" encoding="UTF-8"?>
-<!-- ZATCA UBL 2.1 — SANDBOX / MOCK — NOT REAL -->
+<!-- UBL 2.1 — ${ASPCFG.mode==='production'?'PRODUCTION':'SANDBOX / MOCK — NOT REAL'} -->
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
   <cbc:ID>${invNum}</cbc:ID>
   <cbc:IssueDate>${issueDate}</cbc:IssueDate>
@@ -1391,10 +1392,11 @@ function buildReviewXML(){
     listAgencyID="6">${document.getElementById('inv-type').value}</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>AED</cbc:DocumentCurrencyCode>
   <cac:AccountingSupplierParty>
-    <cac:Party>
-      <cac:PartyName><cbc:Name>Alnoor Typing &amp; Photocopying</cbc:Name></cac:PartyName>
+    <cac:Party>${ASPCFG.peppol_id?`
+      <cbc:EndpointID${ASPCFG.peppol_id.includes(':')?` schemeID="${xmlEsc(ASPCFG.peppol_id.split(':')[0])}"`:''}>${xmlEsc(ASPCFG.peppol_id.includes(':')?ASPCFG.peppol_id.split(':').slice(1).join(':'):ASPCFG.peppol_id)}</cbc:EndpointID>`:''}
+      <cac:PartyName><cbc:Name>${xmlEsc(SELLER.name)}</cbc:Name></cac:PartyName>
       <cac:PartyTaxScheme>
-        <cbc:CompanyID>100234567890003</cbc:CompanyID>
+        <cbc:CompanyID>${xmlEsc(SELLER.trn)}</cbc:CompanyID>
         <cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme>
       </cac:PartyTaxScheme>
     </cac:Party>
@@ -1501,11 +1503,76 @@ async function startSubmission(){
 }
 
 // ===================== ASP CONFIG =====================
-function saveASPConfig(){toast('Configuration saved (sandbox — not active)','info');}
-function saveSellerInfo(){toast('Seller info saved','success');}
-function testASPConnection(){
-  toast('Testing connection to mock ASP…','info');
-  setTimeout(()=>toast('Mock ASP reachable — Sandbox OK ✓','success'),1500);
+const xmlEsc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+let SELLER = { name: '', trn: '', address: '', cr: '' }
+let ASPCFG = { mode: 'sandbox', peppol_id: '', asp_name: '', base_url: '', client_id: '', has_client_secret: false }
+
+async function loadCompanyIdentity(){
+  try {
+    const co = await apiFetch(`/companies/${CID}`)
+    SELLER = { name: co.name || '', trn: co.trn || '', address: [co.address, co.emirate].filter(Boolean).join(', '), cr: co.cr_number || '' }
+    document.getElementById('eb-name').textContent = co.name || 'E-Invoice'
+    document.getElementById('eb-mark').textContent = (co.name || 'E').trim().slice(0,2).toUpperCase()
+    document.getElementById('eb-co-label').textContent = co.name || 'your company'
+    document.getElementById('seller-ar').value = co.name_ar || ''
+    document.getElementById('seller-en').value = co.name || ''
+    document.getElementById('seller-trn').value = co.trn || ''
+    document.getElementById('seller-cr').value = co.cr_number || ''
+    document.getElementById('seller-addr').value = co.address || ''
+    const em = document.getElementById('seller-emirate'); if (em && co.emirate) Array.from(em.options).forEach(o => { o.selected = (o.text === co.emirate || o.value === co.emirate) })
+  } catch(e) { /* keep blanks */ }
+}
+
+function paintASP(){
+  document.getElementById('asp-mode').value = ASPCFG.mode
+  document.getElementById('asp-peppol').value = ASPCFG.peppol_id
+  document.getElementById('asp-name').value = ASPCFG.asp_name
+  document.getElementById('asp-url').value = ASPCFG.base_url
+  document.getElementById('asp-clientid').value = ASPCFG.client_id
+  document.getElementById('asp-secret').value = ''
+  document.getElementById('asp-secret').placeholder = ASPCFG.has_client_secret ? '•••••••• saved' : 'Enter Client Secret'
+  document.getElementById('asp-status-badge').textContent = ASPCFG.mode === 'production' ? 'Production mode' : 'Sandbox — no real submissions'
+}
+async function loadASPConfig(){
+  try { ASPCFG = await apiFetch(`/${CID}/einvoice/settings`); paintASP() } catch(e) { toast('Could not load e-invoice settings','error') }
+}
+async function saveASPConfig(){
+  const body = {
+    mode: document.getElementById('asp-mode').value,
+    peppol_id: document.getElementById('asp-peppol').value.trim(),
+    asp_name: document.getElementById('asp-name').value.trim(),
+    base_url: document.getElementById('asp-url').value.trim(),
+    client_id: document.getElementById('asp-clientid').value.trim(),
+    client_secret: document.getElementById('asp-secret').value,
+  }
+  try {
+    ASPCFG = await apiFetch(`/${CID}/einvoice/settings`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    paintASP(); toast('E-invoice settings saved','success')
+  } catch(e) { toast(errMsg(e),'error') }
+}
+async function testASPConnection(){
+  toast('Testing connection…','info')
+  try {
+    const r = await apiFetch(`/${CID}/einvoice/test`, { method:'POST' })
+    toast(r.message || 'OK','success',5000)
+  } catch(e) { toast(errMsg(e),'error',6000) }
+}
+function errMsg(e){ try { return JSON.parse(e.message).error || e.message } catch(_) { return e.message } }
+async function saveSellerInfo(){
+  const em = document.getElementById('seller-emirate')
+  const body = {
+    name: document.getElementById('seller-en').value.trim(),
+    name_ar: document.getElementById('seller-ar').value.trim() || null,
+    trn: document.getElementById('seller-trn').value.trim() || null,
+    cr_number: document.getElementById('seller-cr').value.trim() || null,
+    address: document.getElementById('seller-addr').value.trim() || null,
+    emirate: em ? em.options[em.selectedIndex].text : null,
+  }
+  if (!body.name) { toast('Company name is required','error'); return }
+  try {
+    await apiFetch(`/companies/${CID}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    await loadCompanyIdentity(); toast('Seller info saved','success')
+  } catch(e) { toast(errMsg(e),'error') }
 }
 
 // ===================== MODAL =====================
@@ -1534,13 +1601,9 @@ document.addEventListener('keydown',e=>{
 });
 
 // ===================== ASP MODE TOGGLE =====================
-document.getElementById('asp-mode').addEventListener('change',function(){
-  const prod=this.value==='production';
-  ['asp-url','asp-clientid','asp-secret','asp-cert'].forEach(id=>{
-    document.getElementById(id).disabled=!prod;
-  });
-});
+document.getElementById('asp-mode').addEventListener('change',function(){ document.getElementById('asp-status-badge').textContent = this.value==='production' ? 'Production mode' : 'Sandbox — no real submissions' });
 
 // ===================== INIT =====================
+loadCompanyIdentity(); loadASPConfig();
 loadAll();
 </script>

@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS customers (
   id_type       ENUM('emirates_id','passport','visa','other') DEFAULT 'emirates_id',
   id_number     VARCHAR(50),
   emirate       VARCHAR(50)   DEFAULT 'Dubai',
-  customer_type ENUM('individual','company') DEFAULT 'individual',
+  customer_type ENUM('individual','company','freelancer') DEFAULT 'individual',
   trn           VARCHAR(15),
   notes         TEXT,
   created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   discount_amt    DECIMAL(12,2)  NOT NULL DEFAULT 0,
   vat_amount      DECIMAL(12,2)  NOT NULL DEFAULT 0,
   total           DECIMAL(12,2)  NOT NULL DEFAULT 0,
-  payment_method  ENUM('cash','card','bank_transfer') DEFAULT 'cash',
+  payment_method  ENUM('cash','card','bank_transfer','customer_credit') DEFAULT 'cash',
   status          ENUM('draft','posted','void') DEFAULT 'posted',
   einvoice_status ENUM('none','queued','submitted','cleared','failed') DEFAULT 'none',
   einvoice_uuid   VARCHAR(100),
@@ -230,8 +230,11 @@ CREATE TABLE IF NOT EXISTS journal_entries (
   description  TEXT,
   entry_date   DATE          NOT NULL,
   status       ENUM('draft','posted') DEFAULT 'posted',
+  source_type  VARCHAR(30)   NULL,   -- invoice | expense | voucher (auto-posted entries)
+  source_id    INT           NULL,
   created_by   INT,
   created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_je_source (company_id, source_type, source_id),
   FOREIGN KEY (company_id) REFERENCES companies(id),
   FOREIGN KEY (created_by) REFERENCES users(id)
 );
@@ -259,6 +262,23 @@ CREATE TABLE IF NOT EXISTS expenses (
   reference    VARCHAR(100),
   account_id   INT,
   created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id),
+  FOREIGN KEY (account_id) REFERENCES chart_of_accounts(id)
+);
+
+CREATE TABLE IF NOT EXISTS cash_vouchers (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  company_id   INT NOT NULL,
+  voucher_no   VARCHAR(30) NOT NULL,
+  type         ENUM('bank_receipt','bank_payment','petty_in','petty_out') NOT NULL,
+  voucher_date DATE NOT NULL,
+  account_id   INT NOT NULL,
+  amount       DECIMAL(12,2) NOT NULL,
+  party        VARCHAR(150),
+  description  VARCHAR(255),
+  reference    VARCHAR(100),
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_cv (company_id, type),
   FOREIGN KEY (company_id) REFERENCES companies(id),
   FOREIGN KEY (account_id) REFERENCES chart_of_accounts(id)
 );

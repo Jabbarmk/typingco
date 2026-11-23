@@ -750,7 +750,7 @@ function doLogout() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
         <div>
           <div style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:var(--fg);">Good morning, Ahmed 👋</div>
-          <div style="font-size:14px;color:var(--fg3);margin-top:4px;">Here's what's happening at Al Noor today</div>
+          <div style="font-size:14px;color:var(--fg3);margin-top:4px;">Here's what's happening at <span id="dash-co">your company</span> today</div>
         </div>
         <div style="display:flex;gap:10px;">
           <button class="btn btn-secondary btn-sm" onclick="nav('applications',document.querySelectorAll('.nav-item')[5])">
@@ -841,60 +841,20 @@ function doLogout() {
       <div class="g3 mb20">
         <!-- Sales chart -->
         <div class="card">
-          <div class="card-header"><span class="card-title">Sales This Week</span><span style="font-size:11px;color:var(--fg3);">AED — by day</span></div>
+          <div class="card-header"><span class="card-title">Sales This Week</span><span style="font-size:11px;color:var(--fg3);">AED — last 7 days</span></div>
           <div class="card-body" style="padding-bottom:10px;">
-            <svg viewBox="0 0 460 160" style="width:100%;display:block;overflow:visible;">
-              <defs>
-                <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#2563eb" stop-opacity=".2"/>
-                  <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-              <line x1="36" y1="10" x2="36" y2="130" stroke="var(--border)" stroke-width="1"/>
-              <line x1="36" y1="130" x2="450" y2="130" stroke="var(--border)" stroke-width="1"/>
-              <line x1="36" y1="90" x2="450" y2="90" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/>
-              <line x1="36" y1="50" x2="450" y2="50" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/>
-              <text x="30" y="133" font-size="9" fill="var(--fg3)" text-anchor="end">0</text>
-              <text x="30" y="93" font-size="9" fill="var(--fg3)" text-anchor="end">5K</text>
-              <text x="30" y="53" font-size="9" fill="var(--fg3)" text-anchor="end">10K</text>
-              <!-- bars -->
-              <rect x="52"  y="85"  width="30" height="45" rx="3" fill="#2563eb" opacity=".7"/>
-              <rect x="118" y="70"  width="30" height="60" rx="3" fill="#2563eb" opacity=".7"/>
-              <rect x="184" y="60"  width="30" height="70" rx="3" fill="#2563eb" opacity=".7"/>
-              <rect x="250" y="80"  width="30" height="50" rx="3" fill="#2563eb" opacity=".7"/>
-              <rect x="316" y="50"  width="30" height="80" rx="3" fill="#2563eb" opacity=".7"/>
-              <rect x="382" y="40"  width="30" height="90" rx="3" fill="#2563eb"/>
-              <!-- today highlight -->
-              <rect x="382" y="40" width="30" height="90" rx="3" fill="none" stroke="#2563eb" stroke-width="2"/>
-              <text x="397" y="35" font-size="9" fill="#2563eb" text-anchor="middle" font-weight="700">12.4K</text>
-              <!-- x labels -->
-              <text x="67"  y="145" font-size="9" fill="var(--fg3)" text-anchor="middle">Tue</text>
-              <text x="133" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle">Wed</text>
-              <text x="199" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle">Thu</text>
-              <text x="265" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle">Fri</text>
-              <text x="331" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle">Sat</text>
-              <text x="397" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle" font-weight="700">Today</text>
-            </svg>
+            <div id="dash-week-chart"><div style="color:var(--fg3);font-size:12px;padding:30px 0;text-align:center;">Loading…</div></div>
           </div>
         </div>
         <!-- Quick stats -->
         <div style="display:flex;flex-direction:column;gap:14px;">
           <div class="card card-body" style="padding:16px;">
-            <div style="font-size:11px;color:var(--fg3);margin-bottom:8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Payment Methods</div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>Cash</span><span style="font-weight:600;">AED 7,200</span></div><div class="prog"><div class="prog-fill" style="width:58%;background:var(--green);"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>Card</span><span style="font-weight:600;">AED 3,850</span></div><div class="prog"><div class="prog-fill" style="width:31%;background:var(--accent);"></div></div></div>
-              <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>Bank Transfer</span><span style="font-weight:600;">AED 1,400</span></div><div class="prog"><div class="prog-fill" style="width:11%;background:var(--purple);"></div></div></div>
-            </div>
+            <div style="font-size:11px;color:var(--fg3);margin-bottom:8px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Payment Methods · This Month</div>
+            <div id="dash-payments" style="display:flex;flex-direction:column;gap:8px;"><div style="color:var(--fg3);font-size:12px;">Loading…</div></div>
           </div>
           <div class="card card-body" style="padding:16px;">
-            <div style="font-size:11px;color:var(--fg3);margin-bottom:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Top Services Today</div>
-            <div style="display:flex;flex-direction:column;gap:7px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Emirates ID Typing</span><span class="badge b-blue">12 jobs</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Visa Application</span><span class="badge b-purple">8 jobs</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Photocopying A4</span><span class="badge b-green">240 pcs</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span>Trade Licence Support</span><span class="badge b-teal">3 jobs</span></div>
-            </div>
+            <div style="font-size:11px;color:var(--fg3);margin-bottom:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;">Top Services · This Month</div>
+            <div id="dash-top" style="display:flex;flex-direction:column;gap:7px;"><div style="color:var(--fg3);font-size:12px;">Loading…</div></div>
           </div>
         </div>
       </div>
@@ -906,12 +866,7 @@ function doLogout() {
           <div class="tw">
             <table>
               <thead><tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">INV-0094</td><td>Mohammed Al Ali</td><td style="font-weight:600;">AED 850</td><td><span class="badge b-green">Paid</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">INV-0093</td><td>Sara Hassan</td><td style="font-weight:600;">AED 150</td><td><span class="badge b-green">Paid</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">INV-0092</td><td>Abdullah Khalid</td><td style="font-weight:600;">AED 2,400</td><td><span class="badge b-amber">Partial</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">INV-0091</td><td>Fatima Al Rashid</td><td style="font-weight:600;">AED 320</td><td><span class="badge b-red">Unpaid</span></td></tr>
-              </tbody>
+              <tbody id="dash-recent"><tr><td colspan="4" style="text-align:center;color:var(--fg3);padding:18px;">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -920,12 +875,7 @@ function doLogout() {
           <div class="tw">
             <table>
               <thead><tr><th>Ref</th><th>Type</th><th>Customer</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">APP-0041</td><td>Emirates ID</td><td>Mohammed Al Ali</td><td><span class="badge b-amber">Doc Pending</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">APP-0040</td><td>Visa Renewal</td><td>Peter Johnson</td><td><span class="badge b-blue">Submitted</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">APP-0039</td><td>MOHRE Labour</td><td>Ravi Kumar</td><td><span class="badge b-purple">Processing</span></td></tr>
-                <tr><td style="font-family:'DM Mono',monospace;font-size:11px;">APP-0038</td><td>Trade Licence</td><td>Khalid Trading LLC</td><td><span class="badge b-green">Completed</span></td></tr>
-              </tbody>
+              <tbody id="dash-apps"><tr><td colspan="4" style="text-align:center;color:var(--fg3);padding:18px;">Loading…</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1332,6 +1282,12 @@ function doLogout() {
         <button class="tab-btn" onclick="switchTab('acc-ar',this)">Receivables</button>
         <button class="tab-btn" onclick="switchTab('acc-cash',this)">Cash &amp; Bank</button>
         <button class="tab-btn" onclick="switchTab('acc-expenses',this)">Expenses</button>
+        <button class="tab-btn" onclick="switchTab('acc-gl',this);loadGL()">General Ledger</button>
+        <button class="tab-btn" onclick="switchTab('acc-tb',this);loadTB()">Trial Balance</button>
+        <button class="tab-btn" onclick="switchTab('acc-pl',this);loadPL()">Profit &amp; Loss</button>
+        <button class="tab-btn" onclick="switchTab('acc-bs',this);loadBS()">Balance Sheet</button>
+        <button class="tab-btn" onclick="switchTab('acc-petty',this);loadVouchers('petty')">Petty Cash</button>
+        <button class="tab-btn" onclick="switchTab('acc-bank',this);loadVouchers('bank')">Bank Receipts &amp; Payments</button>
       </div>
       <!-- Journal -->
       <div class="tab-panel active" id="acc-journal">
@@ -1400,6 +1356,85 @@ function doLogout() {
               <tbody id="expenses-tbody"><tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">Loading…</td></tr></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- General Ledger -->
+      <div class="tab-panel" id="acc-gl">
+        <div class="card">
+          <div class="card-header"><span class="card-title">General Ledger</span></div>
+          <div class="card-body" style="padding-bottom:6px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;align-items:end;">
+              <div class="fg"><label>Account</label><select id="gl-account" onchange="loadGL()" style="width:100%;"></select></div>
+              <div class="fg"><label>From</label><input type="date" id="gl-from" onchange="loadGL()"></div>
+              <div class="fg"><label>To</label><input type="date" id="gl-to" onchange="loadGL()"></div>
+            </div>
+            <div id="gl-summary" style="margin:12px 0 4px;font-size:13px;color:var(--fg2);"></div>
+          </div>
+          <div class="tw"><table>
+            <thead><tr><th>Date</th><th>Entry</th><th>Reference</th><th>Description</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Balance</th></tr></thead>
+            <tbody id="gl-tbody"><tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">Select an account</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+      <!-- Trial Balance -->
+      <div class="tab-panel" id="acc-tb">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Trial Balance</span>
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:var(--fg2);">As of</label><input type="date" id="tb-asof" onchange="loadTB()" style="width:auto;"></div>
+          </div>
+          <div id="tb-warn"></div>
+          <div class="tw"><table>
+            <thead><tr><th>Code</th><th>Account</th><th>Type</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th></tr></thead>
+            <tbody id="tb-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <!-- Profit & Loss -->
+      <div class="tab-panel" id="acc-pl">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Profit &amp; Loss</span>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><input type="date" id="pl-from" onchange="loadPL()" style="width:auto;"><span style="color:var(--fg3);">to</span><input type="date" id="pl-to" onchange="loadPL()" style="width:auto;"></div>
+          </div>
+          <div class="card-body" id="pl-body"></div>
+        </div>
+      </div>
+      <!-- Balance Sheet -->
+      <div class="tab-panel" id="acc-bs">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Balance Sheet</span>
+            <div style="display:flex;align-items:center;gap:8px;"><label style="font-size:12px;color:var(--fg2);">As of</label><input type="date" id="bs-asof" onchange="loadBS()" style="width:auto;"></div>
+          </div>
+          <div class="card-body" id="bs-body"></div>
+        </div>
+      </div>
+      <!-- Petty Cash -->
+      <div class="tab-panel" id="acc-petty">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Petty Cash</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-secondary btn-sm" onclick="openVoucherModal('petty_in')">+ Top-up</button><button class="btn btn-primary btn-sm" onclick="openVoucherModal('petty_out')">+ Expense</button></div>
+          </div>
+          <div class="card-body" style="padding-bottom:8px;"><div style="font-size:12px;color:var(--fg3);">Petty cash balance</div><div id="petty-balance" style="font-size:28px;font-weight:800;color:var(--accent);">AED —</div></div>
+          <div class="tw"><table>
+            <thead><tr><th>Voucher</th><th>Date</th><th>Type</th><th>Account</th><th>Description</th><th style="text-align:right;">Amount</th><th>Actions</th></tr></thead>
+            <tbody id="petty-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+      <!-- Bank Receipts & Payments -->
+      <div class="tab-panel" id="acc-bank">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Bank Receipts &amp; Payments</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-success btn-sm" onclick="openVoucherModal('bank_receipt')">+ Receipt</button><button class="btn btn-primary btn-sm" onclick="openVoucherModal('bank_payment')">+ Payment</button></div>
+          </div>
+          <div class="card-body" style="padding-bottom:8px;display:flex;gap:28px;flex-wrap:wrap;">
+            <div><div style="font-size:12px;color:var(--fg3);">Bank balance</div><div id="bank-balance" style="font-size:28px;font-weight:800;color:var(--accent);">AED —</div></div>
+            <div><div style="font-size:12px;color:var(--fg3);">Cash in hand</div><div id="cash-balance" style="font-size:28px;font-weight:800;color:var(--fg);">AED —</div></div>
+          </div>
+          <div class="tw"><table>
+            <thead><tr><th>Voucher</th><th>Date</th><th>Type</th><th>Account</th><th>Party</th><th>Description</th><th style="text-align:right;">Amount</th><th>Actions</th></tr></thead>
+            <tbody id="bank-tbody"></tbody>
+          </table></div>
         </div>
       </div>
     </div>
@@ -1983,6 +2018,36 @@ function doLogout() {
   </div>
 </div>
 
+<!-- VOUCHER MODAL (bank receipt/payment, petty cash) -->
+<div class="modal-overlay" id="voucher-modal" hidden onclick="if(event.target===this)closeModal('voucher-modal')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title" id="vch-title">Voucher</span><button class="close-btn" onclick="closeModal('voucher-modal')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="vch-type">
+      <div class="form-grid">
+        <div class="fg"><label>Date</label><input type="date" id="vch-date"></div>
+        <div class="fg"><label>Amount (AED) *</label><input type="number" id="vch-amount" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div>
+        <div class="fg full"><label id="vch-acc-label">Account</label><select id="vch-account" style="width:100%;"></select><div id="vch-hint" style="font-size:11px;color:var(--fg3);margin-top:3px;"></div></div>
+        <div class="fg"><label id="vch-party-label">Party</label><input id="vch-party" placeholder="Name"></div>
+        <div class="fg"><label>Reference</label><input id="vch-ref" placeholder="Cheque / transfer no."></div>
+        <div class="fg full"><label>Description</label><input id="vch-desc" placeholder="What is this for?"></div>
+      </div>
+      <div style="margin-top:10px;padding:8px 12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:11px;color:var(--fg3);">The voucher is posted to the journal automatically.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('voucher-modal')">Cancel</button><button class="btn btn-primary" id="vch-save" onclick="saveVoucher()">Save &amp; Post</button></div>
+  </div>
+</div>
+
+<!-- QUOTATION: CUSTOMER PICKER -->
+<div class="modal-overlay" id="qt-cust-picker" hidden onclick="if(event.target===this)closeModal('qt-cust-picker')">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Select Customer</span><button class="close-btn" onclick="closeModal('qt-cust-picker')">×</button></div>
+    <div style="padding:12px 18px 4px;"><input id="qt-cust-search" placeholder="Search by name or mobile…" oninput="renderQtCustPicker()" autocomplete="off"></div>
+    <div id="qt-cust-list" style="max-height:50vh;overflow-y:auto;padding:4px 10px 12px;"></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="openNewCustForQt()">+ New Customer</button></div>
+  </div>
+</div>
+
 <!-- NEW CUSTOMER MODAL -->
 <div class="modal-overlay" id="new-customer-modal" hidden onclick="if(event.target===this)closeModal('new-customer-modal')">
   <div class="modal">
@@ -2174,6 +2239,7 @@ function doLogout() {
             <input type="hidden" id="qtf-lead-email">
             <input type="hidden" id="qtf-lead-company">
             <div style="display:flex;gap:6px;">
+              <button class="btn btn-primary btn-sm" onclick="openCustPickerForQt()">Select Customer</button>
               <button class="btn btn-secondary btn-sm" onclick="openLeadPickerForQt()">Select Lead</button>
               <button class="btn btn-secondary btn-sm" onclick="openAddLeadForQt()">+ New Lead</button>
             </div>
@@ -2524,6 +2590,7 @@ function applyCompanyBranding() {
   else if (simg) { simg.style.display='none'; if(ssvg) ssvg.style.display='' }
   if (document.getElementById('sidebar-co-name')) document.getElementById('sidebar-co-name').textContent = COMPANY.name
   if (document.getElementById('tb-co')) document.getElementById('tb-co').textContent = COMPANY.name
+  if (document.getElementById('dash-co')) document.getElementById('dash-co').textContent = COMPANY.name
   if (document.getElementById('sidebar-co-sub')) document.getElementById('sidebar-co-sub').textContent = COMPANY.sub || COMPANY.address
   // Settings preview
   const prevImg = document.getElementById('logo-preview-img')
@@ -2798,7 +2865,7 @@ async function postInvoice() {
   // Save to database
   let savedId = null;
   try {
-    const today = new Date().toISOString().slice(0,10);
+    const today = localISO();
     const saved = await apiFetch(`/${CID}/invoices`, {
       method: 'POST',
       body: JSON.stringify({
@@ -2818,6 +2885,7 @@ async function postInvoice() {
     savedId = saved.id;
     invoiceStore[savedId] = invHtml;
     markQuotationInvoiced(savedId);
+    loadDashboardStats();
   } catch(e) {
     invoiceStore[invNum] = invHtml;
   }
@@ -3068,9 +3136,13 @@ async function saveUpdateApp() {
 }
 
 // --- CUSTOMER SAVE ---
+let _qtAfterNewCust = false
+let _savingCust = false
 async function saveNewCustomer() {
+  if (_savingCust) return
   const name = document.getElementById('nc-name').value.trim();
-  if (!name) { showToast('Enter customer name'); return; }
+  if (!name) { showToast('Enter customer name', 'error'); document.getElementById('nc-name').focus(); return; }
+  const pickForQt = _qtAfterNewCust
   const data = {
     name,
     phone: document.getElementById('nc-phone').value.trim() || null,
@@ -3080,21 +3152,24 @@ async function saveNewCustomer() {
     trn: document.getElementById('nc-trn').value.trim() || null,
     notes: document.getElementById('nc-notes').value.trim() || null,
   };
+  _savingCust = true
   try {
-    const saved = await apiFetch(`/${CID}/customers`, { method:'POST', body: JSON.stringify(data) });
+    const saved = await apiFetch(`/${CID}/customers`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
     CUSTOMERS.push(saved);
     renderCustomersPage(CUSTOMERS);
     renderCustDropdown(CUSTOMERS);
     closeModal('new-customer-modal');
     showToast('Customer saved — ' + name);
+    if (pickForQt) pickCustomerForQt(saved.id)
     document.getElementById('nc-name').value = '';
     document.getElementById('nc-phone').value = '';
     document.getElementById('nc-email').value = '';
     document.getElementById('nc-trn').value = '';
     document.getElementById('nc-notes').value = '';
   } catch(e) {
-    showToast('Error saving customer');
-  }
+    let msg = e.message; try { msg = JSON.parse(msg).error || msg } catch(_) {}
+    showToast('Could not save customer: ' + msg, 'error');
+  } finally { _savingCust = false }
 }
 
 function populateAppCustomerDropdown() {
@@ -3189,6 +3264,7 @@ function nav(id, btn) {
   document.getElementById('page-title').textContent = titles[id] || id;
   uiAfterNav(id);
   if (id === 'vat')          loadVAT();
+  if (id === 'dashboard')  loadDashboardStats();
   if (id === 'settings')   { loadSettings(); loadEInvSettings(); }
   if (id === 'accounting')   loadAccounting();
   if (id === 'applications') loadApplications();
@@ -3208,8 +3284,17 @@ function switchTab(id, btn) {
   if (id === 's-templates')  loadTemplatesTab();
 }
 
-function openModal(id) { document.getElementById(id).hidden = false; }
-function closeModal(id) { document.getElementById(id).hidden = true; }
+function openModal(id) {
+  if (id === 'new-customer-modal') {
+    const code = document.getElementById('nc-code')
+    if (code) code.value = 'C-' + String(((typeof CUSTOMERS !== 'undefined' && CUSTOMERS.length) ? Math.max(...CUSTOMERS.map(c => c.id || 0)) : 0) + 1).padStart(4, '0')
+  }
+  document.getElementById(id).hidden = false;
+}
+function closeModal(id) {
+  if (id === 'new-customer-modal') _qtAfterNewCust = false
+  document.getElementById(id).hidden = true;
+}
 
 function showToast(msg, type) {
   const c = document.getElementById('toast-container');
@@ -3487,7 +3572,7 @@ function openNewQuotation() {
   document.getElementById('qtf-lead-company').value = ''
   document.getElementById('qtf-lead-display').textContent = '— Not selected —'
   document.getElementById('qtf-lead-sub').textContent = ''
-  document.getElementById('qtf-date').value    = new Date().toISOString().slice(0,10)
+  document.getElementById('qtf-date').value    = localISO()
   document.getElementById('qtf-valid').value   = new Date(Date.now()+30*864e5).toISOString().slice(0,10)
   document.getElementById('qtf-notes').value   = ''
   document.getElementById('qtf-discount').value = '0'
@@ -3500,6 +3585,34 @@ function openNewQuotation() {
   recalcQt()
   showQtPage('qt-form')
 }
+
+async function openCustPickerForQt() {
+  if (!CUSTOMERS.length) { try { CUSTOMERS = await apiFetch(`/${CID}/customers`) } catch(e) {} }
+  document.getElementById('qt-cust-search').value = ''
+  renderQtCustPicker()
+  openModal('qt-cust-picker')
+}
+function renderQtCustPicker() {
+  const q = (document.getElementById('qt-cust-search').value || '').toLowerCase().trim()
+  const rows = CUSTOMERS.filter(c => !q || ((c.name || '') + ' ' + (c.phone || '') + ' ' + (c.email || '')).toLowerCase().includes(q))
+  document.getElementById('qt-cust-list').innerHTML = rows.length ? rows.map(c => `
+    <div onclick="pickCustomerForQt(${c.id})" style="cursor:pointer;padding:12px;border-radius:10px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);min-height:52px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">${dEsc((c.name || '?').split(' ').slice(0,2).map(w => w[0] || '').join('').toUpperCase())}</div>
+      <div style="min-width:0;"><div style="font-weight:600;font-size:14px;">${dEsc(c.name)}</div><div style="font-size:12px;color:var(--fg3);">${dEsc([c.phone, c.customer_type === 'company' ? 'Company' : '', c.emirate].filter(Boolean).join(' · '))}</div></div>
+    </div>`).join('') : '<div style="padding:24px;text-align:center;color:var(--fg3);">No customers found — use “+ New Customer”</div>'
+}
+function pickCustomerForQt(id) {
+  const c = CUSTOMERS.find(x => x.id === id); if (!c) return
+  document.getElementById('qtf-lead-id').value      = ''
+  document.getElementById('qtf-lead-name').value    = c.name
+  document.getElementById('qtf-lead-phone').value   = c.phone || ''
+  document.getElementById('qtf-lead-email').value   = c.email || ''
+  document.getElementById('qtf-lead-company').value = c.customer_type === 'company' ? c.name : ''
+  document.getElementById('qtf-lead-display').textContent = c.name
+  document.getElementById('qtf-lead-sub').textContent = [c.phone, c.email].filter(Boolean).join(' · ') + ' · Customer'
+  closeModal('qt-cust-picker')
+}
+function openNewCustForQt() { closeModal('qt-cust-picker'); openModal('new-customer-modal'); _qtAfterNewCust = true }
 
 function openLeadPickerForQt() {
   renderLeadPickerList()
@@ -4224,7 +4337,7 @@ function exportReportCSV() {
   const lines = [keys.join(','), ..._rptData.map(r => keys.map(k => `"${String(r[k]||'').replace(/"/g,'""')}"`).join(','))]
   const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob)
-  a.download = _rptType + '-' + new Date().toISOString().slice(0,10) + '.csv'; a.click()
+  a.download = _rptType + '-' + localISO() + '.csv'; a.click()
   showToast('CSV exported')
 }
 
@@ -5751,6 +5864,7 @@ async function saveInvoiceEdits() {
   try {
     await apiFetch(`/${CID}/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(payload) })
     delete invoiceStore[id]  // clear cached preview so it reloads fresh
+    loadDashboardStats()
     closeModal('edit-invoice-modal')
     showToast('Invoice updated ✓', 'success')
     const invs = await apiFetch(`/${CID}/invoices`)
@@ -5904,6 +6018,52 @@ async function loadDashboardStats() {
     const countEl = document.getElementById('stat-today-count')
     if (countEl) countEl.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>${s.todayCount||0} invoices today`
   } catch(e) {}
+  loadDashboardData()
+}
+
+const dEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+function localISO(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') }
+const PAY_LABEL = { cash:'Cash', card:'Card', bank_transfer:'Bank Transfer', customer_credit:'Customer Credit' }
+const PAY_COLOR = { cash:'var(--green)', card:'var(--accent)', bank_transfer:'var(--teal)', customer_credit:'var(--amber)' }
+const APP_STATUS_TXT = { new:['New','b-gray'], doc_pending:['Doc Pending','b-amber'], ready_to_submit:['Ready','b-blue'], submitted:['Submitted','b-blue'], processing:['Processing','b-purple'], under_process:['Processing','b-purple'] }
+
+async function loadDashboardData() {
+  let d; try { d = await apiFetch(`/${CID}/dashboard`) } catch(e) { return }
+  // weekly bar chart
+  const week = d.week || [], max = Math.max(1, ...week.map(w => w.amount))
+  const nice = (() => { const p = Math.pow(10, Math.floor(Math.log10(max))); const m = max / p; return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 5 ? 5 : 10) * p })()
+  const k = v => v >= 1000 ? (v/1000).toFixed(v >= 10000 ? 0 : 1).replace(/\.0$/,'') + 'K' : String(Math.round(v))
+  const bw = 30, gap = (414 - bw * week.length) / Math.max(1, week.length - 1)
+  const bars = week.map((w, i) => {
+    const h = Math.round(w.amount / nice * 110), x = 52 + i * (bw + gap), y = 130 - h, last = i === week.length - 1
+    return `<rect x="${x}" y="${w.amount ? y : 128}" width="${bw}" height="${w.amount ? h : 2}" rx="3" fill="#2563eb" opacity="${last ? 1 : .7}"/>` +
+      (w.amount ? `<text x="${x + bw/2}" y="${y - 5}" font-size="9" fill="#2563eb" text-anchor="middle" font-weight="700">${k(w.amount)}</text>` : '') +
+      `<text x="${x + bw/2}" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle" ${last ? 'font-weight="700"' : ''}>${last ? 'Today' : dEsc(w.label)}</text>`
+  }).join('')
+  document.getElementById('dash-week-chart').innerHTML = `<svg viewBox="0 0 460 160" style="width:100%;display:block;overflow:visible;">
+    <line x1="36" y1="10" x2="36" y2="130" stroke="var(--border)"/><line x1="36" y1="130" x2="450" y2="130" stroke="var(--border)"/>
+    <line x1="36" y1="75" x2="450" y2="75" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/><line x1="36" y1="20" x2="450" y2="20" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/>
+    <text x="30" y="133" font-size="9" fill="var(--fg3)" text-anchor="end">0</text><text x="30" y="78" font-size="9" fill="var(--fg3)" text-anchor="end">${k(nice/2)}</text><text x="30" y="23" font-size="9" fill="var(--fg3)" text-anchor="end">${k(nice)}</text>${bars}</svg>`
+  // payment methods
+  const pt = (d.payments || []).reduce((s, p) => s + p.amount, 0)
+  document.getElementById('dash-payments').innerHTML = (d.payments || []).length ? d.payments.map(p => {
+    const pct = pt ? Math.round(p.amount / pt * 100) : 0, col = PAY_COLOR[p.method] || 'var(--fg3)'
+    return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${dEsc(PAY_LABEL[p.method] || p.method || 'Other')}</span><span style="font-weight:600;">AED ${fmt(p.amount)}</span></div><div class="prog"><div class="prog-fill" style="width:${pct}%;background:${col};"></div></div></div>`
+  }).join('') : '<div style="color:var(--fg3);font-size:12px;">No sales this month yet</div>'
+  // top services
+  document.getElementById('dash-top').innerHTML = (d.top || []).length ? d.top.map(t =>
+    `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${dEsc(t.name)}</span><span class="badge b-blue">${t.qty % 1 ? t.qty.toFixed(1) : t.qty} × · AED ${fmt(t.amount)}</span></div>`
+  ).join('') : '<div style="color:var(--fg3);font-size:12px;">No services sold this month yet</div>'
+  // recent invoices
+  document.getElementById('dash-recent').innerHTML = (d.recent || []).length ? d.recent.map(r => {
+    const st = r.status === 'void' ? ['Void','b-red'] : r.status === 'draft' ? ['Draft','b-gray'] : r.payment_method === 'customer_credit' ? ['Unpaid','b-amber'] : ['Paid','b-green']
+    return `<tr><td style="font-family:'DM Mono',monospace;font-size:11px;">${dEsc(r.invoice_number)}</td><td>${dEsc(r.customer_name || 'Walk-in')}</td><td style="font-weight:600;">AED ${fmt(r.total)}</td><td><span class="badge ${st[1]}">${st[0]}</span></td></tr>`
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--fg3);padding:18px;">No invoices yet</td></tr>'
+  // pending applications
+  document.getElementById('dash-apps').innerHTML = (d.pendingApps || []).length ? d.pendingApps.map(a => {
+    const st = APP_STATUS_TXT[a.status] || [a.status, 'b-gray']
+    return `<tr><td style="font-family:'DM Mono',monospace;font-size:11px;">${dEsc(a.app_number)}</td><td>${dEsc(a.service_type)}</td><td>${dEsc(a.customer_name || '—')}</td><td><span class="badge ${st[1]}">${dEsc(st[0])}</span></td></tr>`
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--fg3);padding:18px;">No pending applications</td></tr>'
 }
 
 function renderQuickBilling() {
@@ -5951,8 +6111,141 @@ function renderCustQuickBill() {
 let ACCOUNTS = []
 
 async function loadAccounting() {
+  try { await apiFetch(`/${CID}/accounting/sync`, { method:'POST' }) } catch(e) {}   // posts any sale/expense not yet in the ledger
   try { ACCOUNTS = await apiFetch(`/${CID}/accounts`) } catch(e) {}
+  accInitControls()
   await Promise.all([loadJournal(), loadAR(), loadCash(), loadExpenses()])
+}
+
+// ── Ledger reports ───────────────────────────────────────────
+const ACC_TYPE_LABEL = { asset:'Asset', liability:'Liability', equity:'Equity', revenue:'Revenue', expense:'Expense' }
+const money = n => (Number(n) < 0 ? '−' : '') + 'AED ' + fmt(Math.abs(Number(n) || 0))
+function accInitControls() {
+  const monthStart = localISO(new Date(new Date().getFullYear(), new Date().getMonth(), 1)), t = localISO()
+  const setIf = (id, v) => { const el = document.getElementById(id); if (el && !el.value) el.value = v }
+  setIf('gl-from', monthStart); setIf('gl-to', t); setIf('pl-from', monthStart); setIf('pl-to', t); setIf('tb-asof', t); setIf('bs-asof', t)
+  const sel = document.getElementById('gl-account'); if (!sel) return
+  const cur = sel.value
+  sel.innerHTML = ACCOUNTS.map(a => `<option value="${a.id}">${dEsc(a.code)} — ${dEsc(a.name)}</option>`).join('')
+  if (cur) sel.value = cur
+}
+async function loadGL() {
+  const sel = document.getElementById('gl-account'); const tb = document.getElementById('gl-tbody')
+  if (!sel || !sel.value) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">Select an account</td></tr>'; return }
+  const q = new URLSearchParams({ account_id: sel.value, from: document.getElementById('gl-from').value, to: document.getElementById('gl-to').value })
+  try {
+    const g = await apiFetch(`/${CID}/accounting/ledger?${q}`)
+    document.getElementById('gl-summary').innerHTML = `<b>${dEsc(g.account.code)} ${dEsc(g.account.name)}</b> · ${ACC_TYPE_LABEL[g.account.type]} · Opening <b>${money(g.opening)}</b> · Closing <b>${money(g.closing)}</b>`
+    tb.innerHTML = (g.opening ? `<tr style="background:var(--surface2);"><td colspan="6"><i>Opening balance</i></td><td style="text-align:right;font-weight:700;">${money(g.opening)}</td></tr>` : '') +
+      (g.rows.length ? g.rows.map(r => `<tr><td>${dEsc(r.date)}</td><td style="font-family:'DM Mono',monospace;font-size:11px;">${dEsc(r.je_number)}</td><td>${dEsc(r.reference || '')}</td><td>${dEsc(r.description || '')}</td>
+        <td style="text-align:right;">${r.debit ? fmt(r.debit) : ''}</td><td style="text-align:right;">${r.credit ? fmt(r.credit) : ''}</td><td style="text-align:right;font-weight:600;">${money(r.balance)}</td></tr>`).join('')
+        + `<tr style="background:var(--surface2);font-weight:700;"><td colspan="4">Totals / closing</td><td style="text-align:right;">${fmt(g.total_debit)}</td><td style="text-align:right;">${fmt(g.total_credit)}</td><td style="text-align:right;">${money(g.closing)}</td></tr>`
+        : '<tr><td colspan="7" style="text-align:center;color:var(--fg3);padding:24px;">No postings in this period</td></tr>')
+  } catch(e) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:24px;">Could not load ledger</td></tr>' }
+}
+async function loadTB() {
+  try {
+    const t = await apiFetch(`/${CID}/accounting/trial-balance?to=${document.getElementById('tb-asof').value}`)
+    document.getElementById('tb-tbody').innerHTML = t.rows.length ? t.rows.map(r => `<tr><td>${dEsc(r.code)}</td><td>${dEsc(r.name)}</td><td>${ACC_TYPE_LABEL[r.type]}</td><td style="text-align:right;">${r.tb_debit ? fmt(r.tb_debit) : ''}</td><td style="text-align:right;">${r.tb_credit ? fmt(r.tb_credit) : ''}</td></tr>`).join('')
+      + `<tr style="background:var(--surface2);font-weight:800;"><td colspan="3">Total</td><td style="text-align:right;">${fmt(t.total_debit)}</td><td style="text-align:right;">${fmt(t.total_credit)}</td></tr>`
+      : '<tr><td colspan="5" style="text-align:center;color:var(--fg3);padding:24px;">No postings yet</td></tr>'
+    const bad = t.unbalanced_entries || []
+    document.getElementById('tb-warn').innerHTML = bad.length ? `<div style="margin:12px 16px;padding:12px 14px;background:var(--red-light);color:var(--red);border-radius:10px;font-size:12.5px;">
+      <b>⚠ ${bad.length} journal entr${bad.length > 1 ? 'ies are' : 'y is'} unbalanced</b> (debits ≠ credits), so the books do not balance. Review and correct:
+      <ul style="margin:6px 0 0 18px;padding:0;">${bad.map(b => `<li>${dEsc(b.je_number)} · ${dEsc(b.date)} · ${dEsc(b.description)} — Dr ${fmt(b.debit)} / Cr ${fmt(b.credit)}</li>`).join('')}</ul></div>`
+      : (t.rows.length ? `<div style="margin:12px 16px;padding:8px 14px;background:var(--green-light);color:var(--green);border-radius:10px;font-size:12.5px;font-weight:600;">✓ Trial balance is balanced</div>` : '')
+  } catch(e) { document.getElementById('tb-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--red);padding:24px;">Could not load trial balance</td></tr>' }
+}
+function reportRows(list, empty) {
+  return list.length ? list.map(a => `<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;"><span>${dEsc(a.code)} · ${dEsc(a.name)}</span><span style="font-weight:600;">${money(a.balance)}</span></div>`).join('')
+    : `<div style="padding:8px 0;color:var(--fg3);font-size:13px;">${empty}</div>`
+}
+async function loadPL() {
+  const body = document.getElementById('pl-body')
+  try {
+    const p = await apiFetch(`/${CID}/accounting/pnl?from=${document.getElementById('pl-from').value}&to=${document.getElementById('pl-to').value}`)
+    const profit = p.net_profit >= 0
+    body.innerHTML = `<div style="font-weight:800;margin-bottom:4px;">Revenue</div>${reportRows(p.revenue, 'No revenue in this period')}
+      <div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:800;"><span>Total revenue</span><span>${money(p.total_revenue)}</span></div>
+      <div style="font-weight:800;margin:14px 0 4px;">Expenses</div>${reportRows(p.expenses, 'No expenses in this period')}
+      <div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:800;"><span>Total expenses</span><span>${money(p.total_expenses)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:14px 16px;margin-top:10px;border-radius:12px;font-size:18px;font-weight:900;background:${profit ? 'var(--green-light)' : 'var(--red-light)'};color:${profit ? 'var(--green)' : 'var(--red)'};"><span>Net ${profit ? 'profit' : 'loss'}</span><span>${money(p.net_profit)}</span></div>`
+  } catch(e) { body.innerHTML = '<div style="color:var(--red);">Could not load profit &amp; loss</div>' }
+}
+async function loadBS() {
+  const body = document.getElementById('bs-body')
+  try {
+    const b = await apiFetch(`/${CID}/accounting/balance-sheet?as_of=${document.getElementById('bs-asof').value}`)
+    const tot = (l, v) => `<div style="display:flex;justify-content:space-between;padding:10px 0;font-weight:800;border-top:2px solid var(--border);margin-top:4px;"><span>${l}</span><span>${money(v)}</span></div>`
+    const eq = b.equity.concat([{ code: '', name: 'Current period earnings', balance: b.current_earnings }])
+    body.innerHTML = `<div class="g2">
+      <div><div style="font-weight:800;margin-bottom:4px;">Assets</div>${reportRows(b.assets, 'No assets')}${tot('Total assets', b.total_assets)}</div>
+      <div><div style="font-weight:800;margin-bottom:4px;">Liabilities</div>${reportRows(b.liabilities, 'No liabilities')}${tot('Total liabilities', b.total_liabilities)}
+        <div style="font-weight:800;margin:14px 0 4px;">Equity</div>${reportRows(eq, '')}${tot('Total equity', b.total_equity)}${tot('Liabilities + Equity', b.total_liabilities + b.total_equity)}</div></div>
+      <div style="margin-top:14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;background:${b.balanced ? 'var(--green-light)' : 'var(--red-light)'};color:${b.balanced ? 'var(--green)' : 'var(--red)'};">${b.balanced ? '✓ Balance sheet is balanced (Assets = Liabilities + Equity)' : '⚠ Not balanced — check the Trial Balance for unbalanced journal entries'}</div>`
+  } catch(e) { body.innerHTML = '<div style="color:var(--red);">Could not load balance sheet</div>' }
+}
+
+// ── Vouchers: petty cash + bank receipts/payments ───────────
+const VCH_TYPES = {
+  bank_receipt: { title: 'Bank Receipt', acc: 'Received for (credit account)', party: 'Received from', def: '1200', hint: 'e.g. Accounts Receivable for a customer payment, or Owner Equity for capital introduced. Posts: Dr Bank / Cr this account.', badge: 'b-green', label: 'Receipt' },
+  bank_payment: { title: 'Bank Payment', acc: 'Paid for (debit account)', party: 'Paid to', def: '5900', hint: 'e.g. an expense account, or Accounts Payable to settle a supplier. Posts: Dr this account / Cr Bank.', badge: 'b-red', label: 'Payment' },
+  petty_in:     { title: 'Petty Cash Top-up', acc: 'Funded from', party: 'Given by', def: '1100', hint: 'Where the money came from (Cash or Bank). Posts: Dr Petty Cash / Cr this account.', badge: 'b-green', label: 'Top-up' },
+  petty_out:    { title: 'Petty Cash Expense', acc: 'Expense account', party: 'Paid to', def: '5900', hint: 'What the petty cash was spent on. Posts: Dr this account / Cr Petty Cash. Cannot exceed the balance.', badge: 'b-red', label: 'Expense' },
+}
+function openVoucherModal(type) {
+  const t = VCH_TYPES[type]
+  document.getElementById('vch-type').value = type
+  document.getElementById('vch-title').textContent = t.title
+  document.getElementById('vch-acc-label').textContent = t.acc
+  document.getElementById('vch-party-label').textContent = t.party
+  document.getElementById('vch-hint').textContent = t.hint
+  document.getElementById('vch-date').value = localISO()
+  ;['vch-amount','vch-party','vch-ref','vch-desc'].forEach(id => document.getElementById(id).value = '')
+  const skip = (type === 'bank_receipt' || type === 'bank_payment') ? '1110' : '1120'
+  const sel = document.getElementById('vch-account')
+  sel.innerHTML = ACCOUNTS.filter(a => a.code !== skip).map(a => `<option value="${a.id}">${dEsc(a.code)} — ${dEsc(a.name)}</option>`).join('')
+  const def = ACCOUNTS.find(a => a.code === t.def); if (def) sel.value = def.id
+  openModal('voucher-modal')
+  setTimeout(() => document.getElementById('vch-amount').focus(), 50)
+}
+let _savingVch = false
+async function saveVoucher() {
+  if (_savingVch) return
+  const type = document.getElementById('vch-type').value
+  const body = {
+    type, voucher_date: document.getElementById('vch-date').value, account_id: parseInt(document.getElementById('vch-account').value),
+    amount: parseFloat(document.getElementById('vch-amount').value), party: document.getElementById('vch-party').value.trim(),
+    reference: document.getElementById('vch-ref').value.trim(), description: document.getElementById('vch-desc').value.trim(),
+  }
+  if (!(body.amount > 0)) { showToast('Enter an amount greater than zero', 'error'); return }
+  _savingVch = true
+  try {
+    const v = await apiFetch(`/${CID}/vouchers`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+    closeModal('voucher-modal'); showToast(`${v.voucher_no} posted`)
+    loadVouchers(type.startsWith('petty') ? 'petty' : 'bank'); loadJournal()
+  } catch(e) { let m = e.message; try { m = JSON.parse(m).error || m } catch(_) {} showToast(m, 'error') }
+  finally { _savingVch = false }
+}
+async function loadVouchers(kind) {
+  const types = kind === 'petty' ? 'petty_in,petty_out' : 'bank_receipt,bank_payment'
+  const tb = document.getElementById(kind + '-tbody'); const canDel = ['admin','manager','superadmin'].includes(_SESSION.role)
+  try {
+    const [rows, cs] = await Promise.all([apiFetch(`/${CID}/vouchers?type=${types}`), apiFetch(`/${CID}/accounting/cash-summary`)])
+    if (kind === 'petty') document.getElementById('petty-balance').textContent = money(cs.petty)
+    else { document.getElementById('bank-balance').textContent = money(cs.bank); document.getElementById('cash-balance').textContent = money(cs.cash) }
+    tb.innerHTML = rows.length ? rows.map(v => {
+      const t = VCH_TYPES[v.type]
+      return `<tr><td style="font-family:'DM Mono',monospace;font-size:11px;">${dEsc(v.voucher_no)}</td><td>${dEsc(v.date)}</td><td><span class="badge ${t.badge}">${t.label}</span></td>
+        <td>${dEsc(v.account_code)} ${dEsc(v.account_name)}</td>${kind === 'bank' ? `<td>${dEsc(v.party || '—')}</td>` : ''}<td>${dEsc(v.description || '')}${v.reference ? ' · ' + dEsc(v.reference) : ''}</td>
+        <td style="text-align:right;font-weight:700;">AED ${fmt(v.amount)}</td><td>${canDel ? `<button class="btn btn-xs" style="background:var(--red-light);color:var(--red);" onclick="deleteVoucher(${v.id},'${kind}')">Delete</button>` : ''}</td></tr>`
+    }).join('') : `<tr><td colspan="${kind === 'bank' ? 8 : 7}" style="text-align:center;color:var(--fg3);padding:24px;">No ${kind === 'petty' ? 'petty cash' : 'bank'} vouchers yet</td></tr>`
+  } catch(e) { tb.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px;">Could not load vouchers</td></tr>` }
+}
+async function deleteVoucher(id, kind) {
+  if (!confirm('Delete this voucher and its journal entry?')) return
+  try { await apiFetch(`/${CID}/vouchers/${id}`, { method:'DELETE' }); showToast('Voucher deleted'); loadVouchers(kind); loadJournal() }
+  catch(e) { showToast('Could not delete voucher', 'error') }
 }
 
 async function loadJournal() {
@@ -6000,31 +6293,29 @@ async function loadAR() {
   const tbody = document.getElementById('ar-tbody')
   const badge = document.getElementById('ar-outstanding')
   try {
-    const invoices = await apiFetch(`/${CID}/invoices?limit=100`)
-    if (!invoices.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--fg3);padding:24px;">No invoices yet</td></tr>'
-      if (badge) badge.textContent = 'AED 0 outstanding'
+    const [invoices, tb] = await Promise.all([apiFetch(`/${CID}/invoices?limit=200`), apiFetch(`/${CID}/accounting/trial-balance?to=${localISO()}`)])
+    const ar = (tb.rows.find(r => r.code === '1200') || { balance: 0 }).balance
+    if (badge) badge.textContent = `AED ${fmt(ar)} outstanding (ledger)`
+    const credit = invoices.filter(i => i.payment_method === 'customer_credit' && i.status === 'posted')
+    if (!credit.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--fg3);padding:24px;">No credit sales. Sales paid on credit (payment method “Customer Credit”) appear here; record the customer payment as a Bank Receipt.</td></tr>'
       return
     }
-    const total = invoices.reduce((s, i) => s + parseFloat(i.total||0), 0)
-    if (badge) badge.textContent = `AED ${fmt(total)} total`
-    tbody.innerHTML = invoices.map(i => {
-      const statusColors = { posted:'badge-green', draft:'badge-amber', void:'badge-red' }
+    tbody.innerHTML = credit.map(i => {
       const dateStr = new Date(i.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'})
       return `<tr>
-        <td style="font-weight:600;">${i.customer_name||i.customer_full_name||'—'}</td>
-        <td style="font-family:'DM Mono',monospace;font-size:11px;">${i.invoice_number}</td>
+        <td style="font-weight:600;">${dEsc(i.customer_name||i.customer_full_name||'—')}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px;">${dEsc(i.invoice_number)}</td>
         <td>${dateStr}</td>
         <td style="font-weight:600;">AED ${fmt(i.total)}</td>
-        <td><span class="badge badge-teal">${i.payment_method||'cash'}</span></td>
-        <td><span class="badge ${statusColors[i.status]||'badge-teal'}">${i.status}</span></td>
+        <td><span class="badge badge-amber">credit</span></td>
+        <td><span class="badge badge-green">${dEsc(i.status)}</span></td>
       </tr>`
     }).join('')
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px;">Error loading AR</td></tr>'
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:24px;">Error loading receivables</td></tr>'
   }
 }
-
 async function loadCash() {
   const tbody = document.getElementById('cash-tbody')
   try {
@@ -6115,7 +6406,7 @@ async function openExpenseModal(id) {
       }
     } catch(e) {}
   } else {
-    document.getElementById('exp-date').value     = new Date().toISOString().slice(0,10)
+    document.getElementById('exp-date').value     = localISO()
     document.getElementById('exp-category').value = 'Office Supplies'
     document.getElementById('exp-desc').value     = ''
     document.getElementById('exp-amount').value   = ''
@@ -6181,7 +6472,7 @@ let jeLineCount = 0
 
 function openJournalModal() {
   jeLineCount = 0
-  document.getElementById('je-date').value = new Date().toISOString().slice(0,10)
+  document.getElementById('je-date').value = localISO()
   document.getElementById('je-ref').value  = ''
   document.getElementById('je-desc').value = ''
   document.getElementById('je-lines').innerHTML = ''

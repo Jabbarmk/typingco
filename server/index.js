@@ -3,12 +3,15 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 import pool from './db.js'
+import { registerAccounting, ensureAccountingSchema, syncInvoiceJournal, syncExpenseJournal, removeExpenseJournal } from './accounting.js'
 
 dotenv.config()
 
 const app = express()
 app.use(cors())
 app.use(express.json())
+await ensureAccountingSchema()
+registerAccounting(app)
 
 // ─── AUTH ──────────────────────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
@@ -146,6 +149,71 @@ app.patch('/api/companies/:id', async (req, res) => {
   res.json(row)
 })
 
+// ─── DELETE COMPANY (Super Admin) ──────────────────────────
+// What a company holds — shown before deleting
+app.get('/api/companies/:id/usage', async (req, res) => {
+  const id = req.params.id
+  const cnt = async (sql) => (await pool.query(sql, [id]))[0][0].n
+  const [[co]] = await pool.query('SELECT id, name FROM companies WHERE id=?', [id])
+  if (!co) return res.status(404).json({ error: 'Company not found' })
+  res.json({
+    id: co.id, name: co.name,
+    users:        await cnt('SELECT COUNT(*) n FROM users WHERE company_id=?'),
+    customers:    await cnt('SELECT COUNT(*) n FROM customers WHERE company_id=?'),
+    invoices:     await cnt('SELECT COUNT(*) n FROM invoices WHERE company_id=?'),
+    applications: await cnt('SELECT COUNT(*) n FROM applications WHERE company_id=?'),
+    quotations:   await cnt('SELECT COUNT(*) n FROM quotations WHERE company_id=?'),
+    journal_entries: await cnt('SELECT COUNT(*) n FROM journal_entries WHERE company_id=?'),
+    expenses:     await cnt('SELECT COUNT(*) n FROM expenses WHERE company_id=?'),
+  })
+})
+
+// Permanently deletes the company and everything under it, in one transaction.
+// The caller must send the exact company name as confirmation.
+app.delete('/api/companies/:id', async (req, res) => {
+  const id = parseInt(req.params.id)
+  const [[co]] = await pool.query('SELECT id, name FROM companies WHERE id=?', [id])
+  if (!co) return res.status(404).json({ error: 'Company not found' })
+  if (!req.body || String(req.body.confirm_name || '').trim() !== co.name.trim())
+    return res.status(400).json({ error: 'Type the exact company name to confirm deletion' })
+  const [[sa]] = await pool.query("SELECT COUNT(*) n FROM users WHERE company_id=? AND role='superadmin'", [id])
+  if (sa.n) return res.status(409).json({ error: 'This company contains a Super Admin user and cannot be deleted' })
+
+  const conn = await pool.getConnection()
+  const removed = {}
+  const q = async (label, sql) => { const [r] = await conn.query(sql, [id]); removed[label] = r.affectedRows }
+  try {
+    await conn.beginTransaction()
+    await q('application_history', 'DELETE ah FROM application_history ah JOIN applications a ON a.id=ah.application_id WHERE a.company_id=?')
+    await q('documents',           'DELETE FROM documents WHERE company_id=?')
+    await q('einvoice_logs',       'DELETE FROM einvoice_logs WHERE company_id=?')
+    await q('einvoice_queue',      'DELETE FROM einvoice_queue WHERE company_id=?')
+    await q('einvoice_settings',   'DELETE FROM einvoice_settings WHERE company_id=?')
+    await q('invoices',            'DELETE FROM invoices WHERE company_id=?')            // invoice_lines cascade
+    await q('journal_entries',     'DELETE FROM journal_entries WHERE company_id=?')     // journal_lines cascade
+    await q('cash_vouchers',       'DELETE FROM cash_vouchers WHERE company_id=?')
+    await q('expenses',            'DELETE FROM expenses WHERE company_id=?')
+    await q('chart_of_accounts',   'DELETE FROM chart_of_accounts WHERE company_id=?')
+    await q('vat_periods',         'DELETE FROM vat_periods WHERE company_id=?')
+    await q('quotation_lines',     'DELETE ql FROM quotation_lines ql JOIN quotations qt ON qt.id=ql.quotation_id WHERE qt.company_id=?')
+    await q('quotations',          'DELETE FROM quotations WHERE company_id=?')
+    await q('leads',               'DELETE FROM leads WHERE company_id=?')
+    await q('applications',        'DELETE FROM applications WHERE company_id=?')
+    await q('customers',           'DELETE FROM customers WHERE company_id=?')
+    await q('services',            'DELETE FROM services WHERE company_id=?')
+    await q('subscription_payments','DELETE FROM subscription_payments WHERE company_id=?')
+    await q('subscriptions',       'DELETE FROM subscriptions WHERE company_id=?')
+    { const [r] = await conn.query('DELETE FROM audit_logs WHERE company_id=? OR user_id IN (SELECT id FROM users WHERE company_id=?)', [id, id]); removed.audit_logs = r.affectedRows }
+    await q('users',               'DELETE FROM users WHERE company_id=?')
+    await q('companies',           'DELETE FROM companies WHERE id=?')
+    await conn.commit()
+    res.json({ ok: true, deleted: co.name, removed })
+  } catch (e) {
+    await conn.rollback()
+    res.status(500).json({ error: 'Delete failed and was rolled back: ' + e.message })
+  } finally { conn.release() }
+})
+
 // ─── PLANS ─────────────────────────────────────────────────
 app.get('/api/plans', async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM plans WHERE is_active=1 ORDER BY price_monthly')
@@ -263,6 +331,7 @@ app.get('/api/:cid/customers', async (req, res) => {
 
 app.post('/api/:cid/customers', async (req, res) => {
   const { name, phone, email, nationality, id_type, id_number, emirate, customer_type, trn, notes } = req.body
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Customer name is required' })
   const [r] = await pool.query(
     'INSERT INTO customers (company_id,name,phone,email,nationality,id_type,id_number,emirate,customer_type,trn,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
     [req.params.cid, name, phone||null, email||null, nationality||null, id_type||'emirates_id', id_number||null, emirate||'Dubai', customer_type||'individual', trn||null, notes||null])
@@ -416,6 +485,7 @@ app.post('/api/:cid/invoices', async (req, res) => {
         [lineVals])
     }
     await conn.commit()
+    await syncInvoiceJournal(req.params.cid, r.insertId)
     const [[inv]] = await conn.query('SELECT * FROM invoices WHERE id=?', [r.insertId])
     res.status(201).json(inv)
   } catch (e) {
@@ -463,6 +533,7 @@ app.patch('/api/:cid/invoices/:id', async (req, res) => {
       }
     }
     await conn.commit()
+    await syncInvoiceJournal(req.params.cid, req.params.id)
     const [[inv]] = await conn.query('SELECT * FROM invoices WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
     if (!inv) return res.status(404).json({ error: 'Not found' })
     res.json(inv)
@@ -537,12 +608,6 @@ app.patch('/api/:cid/applications/:id', async (req, res) => {
 })
 
 // ─── ACCOUNTING ────────────────────────────────────────────
-app.get('/api/:cid/accounts', async (req, res) => {
-  const [rows] = await pool.query(
-    'SELECT * FROM chart_of_accounts WHERE company_id=? AND is_active=1 ORDER BY code', [req.params.cid])
-  res.json(rows)
-})
-
 app.post('/api/:cid/accounts', async (req, res) => {
   const { code, name, type } = req.body
   if (!code || !name || !type) return res.status(400).json({ error: 'code, name, type required' })
@@ -624,6 +689,7 @@ app.post('/api/:cid/expenses', async (req, res) => {
     'INSERT INTO expenses (company_id,expense_date,category,description,amount,vat_input,supplier,reference,account_id) VALUES (?,?,?,?,?,?,?,?,?)',
     [req.params.cid, expense_date||new Date().toISOString().slice(0,10), category||'General',
      description, amount, vat_input||0, supplier||null, reference||null, account_id||null])
+  await syncExpenseJournal(req.params.cid, r.insertId)
   const [[row]] = await pool.query('SELECT * FROM expenses WHERE id=?', [r.insertId])
   res.status(201).json(row)
 })
@@ -635,11 +701,13 @@ app.patch('/api/:cid/expenses/:id', async (req, res) => {
   if (!Object.keys(updates).length) return res.status(400).json({ error: 'Nothing to update' })
   const fields = Object.keys(updates).map(k => `${k}=?`).join(',')
   await pool.query(`UPDATE expenses SET ${fields} WHERE id=? AND company_id=?`, [...Object.values(updates), req.params.id, req.params.cid])
+  await syncExpenseJournal(req.params.cid, req.params.id)
   const [[row]] = await pool.query('SELECT * FROM expenses WHERE id=?', [req.params.id])
   res.json(row)
 })
 
 app.delete('/api/:cid/expenses/:id', async (req, res) => {
+  await removeExpenseJournal(req.params.cid, req.params.id)
   await pool.query('DELETE FROM expenses WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
   res.json({ ok: true })
 })

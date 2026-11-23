@@ -1378,6 +1378,7 @@ function doLogout() {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:10px;">
       <div style="display:flex;gap:8px;">
         <button class="btn btn-secondary" style="color:var(--red);border-color:var(--red);" onclick="confirmSuspend()">Suspend Company</button>
+        <button class="btn" style="background:var(--red);color:#fff;" onclick="openDeleteCompany()">Delete Company</button>
         <button class="btn btn-secondary" style="color:var(--accent);" onclick="openResetPasswordModal()">
           <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
           Reset Admin Password
@@ -1523,6 +1524,30 @@ function doLogout() {
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('company-invoices-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE COMPANY MODAL -->
+<div class="modal-overlay" id="delete-company-modal" hidden onclick="if(event.target===this)closeModal('delete-company-modal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-title" style="color:var(--red);">Delete company permanently</span>
+      <button class="close-btn" onclick="closeModal('delete-company-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="del-co-id">
+      <div style="font-size:13px;margin-bottom:10px;">You are about to permanently delete <b id="del-co-name"></b> and <b>everything under it</b>. This cannot be undone.</div>
+      <div id="del-co-usage" style="background:var(--surface2);border-radius:10px;padding:10px 14px;font-size:12.5px;margin-bottom:14px;">Loading…</div>
+      <div class="form-group">
+        <label>Type the company name to confirm</label>
+        <input type="text" id="del-co-confirm" class="input" autocomplete="off" oninput="checkDeleteConfirm()">
+      </div>
+      <div style="font-size:11.5px;color:var(--fg3);">Tip: use <b>Suspend</b> instead if you may need the data later.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('delete-company-modal')">Cancel</button>
+      <button class="btn" id="del-co-btn" style="background:var(--red);color:#fff;opacity:.4;" disabled onclick="doDeleteCompany()">Delete permanently</button>
     </div>
   </div>
 </div>
@@ -1934,6 +1959,46 @@ async function saveManageCompany() {
     showToast(name + ' updated successfully');
   } catch(e) {
     showToast('Error saving: ' + e.message);
+  }
+}
+
+let _delCoName = '';
+async function openDeleteCompany() {
+  const id = parseInt(document.getElementById('mgmt-id').value);
+  const c = companies.find(x => x.id === id); if (!c) return;
+  _delCoName = c.name;
+  document.getElementById('del-co-id').value = id;
+  document.getElementById('del-co-name').textContent = c.name;
+  document.getElementById('del-co-confirm').value = '';
+  document.getElementById('del-co-usage').textContent = 'Loading…';
+  checkDeleteConfirm();
+  openModal('delete-company-modal');
+  try {
+    const u = await apiFetch(`/companies/${id}/usage`);
+    const rows = [['users','Users'],['customers','Customers'],['invoices','Invoices'],['applications','Applications'],['quotations','Quotations'],['journal_entries','Journal entries'],['expenses','Expenses']];
+    const has = rows.filter(r => u[r[0]] > 0);
+    document.getElementById('del-co-usage').innerHTML = has.length
+      ? '<b>Will be deleted:</b> ' + has.map(r => `${u[r[0]]} ${r[1].toLowerCase()}`).join(', ')
+      : 'This company has no business data (only its record and subscription).';
+  } catch(e) { document.getElementById('del-co-usage').textContent = 'Could not load the data summary for this company.'; }
+}
+function checkDeleteConfirm() {
+  const ok = document.getElementById('del-co-confirm').value.trim() === _delCoName.trim() && _delCoName !== '';
+  const b = document.getElementById('del-co-btn'); b.disabled = !ok; b.style.opacity = ok ? '1' : '.4';
+}
+async function doDeleteCompany() {
+  const id = parseInt(document.getElementById('del-co-id').value);
+  const b = document.getElementById('del-co-btn'); b.disabled = true; b.textContent = 'Deleting…';
+  try {
+    await apiFetch(`/companies/${id}`, { method: 'DELETE', body: JSON.stringify({ confirm_name: document.getElementById('del-co-confirm').value.trim() }) });
+    closeModal('delete-company-modal');
+    showToast('Company deleted');
+    await initAdmin();
+    closeManageCompanyPage();
+  } catch(e) {
+    let m = e.message; try { m = JSON.parse(m).error || m } catch(_) {}
+    showToast(m);
+    b.textContent = 'Delete permanently'; checkDeleteConfirm();
   }
 }
 

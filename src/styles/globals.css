@@ -51,7 +51,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
-  font-family: 'Plus Jakarta Sans','Poppins', system-ui, sans-serif;
+  font-family: 'Inter','Poppins', system-ui, sans-serif;
   background: var(--bg);
   color: var(--fg);
   font-size: 14px;

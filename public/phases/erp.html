@@ -2142,7 +2142,7 @@ function doLogout() {
             <option>MOHRE / Labour</option><option>Medical Application</option><option>Trade Licence Support</option><option>Other Government</option>
           </select>
         </div>
-        <div class="fg"><label>Customer *</label>
+        <div class="fg"><label>Customer * <a href="#" onclick="openNewCustForApp();return false" style="float:right;font-weight:700;color:var(--blue,#2563eb);text-decoration:none">+ Add new</a></label>
           <select id="na-customer"><option value="">— Select Customer —</option></select>
         </div>
         <div class="fg"><label>Priority</label>
@@ -2840,7 +2840,9 @@ document.addEventListener('click', e => {
 window.addEventListener('scroll', () => { if (document.getElementById('cust-dd').classList.contains('open')) positionCustDropdown() }, true)
 window.addEventListener('resize', () => { if (document.getElementById('cust-dd').classList.contains('open')) positionCustDropdown() })
 
+let _postingInv = false
 async function postInvoice() {
+  if (_postingInv) return
   if (cart.length === 0) { showToast('Add at least one service'); return; }
   const disc = parseFloat(document.getElementById('discount-pct').value) || 0;
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
@@ -2849,18 +2851,8 @@ async function postInvoice() {
   const total = afterDisc + vat;
   const custName = selectedCustomer ? selectedCustomer.name : 'Walk-in Customer';
   const method = document.getElementById('pay-method').value;
-  invoiceCounter = (invoiceCounter || 100) + 1;
-  const invNum = 'INV-' + String(invoiceCounter).padStart(4,'0');
+  const methodKey = method.toLowerCase().replace(/ /g, '_');
 
-  const _cu = selectedCustomer && selectedCustomer.id ? (CUSTOMERS || []).find(c => c.id === selectedCustomer.id) : null
-  document.getElementById('invoice-content').innerHTML = buildInvoiceDoc({
-    number: invNum, date: new Date(), customer: custName, customer_trn: _cu ? (_cu.trn || '') : '', phone: _cu ? (_cu.phone || '') : '',
-    method: method.toLowerCase().replace(/ /g, '_'), status: 'posted',
-    subtotal: afterDisc, discount: subtotal * disc / 100, vat, total,
-    lines: cart.map(c => ({ description: c.name.replace('\n', ' '), qty: c.qty, unit: c.price, net: c.price * c.qty, vat: c.price * c.qty * 0.05 })),
-  });
-
-  const cartSnapshot = cart.length;
   const cartLines = cart.map(c => ({
     service_id: c.id,
     description: c.name,
@@ -2871,20 +2863,19 @@ async function postInvoice() {
     line_amount: c.price * c.qty,
     vat_amount: c.price * c.qty * 0.05,
   }));
-  const invHtml = document.getElementById('invoice-content').innerHTML;
-  openModal('invoice-modal');
-  showToast('Invoice ' + invNum + ' posted — AED ' + total.toFixed(2));
-  clearCart();
+  const docLines = cart.map(c => ({ description: c.name.replace(/\s+/g, ' '), qty: c.qty, unit: c.price, net: c.price * c.qty, vat: c.price * c.qty * 0.05 }))
+  const _cu = selectedCustomer && selectedCustomer.id ? (CUSTOMERS || []).find(c => c.id === selectedCustomer.id) : null
+  const custId = selectedCustomer?.id || null
 
-  // Save to database
-  let savedId = null;
+  // Save first: the server assigns the invoice number, so what is printed is what is stored
+  _postingInv = true
+  let saved
   try {
     const today = localISO();
-    const saved = await apiFetch(`/${CID}/invoices`, {
+    saved = await apiFetch(`/${CID}/invoices`, {
       method: 'POST',
       body: JSON.stringify({
-        invoice_number: invNum,
-        customer_id: selectedCustomer?.id || null,
+        customer_id: custId,
         customer_name: custName,
         issue_date: today,
         supply_date: today,
@@ -2892,24 +2883,30 @@ async function postInvoice() {
         discount_amt: subtotal * disc / 100,
         vat_amount: vat,
         total: total,
-        payment_method: method.toLowerCase().replace(/ /g,'_'),
+        payment_method: methodKey,
         lines: cartLines
       })
     });
-    savedId = saved.id;
-    invoiceStore[savedId] = invHtml;
-    markQuotationInvoiced(savedId);
-    loadDashboardStats();
-  } catch(e) {
-    invoiceStore[invNum] = invHtml;
-  }
+  } catch (e) {
+    let msg = e.message; try { msg = JSON.parse(msg).error || msg } catch (_) {}
+    showToast('Invoice NOT saved: ' + msg, 'error');
+    return;
+  } finally { _postingInv = false }
 
-  // Add to sales table
-  const tbody = document.getElementById('sales-tbody');
-  const row = document.createElement('tr');
-  const viewFn = savedId ? `viewSavedInvoice(${savedId})` : `viewInvoice('${invNum}')`;
-  row.innerHTML = `<td style="font-family:'DM Mono',monospace;font-size:11px;">${invNum}</td><td>${new Date().toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'})}</td><td>${custName}</td><td>${cartSnapshot} service(s)</td><td>AED ${afterDisc.toFixed(2)}</td><td>AED ${vat.toFixed(2)}</td><td style="font-weight:600;">AED ${total.toFixed(2)}</td><td>${method}</td><td><span class="badge b-green">Paid</span></td><td><button class="btn btn-secondary btn-xs" onclick="${viewFn}">View</button></td>`;
-  tbody.prepend(row);
+  const invNum = saved.invoice_number
+  const html = buildInvoiceDoc({
+    number: invNum, date: new Date(), customer: custName, customer_trn: _cu ? (_cu.trn || '') : '', phone: _cu ? (_cu.phone || '') : '',
+    method: methodKey, status: 'posted',
+    subtotal: afterDisc, discount: subtotal * disc / 100, vat, total, lines: docLines,
+  });
+  document.getElementById('invoice-content').innerHTML = html;
+  invoiceStore[saved.id] = html;
+  openModal('invoice-modal');
+  showToast('Invoice ' + invNum + ' posted — AED ' + total.toFixed(2));
+  clearCart();
+  markQuotationInvoiced(saved.id);
+  loadDashboardStats();
+  refreshSales();
 }
 
 function viewInvoice(invNum) {
@@ -3157,6 +3154,7 @@ async function saveNewCustomer() {
   const name = document.getElementById('nc-name').value.trim();
   if (!name) { showToast('Enter customer name', 'error'); document.getElementById('nc-name').focus(); return; }
   const pickForQt = _qtAfterNewCust
+  const pickForApp = _appAfterNewCust
   const data = {
     name,
     phone: document.getElementById('nc-phone').value.trim() || null,
@@ -3175,6 +3173,7 @@ async function saveNewCustomer() {
     closeModal('new-customer-modal');
     showToast('Customer saved — ' + name);
     if (pickForQt) pickCustomerForQt(saved.id)
+    if (pickForApp) { populateAppCustomerDropdown(); document.getElementById('na-customer').value = String(saved.id) }
     document.getElementById('nc-name').value = '';
     document.getElementById('nc-phone').value = '';
     document.getElementById('nc-email').value = '';
@@ -3279,6 +3278,7 @@ function nav(id, btn) {
   uiAfterNav(id);
   if (id === 'vat')          loadVAT();
   if (id === 'dashboard')  loadDashboardStats();
+  if (id === 'sales')        refreshSales();
   if (id === 'settings')   { loadSettings(); loadEInvSettings(); }
   if (id === 'accounting')   loadAccounting();
   if (id === 'applications') loadApplications();
@@ -3307,8 +3307,16 @@ function openModal(id) {
   document.getElementById(id).hidden = false;
 }
 function closeModal(id) {
-  if (id === 'new-customer-modal') _qtAfterNewCust = false
+  if (id === 'new-customer-modal') {
+    _qtAfterNewCust = false
+    if (_appAfterNewCust) { _appAfterNewCust = false; document.getElementById('new-app-modal').hidden = false }
+  }
   document.getElementById(id).hidden = true;
+}
+let _appAfterNewCust = false
+function openNewCustForApp() {
+  document.getElementById('new-app-modal').hidden = true
+  openModal('new-customer-modal'); _appAfterNewCust = true
 }
 
 function showToast(msg, type) {
@@ -4202,10 +4210,7 @@ async function runReport(type) {
 
   try {
     if (type === 'daily-closing' || type === 'invoices-list' || type === 'sales-by-service' || type === 'sales-by-employee') {
-      const invs = (await apiFetch(`/${CID}/invoices`)).filter(inv => {
-        const d = (inv.date||inv.created_at||'').slice(0,10)
-        return d >= from && d <= to
-      })
+      const invs = (await apiFetch(`/${CID}/invoices?from=${from}&to=${to}&limit=20000`)).filter(inv => inv.status !== 'void')
       _rptData = invs
 
       if (type === 'daily-closing' || type === 'invoices-list') {
@@ -4224,35 +4229,24 @@ async function runReport(type) {
             <thead><tr><th>Invoice#</th><th>Date</th><th>Customer</th><th>Method</th><th style="text-align:right;">Net</th><th style="text-align:right;">VAT</th><th style="text-align:right;">Total</th><th>Status</th></tr></thead>
             <tbody>${invs.length ? invs.map(i=>`<tr>
               <td style="font-family:monospace;font-size:11px;">${i.invoice_number||i.id}</td>
-              <td style="font-size:12px;">${(i.date||i.created_at||'').slice(0,10)}</td>
+              <td style="font-size:12px;">${String(i.issue_date||i.created_at||'').slice(0,10)}</td>
               <td>${i.customer_name||'Walk-in'}</td>
               <td style="font-size:12px;">${i.payment_method||'—'}</td>
               <td style="text-align:right;">AED ${fmt(parseFloat(i.total||0)-parseFloat(i.vat_amount||0))}</td>
               <td style="text-align:right;color:var(--fg3);">AED ${fmt(i.vat_amount||0)}</td>
               <td style="text-align:right;font-weight:600;">AED ${fmt(i.total||0)}</td>
-              <td><span class="badge ${i.status==='paid'?'badge-green':i.status==='draft'?'badge-teal':'badge-amber'}">${i.status||'paid'}</span></td>
+              <td><span class="badge ${i.status==='posted'?'badge-green':i.status==='draft'?'badge-teal':'badge-amber'}">${i.status||'posted'}</span></td>
             </tr>`).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--fg3);padding:24px;">No invoices in this period</td></tr>'}</tbody>
           </table></div>`
       } else if (type === 'sales-by-service') {
         titleEl.textContent = 'Sales by Service'
-        const map = {}
-        invs.forEach(inv => {
-          try {
-            const lines = JSON.parse(inv.lines || '[]')
-            lines.forEach(l => {
-              const k = l.service_name || l.name || 'Unknown'
-              if (!map[k]) map[k] = { qty: 0, total: 0 }
-              map[k].qty   += (l.qty || l.quantity || 1)
-              map[k].total += parseFloat(l.total || (l.unit_price * (l.qty||1)) || 0)
-            })
-          } catch {}
-        })
-        const rows = Object.entries(map).sort((a,b)=>b[1].total-a[1].total)
-        _rptData = rows.map(([svc,d])=>({ service: svc, qty: d.qty, total: d.total }))
+        const svcRows = await apiFetch(`/${CID}/reports/sales-by-service?from=${from}&to=${to}`)
+        const rows = svcRows.map(r => [r.service, { qty: r.qty, total: r.total }])
+        _rptData = svcRows
         bodyEl.innerHTML = `<div class="tw"><table>
-          <thead><tr><th>Service</th><th style="text-align:center;">Qty Sold</th><th style="text-align:right;">Total (AED)</th></tr></thead>
+          <thead><tr><th>Service</th><th style="text-align:center;">Qty Sold</th><th style="text-align:right;">Total (AED, excl. VAT)</th></tr></thead>
           <tbody>${rows.length ? rows.map(([svc,d])=>`<tr>
-            <td style="font-weight:500;">${svc}</td>
+            <td style="font-weight:500;">${String(svc).replace(/[<>&]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;"})[c])}</td>
             <td style="text-align:center;">${d.qty}</td>
             <td style="text-align:right;font-weight:600;">AED ${fmt(d.total)}</td>
           </tr>`).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--fg3);padding:24px;">No data</td></tr>'}</tbody>
@@ -5562,8 +5556,7 @@ async function init() {
     renderCustDropdown(CUSTOMERS)
 
     // Load invoices into sales table
-    const invs = await apiFetch(`/${CID}/invoices`)
-    renderSalesTable(invs)
+    await refreshSales()
 
     // Load applications
     ALL_APPS = await apiFetch(`/${CID}/applications`)
@@ -5923,7 +5916,7 @@ function searchCustomers() {
 function renderSalesTable(invoices) {
   const tbody = document.getElementById('sales-tbody')
   if (!tbody) return
-  const statusMap = { posted:'b-green', draft:'b-gray', cancelled:'b-red', partial:'b-amber' }
+  const statusMap = { posted:'b-green', draft:'b-gray', cancelled:'b-red', void:'b-red', partial:'b-amber' }
   tbody.innerHTML = invoices.map(inv => {
     const date = new Date(inv.issue_date).toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'})
     const status = inv.status || 'posted'
@@ -5949,6 +5942,10 @@ function renderSalesTable(invoices) {
   }).join('')
 }
 
+async function refreshSales() {
+  try { renderSalesTable(await apiFetch(`/${CID}/invoices?limit=1000`)) } catch (e) { console.error('refreshSales', e) }
+}
+
 async function queueEInvoice(invId, invNum) {
   if (!confirm(`Queue ${invNum} for UAE E-Invoice submission?`)) return
   try {
@@ -5959,8 +5956,7 @@ async function queueEInvoice(invId, invNum) {
     })
     showToast(`${invNum} queued for e-invoice ✓`, 'success')
     // Refresh sales table
-    const invs = await apiFetch(`/${CID}/invoices`)
-    renderSalesTable(invs)
+    await refreshSales()
   } catch(e) {
     showToast('Queue failed: ' + e.message, 'error')
   }
@@ -6074,8 +6070,7 @@ async function saveInvoiceEdits() {
     loadDashboardStats()
     closeModal('edit-invoice-modal')
     showToast('Invoice updated ✓', 'success')
-    const invs = await apiFetch(`/${CID}/invoices`)
-    renderSalesTable(invs)
+    await refreshSales()
   } catch(e) { showToast('Save failed: ' + e.message, 'error') }
 }
 

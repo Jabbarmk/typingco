@@ -447,53 +447,92 @@ app.delete('/api/:cid/customers/:id', async (req, res) => {
 
 // ─── INVOICES ──────────────────────────────────────────────
 app.get('/api/:cid/invoices', async (req, res) => {
-  const { status, from, to, limit = 50 } = req.query
-  let sql  = 'SELECT i.*, c.name AS customer_full_name FROM invoices i LEFT JOIN customers c ON i.customer_id=c.id WHERE i.company_id=?'
+  const { status, from, to, customer_id, limit = 50 } = req.query
+  // dates returned as plain YYYY-MM-DD strings (a JS Date would shift the day through UTC)
+  let sql  = `SELECT i.*, DATE_FORMAT(i.issue_date,'%Y-%m-%d') AS issue_date, DATE_FORMAT(i.supply_date,'%Y-%m-%d') AS supply_date,
+      c.name AS customer_full_name FROM invoices i LEFT JOIN customers c ON i.customer_id=c.id WHERE i.company_id=?`
   const params = [req.params.cid]
   if (status) { sql += ' AND i.status=?'; params.push(status) }
+  if (customer_id) { sql += ' AND i.customer_id=?'; params.push(customer_id) }
   if (from)   { sql += ' AND i.issue_date>=?'; params.push(from) }
   if (to)     { sql += ' AND i.issue_date<=?'; params.push(to) }
-  sql += ' ORDER BY i.created_at DESC LIMIT ?'
-  params.push(parseInt(limit))
+  sql += ' ORDER BY i.issue_date DESC, i.id DESC LIMIT ?'
+  params.push(Math.min(parseInt(limit) || 50, 20000))
   const [rows] = await pool.query(sql, params)
   res.json(rows)
 })
 
+// Sales report data: per-service totals for posted invoices in a period
+app.get('/api/:cid/reports/sales-by-service', async (req, res) => {
+  const { from, to } = req.query
+  const params = [req.params.cid]
+  let w = "i.company_id=? AND i.status='posted'"
+  if (from) { w += ' AND i.issue_date>=?'; params.push(from) }
+  if (to)   { w += ' AND i.issue_date<=?'; params.push(to) }
+  const [rows] = await pool.query(
+    `SELECT l.description AS service, SUM(l.quantity) AS qty, SUM(l.line_amount) AS total
+       FROM invoice_lines l JOIN invoices i ON i.id=l.invoice_id WHERE ${w}
+       GROUP BY l.description ORDER BY total DESC`, params)
+  res.json(rows.map(r => ({ service: r.service, qty: parseFloat(r.qty), total: parseFloat(r.total) })))
+})
+
 app.get('/api/:cid/invoices/:id', async (req, res) => {
   const [[inv]] = await pool.query(
-    'SELECT * FROM invoices WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+    `SELECT i.*, DATE_FORMAT(i.issue_date,'%Y-%m-%d') AS issue_date, DATE_FORMAT(i.supply_date,'%Y-%m-%d') AS supply_date
+       FROM invoices i WHERE i.id=? AND i.company_id=?`, [req.params.id, req.params.cid])
   if (!inv) return res.status(404).json({ error: 'Not found' })
   const [lines] = await pool.query('SELECT * FROM invoice_lines WHERE invoice_id=?', [inv.id])
   res.json({ ...inv, lines })
 })
 
+// Next free INV-#### number (invoice_number is unique across all companies)
+async function nextInvoiceNumber(conn) {
+  const [[r]] = await conn.query(
+    "SELECT COALESCE(MAX(CAST(SUBSTRING(invoice_number,5) AS UNSIGNED)),100)+1 AS n FROM invoices WHERE invoice_number REGEXP '^INV-[0-9]+$'")
+  return 'INV-' + String(r.n).padStart(4, '0')
+}
+
 app.post('/api/:cid/invoices', async (req, res) => {
-  const { invoice_number, type, customer_id, customer_name, customer_trn,
+  const { type, customer_id, customer_name, customer_trn,
           issue_date, supply_date, subtotal, discount_amt, vat_amount, total,
           payment_method, notes, lines } = req.body
+  let invoice_number = req.body.invoice_number
   const conn = await pool.getConnection()
   try {
-    await conn.beginTransaction()
-    const [r] = await conn.query(
-      `INSERT INTO invoices (company_id,invoice_number,type,customer_id,customer_name,customer_trn,
-        issue_date,supply_date,subtotal,discount_amt,vat_amount,total,payment_method,notes,status)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'posted')`,
-      [req.params.cid, invoice_number, type||'tax_invoice', customer_id||null, customer_name||null,
-       customer_trn||null, issue_date, supply_date||issue_date,
-       subtotal, discount_amt||0, vat_amount, total, payment_method||'cash', notes||null])
-    if (lines?.length) {
-      const lineVals = lines.map(l => [r.insertId, l.service_id||null, l.description, l.quantity||1,
-        l.unit_price, l.vat_category||'S', l.vat_rate||0.05, l.line_amount, l.vat_amount||0])
-      await conn.query(
-        'INSERT INTO invoice_lines (invoice_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount) VALUES ?',
-        [lineVals])
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await conn.beginTransaction()
+      try {
+        // use the requested number only if it is free; otherwise assign the next one
+        if (invoice_number) {
+          const [[dup]] = await conn.query('SELECT id FROM invoices WHERE invoice_number=?', [invoice_number])
+          if (dup) invoice_number = null
+        }
+        if (!invoice_number) invoice_number = await nextInvoiceNumber(conn)
+        const [r] = await conn.query(
+          `INSERT INTO invoices (company_id,invoice_number,type,customer_id,customer_name,customer_trn,
+            issue_date,supply_date,subtotal,discount_amt,vat_amount,total,payment_method,notes,status)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'posted')`,
+          [req.params.cid, invoice_number, type||'tax_invoice', customer_id||null, customer_name||null,
+           customer_trn||null, issue_date, supply_date||issue_date,
+           subtotal, discount_amt||0, vat_amount, total, payment_method||'cash', notes||null])
+        if (lines?.length) {
+          const lineVals = lines.map(l => [r.insertId, l.service_id||null, l.description, l.quantity||1,
+            l.unit_price, l.vat_category||'S', l.vat_rate||0.05, l.line_amount, l.vat_amount||0])
+          await conn.query(
+            'INSERT INTO invoice_lines (invoice_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount) VALUES ?',
+            [lineVals])
+        }
+        await conn.commit()
+        await syncInvoiceJournal(req.params.cid, r.insertId)
+        const [[inv]] = await conn.query('SELECT * FROM invoices WHERE id=?', [r.insertId])
+        return res.status(201).json(inv)
+      } catch (e) {
+        await conn.rollback()
+        if (e.code === 'ER_DUP_ENTRY' && attempt < 5) { invoice_number = null; continue }
+        throw e
+      }
     }
-    await conn.commit()
-    await syncInvoiceJournal(req.params.cid, r.insertId)
-    const [[inv]] = await conn.query('SELECT * FROM invoices WHERE id=?', [r.insertId])
-    res.status(201).json(inv)
   } catch (e) {
-    await conn.rollback()
     res.status(500).json({ error: e.message })
   } finally {
     conn.release()
@@ -550,9 +589,11 @@ app.patch('/api/:cid/invoices/:id', async (req, res) => {
 // Invoice stats for ERP dashboard
 app.get('/api/:cid/invoices/stats/summary', async (req, res) => {
   const cid = req.params.cid
-  const [[today]]   = await pool.query(`SELECT COALESCE(SUM(total),0) AS amount, COUNT(*) AS count FROM invoices WHERE company_id=? AND issue_date=CURDATE() AND status='posted'`, [cid])
-  const [[month]]   = await pool.query(`SELECT COALESCE(SUM(total),0) AS amount FROM invoices WHERE company_id=? AND MONTH(issue_date)=MONTH(NOW()) AND YEAR(issue_date)=YEAR(NOW()) AND status='posted'`, [cid])
-  const [[vatMonth]]= await pool.query(`SELECT COALESCE(SUM(vat_amount),0) AS amount FROM invoices WHERE company_id=? AND MONTH(issue_date)=MONTH(NOW()) AND YEAR(issue_date)=YEAR(NOW()) AND status='posted'`, [cid])
+  // UAE date (UTC+4) regardless of the DB server's timezone
+  const uae = "DATE(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 4 HOUR))"
+  const [[today]]   = await pool.query(`SELECT COALESCE(SUM(total),0) AS amount, COUNT(*) AS count FROM invoices WHERE company_id=? AND issue_date=${uae} AND status='posted'`, [cid])
+  const [[month]]   = await pool.query(`SELECT COALESCE(SUM(total),0) AS amount FROM invoices WHERE company_id=? AND MONTH(issue_date)=MONTH(${uae}) AND YEAR(issue_date)=YEAR(${uae}) AND status='posted'`, [cid])
+  const [[vatMonth]]= await pool.query(`SELECT COALESCE(SUM(vat_amount),0) AS amount FROM invoices WHERE company_id=? AND MONTH(issue_date)=MONTH(${uae}) AND YEAR(issue_date)=YEAR(${uae}) AND status='posted'`, [cid])
   const [[custCount]]= await pool.query(`SELECT COUNT(*) AS count FROM customers WHERE company_id=?`, [cid])
   res.json({
     todayAmount:   parseFloat(today.amount),

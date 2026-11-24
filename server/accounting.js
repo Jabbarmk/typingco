@@ -45,8 +45,29 @@ export async function ensureCustomerColumns(db = pool) {
   return added
 }
 
+// Older production DBs lack some `applications` columns the API writes to.
+export async function ensureApplicationColumns(db = pool) {
+  const cols = [
+    ['customer_name', 'VARCHAR(150) NULL'], ['priority', "ENUM('normal','urgent') DEFAULT 'normal'"],
+    ['govt_ref', 'VARCHAR(100) NULL'], ['govt_ref_number', 'VARCHAR(100) NULL'],
+    ['govt_fee', 'DECIMAL(10,2) DEFAULT 0'], ['service_fee', 'DECIMAL(10,2) DEFAULT 0'],
+    ['assigned_to', 'VARCHAR(100) NULL'], ['expected_date', 'DATE NULL'], ['notes', 'TEXT NULL'],
+    ['submitted_at', 'TIMESTAMP NULL'], ['completed_at', 'TIMESTAMP NULL'],
+  ]
+  const [have] = await db.query("SELECT COLUMN_NAME AS c FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='applications'")
+  if (!have.length) return []
+  const names = new Set(have.map(r => r.c.toLowerCase()))
+  const added = []
+  for (const [c, ddl] of cols) {
+    if (!names.has(c)) { await db.query(`ALTER TABLE applications ADD COLUMN ${c} ${ddl}`); added.push(c) }
+  }
+  if (added.length) console.log('applications: added missing columns →', added.join(', '))
+  return added
+}
+
 export async function ensureAccountingSchema() {
   try { await ensureCustomerColumns() } catch (e) { console.error('ensureCustomerColumns failed:', e.message) }
+  try { await ensureApplicationColumns() } catch (e) { console.error('ensureApplicationColumns failed:', e.message) }
   await pool.query(`CREATE TABLE IF NOT EXISTS cash_vouchers (
     id           INT AUTO_INCREMENT PRIMARY KEY,
     company_id   INT NOT NULL,

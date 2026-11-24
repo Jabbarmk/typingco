@@ -283,6 +283,15 @@ CREATE TABLE IF NOT EXISTS cash_vouchers (
   FOREIGN KEY (account_id) REFERENCES chart_of_accounts(id)
 );
 
+CREATE TABLE IF NOT EXISTS invoice_settings (
+  company_id INT PRIMARY KEY,
+  template   VARCHAR(30) NOT NULL DEFAULT 'classic',
+  config     TEXT NULL,
+  logo       MEDIUMTEXT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
 -- ============================================================
 -- VAT / E-INVOICE
 -- ============================================================

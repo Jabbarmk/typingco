@@ -3,15 +3,18 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 import pool from './db.js'
+import { registerInvoiceSettings, ensureInvoiceSettingsSchema } from './invoice-settings.js'
 import { registerAccounting, ensureAccountingSchema, syncInvoiceJournal, syncExpenseJournal, removeExpenseJournal } from './accounting.js'
 
 dotenv.config()
 
 const app = express()
 app.use(cors())
-app.use(express.json())
+app.use(express.json({ limit: '3mb' }))   // logos are sent as data URLs
 await ensureAccountingSchema()
+await ensureInvoiceSettingsSchema()
 registerAccounting(app)
+registerInvoiceSettings(app)
 
 // ─── AUTH ──────────────────────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
@@ -189,6 +192,7 @@ app.delete('/api/companies/:id', async (req, res) => {
     await q('einvoice_logs',       'DELETE FROM einvoice_logs WHERE company_id=?')
     await q('einvoice_queue',      'DELETE FROM einvoice_queue WHERE company_id=?')
     await q('einvoice_settings',   'DELETE FROM einvoice_settings WHERE company_id=?')
+    await q('invoice_settings',    'DELETE FROM invoice_settings WHERE company_id=?')
     await q('invoices',            'DELETE FROM invoices WHERE company_id=?')            // invoice_lines cascade
     await q('journal_entries',     'DELETE FROM journal_entries WHERE company_id=?')     // journal_lines cascade
     await q('cash_vouchers',       'DELETE FROM cash_vouchers WHERE company_id=?')

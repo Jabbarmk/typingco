@@ -3,7 +3,7 @@
 <title>Typingo</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@400;600;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -69,7 +69,7 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 body {
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Poppins', system-ui, sans-serif;
   background: var(--bg); color: var(--fg);
   display: flex; font-size: 14px; line-height: 1.5;
   overflow-x: hidden; -webkit-text-size-adjust: 100%;
@@ -576,6 +576,7 @@ body.on-pos .sale-bar { display: flex; }
   .page > div > .btn, .page .btn-primary.btn-sm { flex: 0 1 auto; }
 }
 </style>
+<link rel="stylesheet" href="theme.css?v=3">
 
 <!-- SIDEBAR -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
@@ -2142,7 +2143,7 @@ function doLogout() {
             <option>MOHRE / Labour</option><option>Medical Application</option><option>Trade Licence Support</option><option>Other Government</option>
           </select>
         </div>
-        <div class="fg"><label>Customer * <a href="#" onclick="openNewCustForApp();return false" style="float:right;font-weight:700;color:var(--blue,#2563eb);text-decoration:none">+ Add new</a></label>
+        <div class="fg"><label>Customer * <a href="#" onclick="openNewCustForApp();return false" style="float:right;font-weight:700;color:var(--accent);text-decoration:none">+ Add new</a></label>
           <select id="na-customer"><option value="">— Select Customer —</option></select>
         </div>
         <div class="fg"><label>Priority</label>
@@ -2421,7 +2422,7 @@ function doLogout() {
     </div>
     <div class="modal-body" style="padding:0;background:#e5e7eb;">
       <div style="padding:20px;overflow-y:auto;max-height:80vh;">
-        <div id="qt-print-area" style="background:#fff;max-width:740px;margin:0 auto;padding:48px;font-family:'Poppins',sans-serif;font-size:13px;color:#111;box-shadow:0 4px 24px rgba(0,0,0,.12);border-radius:4px;"></div>
+        <div id="qt-print-area" style="background:#fff;max-width:740px;margin:0 auto;padding:48px;font-family:'Plus Jakarta Sans','Poppins',sans-serif;font-size:13px;color:#111;box-shadow:0 4px 24px rgba(0,0,0,.12);border-radius:4px;"></div>
       </div>
     </div>
   </div>
@@ -4009,8 +4010,8 @@ function doPrintQt() {
   const area = document.getElementById('qt-print-area').innerHTML
   const w = window.open('','_blank','width=860,height=900')
   w.document.write(`<!DOCTYPE html><html><head><title>Quotation</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap">
-    <style>*{box-sizing:border-box}body{font-family:'Poppins',sans-serif;margin:0;padding:40px;font-size:13px;}@media print{body{padding:0;}}</style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+    <style>*{box-sizing:border-box}body{font-family:'Plus Jakarta Sans','Poppins',sans-serif;margin:0;padding:40px;font-size:13px;}@media print{body{padding:0;}}</style>
     </head><body>${area}<script>window.onload=function(){window.print();window.onafterprint=function(){window.close()};}<\/script></body></html>`)
   w.document.close()
 }
@@ -4354,6 +4355,7 @@ function exportReportCSV() {
 // APPEARANCE / THEME
 // ══════════════════════════════════════════════════════════
 const ACCENT_PRESETS = [
+  { name:'Navy',       hex:'1f4e8c' },
   { name:'Blue',       hex:'2563eb' },
   { name:'Indigo',     hex:'4f46e5' },
   { name:'Violet',     hex:'7c3aed' },
@@ -4402,10 +4404,6 @@ function applyAccentHex(hex) {
   root.style.setProperty('--accent',       full)
   root.style.setProperty('--accent-light', light)
   root.style.setProperty('--sidebar-active', full)
-  // update sidebar highlight color
-  document.querySelectorAll('.nav-item.active').forEach(el => {
-    el.style.background = full
-  })
   updateAccentUI(hex)
 }
 
@@ -4486,7 +4484,7 @@ function updateThemeToggleBtn() {
 }
 
 function saveAppearance() {
-  const hex   = (document.getElementById('accent-hex')?.value||'2563eb').replace(/^#/,'')
+  const hex   = (document.getElementById('accent-hex')?.value||'1f4e8c').replace(/^#/,'')
   const theme = document.documentElement.getAttribute('data-theme') || 'light'
   try { localStorage.setItem('alnoor_accent', hex); localStorage.setItem('alnoor_theme', theme) } catch(e){}
   showToast('Appearance saved','success')
@@ -4498,14 +4496,15 @@ function resetAppearance() {
   document.documentElement.style.removeProperty('--accent')
   document.documentElement.style.removeProperty('--accent-light')
   document.documentElement.style.removeProperty('--sidebar-active')
-  updateAccentUI('2563eb')
+  updateAccentUI('1f4e8c')
   updateThemeToggleBtn()
   showToast('Reset to default','info')
 }
 
 function initAppearance() {
   try {
-    const hex   = localStorage.getItem('alnoor_accent') || '2563eb'
+    let hex   = localStorage.getItem('alnoor_accent') || '1f4e8c'
+    if (hex.toLowerCase() === '2563eb') hex = '1f4e8c'   // old default blue -> new brand navy
     const theme = localStorage.getItem('alnoor_theme')  || 'light'
     if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark')
     else document.documentElement.setAttribute('data-theme','light')
@@ -4661,7 +4660,7 @@ function loadTemplatesTab() { renderTplList() }
 // Called when Appearance tab opens
 function loadAppearanceTab() {
   buildPresets()
-  const hex = (localStorage.getItem('alnoor_accent') || '2563eb')
+  const hex = (localStorage.getItem('alnoor_accent') || '1f4e8c')
   updateAccentUI(hex)
   updateThemeToggleBtn()
 }
@@ -6238,11 +6237,12 @@ async function loadDashboardData() {
   const bw = 30, gap = (414 - bw * week.length) / Math.max(1, week.length - 1)
   const bars = week.map((w, i) => {
     const h = Math.round(w.amount / nice * 110), x = 52 + i * (bw + gap), y = 130 - h, last = i === week.length - 1
-    return `<rect x="${x}" y="${w.amount ? y : 128}" width="${bw}" height="${w.amount ? h : 2}" rx="3" fill="#2563eb" opacity="${last ? 1 : .7}"/>` +
-      (w.amount ? `<text x="${x + bw/2}" y="${y - 5}" font-size="9" fill="#2563eb" text-anchor="middle" font-weight="700">${k(w.amount)}</text>` : '') +
+    return `<rect x="${x}" y="${w.amount ? y : 128}" width="${bw}" height="${w.amount ? h : 2}" rx="8" fill="url(#${last ? 'dbgl' : 'dbg'})"/>` +
+      (w.amount ? `<text x="${x + bw/2}" y="${y - 5}" font-size="9" fill="var(--accent)" text-anchor="middle" font-weight="700">${k(w.amount)}</text>` : '') +
       `<text x="${x + bw/2}" y="145" font-size="9" fill="var(--fg3)" text-anchor="middle" ${last ? 'font-weight="700"' : ''}>${last ? 'Today' : dEsc(w.label)}</text>`
   }).join('')
   document.getElementById('dash-week-chart').innerHTML = `<svg viewBox="0 0 460 160" style="width:100%;display:block;overflow:visible;">
+    <defs><linearGradient id="dbg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--bar-a)"/><stop offset="1" stop-color="var(--bar-b)"/></linearGradient><linearGradient id="dbgl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--bar-hi-a)"/><stop offset="1" stop-color="var(--bar-hi-b)"/></linearGradient></defs>
     <line x1="36" y1="10" x2="36" y2="130" stroke="var(--border)"/><line x1="36" y1="130" x2="450" y2="130" stroke="var(--border)"/>
     <line x1="36" y1="75" x2="450" y2="75" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/><line x1="36" y1="20" x2="450" y2="20" stroke="var(--border)" stroke-width=".5" stroke-dasharray="3,3"/>
     <text x="30" y="133" font-size="9" fill="var(--fg3)" text-anchor="end">0</text><text x="30" y="78" font-size="9" fill="var(--fg3)" text-anchor="end">${k(nice/2)}</text><text x="30" y="23" font-size="9" fill="var(--fg3)" text-anchor="end">${k(nice)}</text>${bars}</svg>`

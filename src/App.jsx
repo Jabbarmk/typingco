@@ -48,15 +48,15 @@ function LoginPage({ onLogin }) {
     outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit',
     transition: 'border-color .15s, box-shadow .15s',
   }
-  const focusOn  = e => { e.target.style.borderColor = '#2563EB'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,.12)' }
+  const focusOn  = e => { e.target.style.borderColor = '#1F4E8C'; e.target.style.boxShadow = '0 0 0 3px rgba(27,181,211,.18)' }
   const focusOff = e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none' }
   const labelStyle = { display: 'block', color: '#64748B', fontSize: 12, fontWeight: 600, marginBottom: 7, letterSpacing: '.03em', textTransform: 'uppercase' }
 
   return (
     <div style={{
       minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'linear-gradient(160deg, #ffffff 0%, #f6f8ff 45%, #eef2ff 100%)',
-      fontFamily: "'Poppins', system-ui, sans-serif",
+      background: 'linear-gradient(160deg, #E8F0F9 0%, #F5F8FC 46%, #E4F1F5 100%)',
+      fontFamily: "'Plus Jakarta Sans','Poppins', system-ui, sans-serif",
       padding: '20px', boxSizing: 'border-box',
     }}>
       <div style={{ width: '100%', maxWidth: 420, position: 'relative' }}>
@@ -113,7 +113,7 @@ function LoginPage({ onLogin }) {
 
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '12px', minHeight: 48, borderRadius: 12, border: 'none',
-              background: loading ? '#93B4F5' : 'linear-gradient(135deg, #2563EB, #4F46E5)',
+              background: loading ? '#9DB6D6' : 'linear-gradient(135deg, #1F4E8C, #2C6AB0)',
               color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit', letterSpacing: '.01em',
               boxShadow: loading ? 'none' : '0 6px 18px rgba(37,99,235,.3)',
@@ -130,7 +130,7 @@ function LoginPage({ onLogin }) {
           <div style={{ color: '#94A3B8' }}>
             Powered by{' '}
             <a href="https://www.smartflix.ae" target="_blank" rel="noopener noreferrer"
-              style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}>Smartflix</a>
+              style={{ color: '#1F4E8C', textDecoration: 'none', fontWeight: 600 }}>Smartflix</a>
           </div>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function App() {
         background: '#fff', borderBottom: '1px solid #E2E8F0',
         display: 'flex', alignItems: 'center', padding: '0 12px',
         height: 48, flexShrink: 0, zIndex: 200, gap: 0, overflowX: 'auto',
-        fontFamily: "'Poppins',system-ui,sans-serif",
+        fontFamily: "'Plus Jakarta Sans','Poppins',system-ui,sans-serif",
       }}>
         <style>{`@media (max-width: 640px){ .tb-hide-sm{display:none !important} .tb-tab{padding:0 10px !important} }`}</style>
         <img className="tb-hide-sm" src="/typingo-logo.png" alt="Typingo" style={{ height: 28, width: 'auto', marginRight: 12, mixBlendMode: 'multiply', flexShrink: 0 }} />
@@ -203,7 +203,7 @@ export default function App() {
           <span className="tb-hide-sm" style={{ color: '#CBD5E1' }}>|</span>
           {/* User pill */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: '#F1F5F9', borderRadius: 20, padding: '3px 10px 3px 4px' }}>
-            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+            <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1F4E8C', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10, fontWeight: 700 }}>
               {user.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
             </div>
             <span className="tb-hide-sm" style={{ color: '#17233C', fontSize: 12, fontWeight: 500 }}>{user.name.split(' ')[0]}</span>
@@ -250,7 +250,7 @@ function PhaseTab({ id, label, sub, icon, active, onClick }) {
     <button className="tb-tab" onClick={() => onClick(id)} style={{
       display: 'flex', alignItems: 'center', gap: 6,
       padding: '0 14px', height: 48, background: 'transparent', border: 'none',
-      borderBottom: `2px solid ${isActive ? '#2563EB' : 'transparent'}`,
+      borderBottom: `2px solid ${isActive ? '#1F4E8C' : 'transparent'}`,
       color: isActive ? '#17233C' : '#64748B',
       cursor: 'pointer', fontSize: 13, fontWeight: isActive ? 600 : 400,
       fontFamily: 'inherit', transition: 'all .15s', whiteSpace: 'nowrap',

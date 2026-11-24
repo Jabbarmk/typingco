@@ -261,6 +261,7 @@ export function registerAccounting(app) {
   app.get('/api/:cid/accounting/ledger', async (req, res) => {
     const cid = req.params.cid
     const accountId = parseInt(req.query.account_id)
+    if (!Number.isInteger(accountId)) return res.status(400).json({ error: 'Select an account' })
     const from = isDate(req.query.from) ? req.query.from : null
     const to   = isDate(req.query.to) ? req.query.to : null
     const [[acc]] = await pool.query('SELECT * FROM chart_of_accounts WHERE id=? AND company_id=?', [accountId, cid])

@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
 import pool from './db.js'
+import { repairSchema } from './schema-repair.js'
 import { registerInvoiceSettings, ensureInvoiceSettingsSchema } from './invoice-settings.js'
 import { registerAccounting, ensureAccountingSchema, syncInvoiceJournal, syncExpenseJournal, removeExpenseJournal } from './accounting.js'
 
@@ -11,6 +12,7 @@ dotenv.config()
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '3mb' }))   // logos are sent as data URLs
+try { await repairSchema() } catch (e) { console.error('schema-repair failed:', e.message) }
 await ensureAccountingSchema()
 await ensureInvoiceSettingsSchema()
 registerAccounting(app)
@@ -441,8 +443,14 @@ app.patch('/api/:cid/customers/:id', async (req, res) => {
 })
 
 app.delete('/api/:cid/customers/:id', async (req, res) => {
-  await pool.query('DELETE FROM customers WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
-  res.json({ ok: true })
+  try {
+    await pool.query('DELETE FROM customers WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+    res.json({ ok: true })
+  } catch (e) {
+    if (e.code === 'ER_ROW_IS_REFERENCED_2' || e.errno === 1451)
+      return res.status(409).json({ error: 'This customer has invoices or applications and cannot be deleted.' })
+    res.status(500).json({ error: e.message })
+  }
 })
 
 // ─── INVOICES ──────────────────────────────────────────────
@@ -618,35 +626,55 @@ app.get('/api/:cid/applications', async (req, res) => {
 
 app.post('/api/:cid/applications', async (req, res) => {
   const { app_number, customer_id, customer_name, service_type, priority, govt_fee, service_fee, notes, assigned_to, expected_date } = req.body
-  // Auto-generate app_number if not provided
-  let ref = app_number
-  if (!ref) {
-    const [[{ maxId }]] = await pool.query('SELECT COALESCE(MAX(id),0) AS maxId FROM applications WHERE company_id=?', [req.params.cid])
-    ref = 'APP-' + String(maxId + 1).padStart(4, '0')
+  // app_number is unique across ALL companies: use the requested one only if free, else the next free APP-####
+  const nextAppNumber = async () => {
+    const [[{ m }]] = await pool.query("SELECT COALESCE(MAX(CAST(SUBSTRING(app_number,5) AS UNSIGNED)),0) AS m FROM applications WHERE app_number REGEXP '^APP-[0-9]+$'")
+    return 'APP-' + String(Number(m) + 1).padStart(4, '0')
   }
-  const [r] = await pool.query(
-    `INSERT INTO applications (company_id,app_number,customer_id,customer_name,service_type,priority,govt_fee,service_fee,notes,assigned_to,expected_date)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-    [req.params.cid, ref, customer_id||null, customer_name||null, service_type, priority||'normal', govt_fee||0, service_fee||0, notes||null, assigned_to||null, expected_date||null])
+  let ref = app_number
+  if (ref) { const [[dup]] = await pool.query('SELECT id FROM applications WHERE app_number=?', [ref]); if (dup) ref = null }
+  if (!ref) ref = await nextAppNumber()
+  let r
+  for (let attempt = 0; ; attempt++) {
+    try {
+      ;[r] = await pool.query(
+        `INSERT INTO applications (company_id,app_number,customer_id,customer_name,service_type,priority,govt_fee,service_fee,notes,assigned_to,expected_date)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [req.params.cid, ref, customer_id||null, customer_name||null, service_type, priority||'normal', govt_fee||0, service_fee||0, notes||null, assigned_to||null, expected_date||null])
+      break
+    } catch (e) {
+      if (e.code === 'ER_DUP_ENTRY' && attempt < 5) { ref = await nextAppNumber(); continue }
+      return res.status(500).json({ error: e.message })
+    }
+  }
   const [[row]] = await pool.query('SELECT * FROM applications WHERE id=?', [r.insertId])
   res.status(201).json(row)
 })
 
 app.patch('/api/:cid/applications/:id', async (req, res) => {
   const { status, note, changed_by, govt_ref, assigned_to, expected_date } = req.body
-  const [[old]] = await pool.query('SELECT status FROM applications WHERE id=?', [req.params.id])
+  const [[old]] = await pool.query('SELECT status FROM applications WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  if (!old) return res.status(404).json({ error: 'Application not found' })
   await pool.query(
-    `UPDATE applications SET status=?,
+    `UPDATE applications SET status=COALESCE(?,status),
       govt_ref=COALESCE(?,govt_ref),
       assigned_to=COALESCE(?,assigned_to),
       expected_date=COALESCE(?,expected_date),
+      submitted_at=IF(? = 'submitted' AND submitted_at IS NULL, NOW(), submitted_at),
+      completed_at=IF(? = 'completed' AND completed_at IS NULL, NOW(), completed_at),
       updated_at=NOW()
      WHERE id=? AND company_id=?`,
-    [status, govt_ref||null, assigned_to||null, expected_date||null, req.params.id, req.params.cid])
-  if (old) {
+    [status||null, govt_ref||null, assigned_to||null, expected_date||null, status||null, status||null, req.params.id, req.params.cid])
+  if (status && status !== old.status) {
+    // changed_by must be a real user id (foreign key); anything else is stored as unknown
+    let by = null
+    if (Number.isInteger(Number(changed_by)) && Number(changed_by) > 0) {
+      const [[u]] = await pool.query('SELECT id FROM users WHERE id=?', [Number(changed_by)])
+      if (u) by = u.id
+    }
     await pool.query(
       'INSERT INTO application_history (application_id,from_status,to_status,note,changed_by) VALUES (?,?,?,?,?)',
-      [req.params.id, old.status, status, note||null, changed_by||null])
+      [req.params.id, old.status, status, note||null, by])
   }
   const [[row]] = await pool.query('SELECT * FROM applications WHERE id=?', [req.params.id])
   res.json(row)
@@ -825,9 +853,14 @@ app.post('/api/:cid/quotations', async (req, res) => {
   const { lead_id, lead_name, lead_phone, lead_email, lead_company,
           issue_date, valid_until, notes, lines = [], discount_amt = 0, created_by } = req.body
 
-  // Auto-generate quote number
-  const [[{ n }]] = await pool.query('SELECT COUNT(*)+1 AS n FROM quotations WHERE company_id=?', [cid])
-  const quote_number = `QT-${new Date().getFullYear()}-${String(n).padStart(4,'0')}`
+  const year = new Date().getFullYear()
+  const nextQuoteNumber = async () => {
+    // quote_number is unique across ALL companies, so number from the global maximum
+    const [[{ m }]] = await pool.query(
+      'SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(quote_number,"-",-1) AS UNSIGNED)),0) AS m FROM quotations WHERE quote_number LIKE ?', [`QT-${year}-%`])
+    return `QT-${year}-${String(Number(m) + 1).padStart(4,'0')}`
+  }
+  let quote_number = await nextQuoteNumber()
 
   let subtotal = 0, vat_amount = 0
   for (const l of lines) {
@@ -837,12 +870,21 @@ app.post('/api/:cid/quotations', async (req, res) => {
   }
   const total = subtotal - parseFloat(discount_amt) + vat_amount
 
-  const [r] = await pool.query(
-    `INSERT INTO quotations (company_id,quote_number,lead_id,lead_name,lead_phone,lead_email,lead_company,
-      issue_date,valid_until,subtotal,discount_amt,vat_amount,total,notes,created_by)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [cid, quote_number, lead_id||null, lead_name||null, lead_phone||null, lead_email||null, lead_company||null,
-     issue_date, valid_until||null, subtotal, discount_amt, vat_amount, total, notes||null, created_by||null])
+  let r
+  for (let attempt = 0; ; attempt++) {
+    try {
+      ;[r] = await pool.query(
+        `INSERT INTO quotations (company_id,quote_number,lead_id,lead_name,lead_phone,lead_email,lead_company,
+          issue_date,valid_until,subtotal,discount_amt,vat_amount,total,notes,created_by)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [cid, quote_number, lead_id||null, lead_name||null, lead_phone||null, lead_email||null, lead_company||null,
+         issue_date, valid_until||null, subtotal, discount_amt, vat_amount, total, notes||null, created_by||null])
+      break
+    } catch (e) {
+      if (e.code === 'ER_DUP_ENTRY' && attempt < 5) { quote_number = await nextQuoteNumber(); continue }
+      return res.status(500).json({ error: e.message })
+    }
+  }
 
   const qid = r.insertId
   for (const l of lines) {

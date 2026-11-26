@@ -5,6 +5,7 @@ export default function TypingERP() {
     <iframe
       src="/phases/erp.html"
       title="Typing Centre ERP"
+      allow="web-share; clipboard-write"
       style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
     />
   )

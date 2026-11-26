@@ -1,0 +1,117 @@
+/* Phone and tablet polish for the ERP. Loaded after theme.css. Desktop layout is not affected (except the first block). */
+
+/* the bar must keep its height on long pages (it was being squeezed by the column layout) */
+.topbar { flex-shrink: 0; }
+/* assistant: below dialogs and the side menu, so it can never cover their buttons */
+#cb-fab { z-index: 235; }
+#cb-panel { z-index: 260; }
+.tb-chat { display: none; }
+.tb-mtitle { display: none; }
+@media (min-width: 768px) { .page-content { padding-bottom: 96px; } }        /* room for the floating assistant button */
+
+/* ───────── phones ───────── */
+@media (max-width: 767.98px) {
+  /* top bar: page name instead of the app name; the assistant sits here instead of floating over the content */
+  .tb-names { display: none; }
+  .tb-mtitle { display: block; font-size: 17px; font-weight: 800; letter-spacing: -.02em; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .tb-chat { display: flex; align-items: center; justify-content: center; color: var(--accent); }
+  #topbar-avatar { display: none; }
+  #cb-fab { display: none !important; }
+  .topbar { gap: 4px; }
+  .icon-btn { width: 42px; height: 42px; }
+
+  /* 16px boxes: anything smaller makes iPhones zoom in when you tap it */
+  input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]), select, textarea { font-size: 16px !important; }
+  .page input:not([type=checkbox]):not([type=radio]):not([type=color]), .page select, .modal input:not([type=checkbox]):not([type=radio]):not([type=color]), .modal select { min-height: 44px; }
+  .search-bar input { min-height: 44px !important; }
+  input[type=checkbox], input[type=radio] { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* comfortable tap sizes */
+  .ops-chip { min-height: 40px; padding: 8px 16px; }
+  .cust-tab-btn { min-height: 40px; }
+  .btn-xs { min-height: 40px; }
+  .modal-close { width: 40px; height: 40px; border: none; background: var(--surface2); border-radius: 12px; font-size: 16px; }
+  .svc-act { width: 42px; height: 42px; }
+  .perm-group h5 button, .cat-group h4 .btn { min-height: 40px; padding: 0 10px; }
+  .perm-grid label { min-height: 38px; }
+  .cb-acts button, .cb-chip { min-height: 38px; }
+  .cb-head button { width: 40px; height: 40px; }
+  .sidebar-footer button { min-width: 40px; min-height: 40px; }
+
+  /* filter chips and tabs scroll sideways in one line */
+  .ops-chips, .cprof-tabs { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .ops-chips::-webkit-scrollbar, .cprof-tabs::-webkit-scrollbar { display: none; }
+  .ops-chip { flex: 0 0 auto; white-space: nowrap; }
+
+  /* card lists: one per row */
+  .page #cust-grid, .page #emp-cards, .page #role-cards, .page .svc-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .page #pf-tables { grid-template-columns: minmax(0, 1fr) !important; }
+  .cust-card > div:last-child { flex-wrap: wrap; }
+  .cust-card > div:last-child .btn { flex: 1 1 auto; margin-left: 0 !important; }
+
+  /* number tiles */
+  .page .rpt-kpis, .shift-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+  .rpt-kpi { padding: 12px; }
+  .rpt-kpi b { font-size: 16.5px; overflow-wrap: anywhere; }
+  .rpt-kpi span { font-size: 10px; }
+  .page .rpt-kpis > .rpt-kpi:last-child:nth-child(odd), .shift-grid > .rpt-kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .shift-card { padding: 16px; }
+
+  /* date filters: the two dates side by side, quick buttons below, the drop-down full width */
+  .ops-filter { gap: 8px; padding: 12px; }
+  .ops-filter > span { display: none; }
+  .ops-filter > input[type=date] { flex: 1 1 calc(50% - 4px); width: auto !important; min-width: 0; padding: 8px 10px !important; }
+  .ops-filter > .btn { flex: 1 1 auto; }
+  .ops-filter > div { width: 100%; }
+  .ops-filter > div > .btn { flex: 1 1 auto; }
+  .ops-filter > select { flex: 1 1 100%; margin-left: 0 !important; width: 100% !important; }
+
+  /* table cards: a title with a small line under it stays together on the right; blank cells disappear */
+  .page .tw > table:not(.inv-table):not(.keep-table) td:has(> strong + div) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 1px; }
+  .page .tw > table:not(.inv-table):not(.keep-table) td:has(> strong + div)::before { grid-column: 1; grid-row: 1 / span 4; align-self: center; }
+  .page .tw > table:not(.inv-table):not(.keep-table) td:has(> strong + div) > * { grid-column: 2; justify-self: end; text-align: right; }
+  .page .tw > table:not(.inv-table):not(.keep-table) td:empty { display: none; }
+
+  /* quotation form: one column */
+  .page#page-qt-form .qt-form-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  #page-qt-form .qt-head .btn { flex: 1 1 auto; }
+  #page-qt-form .qt-head h2 { flex: 1 1 auto !important; }
+  #qt-lines-table td input, #qt-lines-table td select { width: 100% !important; max-width: 190px; text-align: right; }
+  #qt-lines-table td:first-child input { max-width: none; text-align: left; }
+  #qtf-discount { width: 130px !important; }
+
+  /* journal lines and invoice lines: the long box on its own row, the small ones beneath it */
+  .modal #je-lines > div, .modal #edit-inv-lines > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 46px !important; padding: 10px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+  #je-lines > div > :first-child, #edit-inv-lines > div > :first-child { grid-column: 1 / -1; }
+  #je-lines > div > .btn, #edit-inv-lines > div > .btn { min-height: 44px; padding: 0 !important; }
+
+  /* catalogue rows */
+  .modal .cat-row { grid-template-columns: 24px minmax(0, 1fr) 76px 76px !important; gap: 7px; }
+  .cat-row input[type=number] { padding: 4px 6px; }
+  #cat-body { overflow-x: hidden; }
+
+  /* upload dialog: full-width boxes */
+  .modal .m-stack { grid-template-columns: minmax(0, 1fr) !important; }
+
+  /* dialogs: action buttons share the row and stay reachable */
+  .modal-footer #cat-count { flex: 1 1 100%; }
+  .nc-photo-row { flex-wrap: nowrap; }
+
+  /* assistant fills the screen like a chat app */
+  #cb-panel { top: 0; bottom: 0; left: 0; right: 0; width: 100%; max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; border: none; z-index: 320; }
+  .cb-head { padding-top: calc(14px + var(--sat)); }
+  .cb-form { padding-bottom: calc(12px + var(--sab)); }
+  .cb-form input { min-height: 46px; } .cb-form button { width: 46px; height: 46px; }
+  .cb-t { font-size: 12.5px; }
+}
+
+/* ───────── very small phones ───────── */
+@media (max-width: 359.98px) {
+  .page .rpt-kpis, .shift-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  .tb-db { display: none; }
+}
+/* ───────── phone held sideways ───────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .topbar { height: 52px; }
+  body.on-pos .sale-bar { padding-top: 6px; padding-bottom: calc(6px + var(--sab)); }
+}

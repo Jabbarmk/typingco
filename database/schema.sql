@@ -3,10 +3,10 @@
 -- MySQL 8.x | Charset: utf8mb4 | Timezone: Asia/Dubai
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS alnoor_erp
+CREATE DATABASE IF NOT EXISTS typingo_erp
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE alnoor_erp;
+USE typingo_erp;
 
 -- ============================================================
 -- SUPER ADMIN LAYER
@@ -79,9 +79,27 @@ CREATE TABLE IF NOT EXISTS users (
   password     VARCHAR(255)  NOT NULL,            -- bcrypt hash
   role         ENUM('superadmin','admin','manager','operator') DEFAULT 'operator',
   is_active    TINYINT(1)    NOT NULL DEFAULT 1,
+  phone        VARCHAR(30)   NULL,
+  department   VARCHAR(100)  NULL,
+  job_title    VARCHAR(100)  NULL,
+  commission_rate DECIMAL(5,2) NOT NULL DEFAULT 0,      -- % of service income earned by this staff member
+  role_id      INT           NULL,                      -- the role (set of permissions) from the roles table; role above stays as the base type
   last_login   TIMESTAMP     NULL,
   created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id)
+);
+
+-- Roles: a named set of permissions, per company. Users point at one through users.role_id.
+CREATE TABLE IF NOT EXISTS roles (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  company_id   INT           NOT NULL,
+  name         VARCHAR(60)   NOT NULL,
+  description  VARCHAR(200)  NULL,
+  base         VARCHAR(10)   NOT NULL DEFAULT 'operator',  -- admin | manager | operator: the legacy type stored on users.role
+  permissions  TEXT          NULL,                          -- JSON array of permission ids
+  is_system    TINYINT(1)    NOT NULL DEFAULT 0,            -- built-in roles cannot be deleted
+  created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_role_name (company_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS audit_logs (
@@ -111,10 +129,13 @@ CREATE TABLE IF NOT EXISTS customers (
   nationality   VARCHAR(60),
   id_type       ENUM('emirates_id','passport','visa','other') DEFAULT 'emirates_id',
   id_number     VARCHAR(50),
+  id_expiry     DATE          NULL,                     -- expiry of the ID above; kept in step with the matching document so renewals work
   emirate       VARCHAR(50)   DEFAULT 'Dubai',
   customer_type ENUM('individual','company','freelancer') DEFAULT 'individual',
   trn           VARCHAR(15),
   notes         TEXT,
+  photo         MEDIUMTEXT    NULL,                     -- profile picture as a small data URL; served by /customers/:id/photo
+  photo_version INT           NOT NULL DEFAULT 0,       -- bumps when the picture changes so browsers reload it
   created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id) REFERENCES companies(id)
 );
@@ -124,7 +145,8 @@ CREATE TABLE IF NOT EXISTS services (
   company_id   INT           NOT NULL,
   name         VARCHAR(150)  NOT NULL,
   category     VARCHAR(60),
-  unit_price   DECIMAL(10,2) NOT NULL,
+  unit_price   DECIMAL(10,2) NOT NULL,                 -- total the customer pays (government fee + service charge)
+  gov_fee      DECIMAL(10,2) NOT NULL DEFAULT 0,       -- part of unit_price that is a government / third-party fee (pass-through, not shop income)
   vat_category ENUM('S','Z','E','O') DEFAULT 'S',
   icon         VARCHAR(20)   DEFAULT NULL,
   is_active    TINYINT(1)    NOT NULL DEFAULT 1,
@@ -151,6 +173,8 @@ CREATE TABLE IF NOT EXISTS invoices (
   einvoice_status ENUM('none','queued','submitted','cleared','failed') DEFAULT 'none',
   einvoice_uuid   VARCHAR(100),
   notes           TEXT,
+  created_by      INT            NULL,                  -- staff member who made the sale
+  created_by_name VARCHAR(100)   NULL,
   created_at      TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id)  REFERENCES companies(id),
   FOREIGN KEY (customer_id) REFERENCES customers(id)
@@ -179,7 +203,7 @@ CREATE TABLE IF NOT EXISTS applications (
   customer_name   VARCHAR(150),
   service_type    VARCHAR(150)  NOT NULL,
   status          ENUM('new','doc_pending','ready_to_submit','submitted','processing','under_process','completed','rejected') DEFAULT 'new',
-  priority        ENUM('normal','urgent') DEFAULT 'normal',
+  priority        ENUM('normal','high','urgent') DEFAULT 'normal',
   govt_ref        VARCHAR(100),
   govt_ref_number VARCHAR(100),
   govt_fee        DECIMAL(10,2) DEFAULT 0,
@@ -416,12 +440,55 @@ CREATE TABLE IF NOT EXISTS documents (
   file_size       INT,
   mime_type       VARCHAR(100),
   expires_at      DATE,
+  doc_number      VARCHAR(60)  NULL,                  -- the number on the document (Emirates ID no., passport no., licence no.…)
   uploaded_by     INT,
+  last_reminded_at TIMESTAMP   NULL,
+  reminder_count  INT          NOT NULL DEFAULT 0,
   created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (company_id)     REFERENCES companies(id),
   FOREIGN KEY (customer_id)    REFERENCES customers(id),
   FOREIGN KEY (application_id) REFERENCES applications(id),
   FOREIGN KEY (uploaded_by)    REFERENCES users(id)
+);
+
+-- Every renewal reminder sent (or attempted) to a customer
+CREATE TABLE IF NOT EXISTS reminder_log (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  company_id    INT          NOT NULL,
+  document_id   INT          NULL,
+  customer_id   INT          NULL,
+  channel       VARCHAR(20)  NOT NULL DEFAULT 'whatsapp',
+  mode          VARCHAR(10)  NOT NULL DEFAULT 'manual',   -- manual (staff clicked) | auto (sent by the scheduler)
+  stage_days    INT          NULL,                        -- auto reminders: 30 / 14 / 7 / 1 / 0 days before expiry
+  status        VARCHAR(10)  NOT NULL DEFAULT 'sent',     -- sent | failed
+  phone         VARCHAR(30)  NULL,
+  message       TEXT         NULL,
+  error         VARCHAR(300) NULL,
+  sent_by       INT          NULL,
+  created_at    TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_rl_doc (document_id, stage_days, status)
+);
+
+-- Cashier shifts: opening float, expected vs counted cash, difference
+CREATE TABLE IF NOT EXISTS shifts (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  company_id     INT           NOT NULL,
+  user_id        INT           NULL,
+  user_name      VARCHAR(100)  NULL,
+  opened_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  closed_at      TIMESTAMP     NULL,
+  opening_cash   DECIMAL(12,2) NOT NULL DEFAULT 0,
+  cash_sales     DECIMAL(12,2) NOT NULL DEFAULT 0,
+  card_sales     DECIMAL(12,2) NOT NULL DEFAULT 0,
+  transfer_sales DECIMAL(12,2) NOT NULL DEFAULT 0,
+  credit_sales   DECIMAL(12,2) NOT NULL DEFAULT 0,
+  expected_cash  DECIMAL(12,2) NULL,
+  counted_cash   DECIMAL(12,2) NULL,
+  difference     DECIMAL(12,2) NULL,                       -- counted - expected (negative = cash short)
+  invoice_count  INT           NOT NULL DEFAULT 0,
+  notes          VARCHAR(300)  NULL,
+  status         VARCHAR(10)   NOT NULL DEFAULT 'open',
+  INDEX idx_shift (company_id, status, opened_at)
 );
 
 -- ============================================================

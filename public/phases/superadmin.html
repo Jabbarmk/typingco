@@ -1,5 +1,7 @@
 <title>TypingCo Super Admin</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
@@ -501,6 +503,7 @@ textarea { resize: vertical; min-height: 80px; }
 .sub-usage-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--fg3); margin-bottom: 4px; }
 </style>
 <link rel="stylesheet" href="theme.css?v=4">
+<link rel="stylesheet" href="mobile-pages.css?v=2">
 
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
@@ -1239,7 +1242,7 @@ function doLogout() {
           <div class="form-group"><label>Admin First Name *</label><input id="admin-fname" placeholder="Ahmed"></div>
           <div class="form-group"><label>Admin Last Name *</label><input id="admin-lname" placeholder="Al Mazrouei"></div>
           <div class="form-group"><label>Admin Email *</label><input type="email" id="admin-email" placeholder="admin@company.ae"></div>
-          <div class="form-group"><label>Mobile</label><input type="tel" placeholder="+971 X XXX XXXX"></div>
+          <div class="form-group"><label>Mobile</label><input type="tel" id="admin-phone" placeholder="+971 X XXX XXXX"></div>
           <div class="form-group full"><label>Temporary Password</label>
             <div style="display:flex;gap:8px;">
               <input type="text" id="temp-pass" placeholder="Auto-generated" style="flex:1;">
@@ -1248,7 +1251,7 @@ function doLogout() {
           </div>
           <div class="form-group full" style="margin-top:4px;">
             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-              <input type="checkbox" checked> Send welcome email with login instructions
+              <input type="checkbox" id="admin-welcome" checked> Send welcome email with login instructions
             </label>
           </div>
         </div>
@@ -2128,6 +2131,11 @@ async function createCompany() {
   const email = document.getElementById('admin-email').value.trim();
   if (!name) { showToast('Company name is required'); return; }
   if (!email) { showToast('Admin email is required'); return; }
+  // the company's first login: its administrator, created together with the company
+  if (!document.getElementById('temp-pass').value.trim()) genPassword();
+  const password = document.getElementById('temp-pass').value.trim();
+  if (password.length < 6) { showToast('Temporary password must be at least 6 characters'); return; }
+  const adminName = [document.getElementById('admin-fname').value.trim(), document.getElementById('admin-lname').value.trim()].filter(Boolean).join(' ');
   const planObj = plans.find(p => p.name.toLowerCase() === selectedPlan.toLowerCase());
   try {
     const newCo = await apiFetch('/companies', {
@@ -2139,12 +2147,19 @@ async function createCompany() {
         emirate: 'UAE',
         plan_id: planObj ? planObj.id : null,
         status: selectedPlan === 'trial' ? 'trial' : 'active',
+        admin: { name: adminName || 'Administrator', email, password, phone: document.getElementById('admin-phone').value.trim() || null,
+                 welcome: document.getElementById('admin-welcome').checked, login_url: location.origin + '/' },
       }),
     });
     companies.unshift(normalizeCompany(newCo, 0));
     closeCreateCompanyPage();
-    showToast('Company "' + name + '" created successfully');
     showPage('companies', document.querySelector('.nav-item:nth-child(3)'));
+    try { users = await apiFetch('/users'); renderUsers(users); } catch (e) {}
+    const w = newCo.welcome;
+    alert('Company "' + name + '" created.\n\nAdmin login\nEmail: ' + email + '\nTemporary password: ' + password + '\n\n'
+      + (w && w.sent ? 'A welcome e-mail with these details was sent to ' + email + '.'
+                     : (w ? 'The welcome e-mail could not be sent (' + w.reason + ').\n' : '') + 'Give these details to the company admin; they should change the password after signing in.'));
+    document.getElementById('temp-pass').value = '';
   } catch(e) {
     showToast('Error creating company: ' + e.message);
   }

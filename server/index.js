@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs'
 import pool from './db.js'
 import { repairSchema } from './schema-repair.js'
 import { registerInvoiceSettings, ensureInvoiceSettingsSchema } from './invoice-settings.js'
+import { registerOps } from './ops.js'
+import { registerQuotes, sendMail } from './quotes.js'
+import { syncIdDocument, syncCustomerFromDoc, cleanDate, cleanNumber } from './ids.js'
+import { registerRoles, resolveRole, lastAdminGuard } from './roles.js'
 import { registerAccounting, ensureAccountingSchema, syncInvoiceJournal, syncExpenseJournal, removeExpenseJournal } from './accounting.js'
 
 dotenv.config()
@@ -17,6 +21,9 @@ await ensureAccountingSchema()
 await ensureInvoiceSettingsSchema()
 registerAccounting(app)
 registerInvoiceSettings(app)
+registerOps(app)
+registerQuotes(app)
+registerRoles(app)
 
 // ─── AUTH ──────────────────────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
@@ -51,7 +58,7 @@ app.post('/api/auth/logout', (req, res) => res.json({ ok: true }))
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1')
-    res.json({ ok: true, db: 'alnoor_erp', time: new Date().toISOString() })
+    res.json({ ok: true, db: 'typingo_erp', time: new Date().toISOString() })
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message })
   }
@@ -85,7 +92,17 @@ app.get('/api/companies', async (req, res) => {
 })
 
 app.post('/api/companies', async (req, res) => {
-  const { name, name_ar, trn, cr_number, email, phone, address, emirate, plan_id, status, trial_ends_at } = req.body
+  const { name, name_ar, trn, cr_number, email, phone, address, emirate, plan_id, status, trial_ends_at, admin } = req.body
+  if (!name || !String(name).trim()) return res.status(400).json({ error: 'Company name is required' })
+  // the company's first login (its administrator) is created with it; check it can be before creating anything
+  const adm = admin && admin.email ? { name: String(admin.name || '').trim() || 'Administrator', email: String(admin.email).trim().toLowerCase(),
+    password: String(admin.password || ''), phone: admin.phone || null } : null
+  if (adm) {
+    if (!/^[^\s@]+@[^\s@]+$/.test(adm.email)) return res.status(400).json({ error: 'Admin email is not valid' })
+    if (adm.password.length < 6) return res.status(400).json({ error: 'Admin password must be at least 6 characters' })
+    const [[taken]] = await pool.query('SELECT id FROM users WHERE email=?', [adm.email])
+    if (taken) return res.status(409).json({ error: `A user with the email ${adm.email} already exists` })
+  }
   const [r] = await pool.query(
     `INSERT INTO companies (name,name_ar,trn,cr_number,email,phone,address,emirate,plan_id,status,trial_ends_at)
      VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
@@ -135,6 +152,18 @@ app.post('/api/companies', async (req, res) => {
       values)
   }
   const [[company]] = await pool.query('SELECT * FROM companies WHERE id=?', [newCid])
+  if (adm) {
+    const hash = await bcrypt.hash(adm.password, 10)
+    const [u] = await pool.query('INSERT INTO users (name,email,password,role,company_id,is_active,phone) VALUES (?,?,?,?,?,1,?)',
+      [adm.name, adm.email, hash, 'admin', newCid, adm.phone])
+    company.admin = { id: u.insertId, name: adm.name, email: adm.email }
+    if (admin.welcome) {
+      const login = admin.login_url || ''
+      company.welcome = await sendMail({ to: adm.email, fromName: name, subject: `Your ${name} account is ready`,
+        text: [`Hello ${adm.name},`, '', `An account has been created for ${name}.`, '', login ? `Sign in at: ${login}` : null,
+          `Email: ${adm.email}`, `Temporary password: ${adm.password}`, '', 'Please change your password after you sign in.'].filter(x => x !== null).join('\n') })
+    }
+  }
   res.status(201).json(company)
 })
 
@@ -246,9 +275,9 @@ app.post('/api/subscriptions', async (req, res) => {
 })
 
 // ─── USERS ─────────────────────────────────────────────────
-const USER_SELECT = `SELECT u.id,u.name,u.email,u.role,u.is_active,u.last_login,u.created_at,
-  u.company_id,u.phone,u.department,u.job_title,c.name AS company_name
-  FROM users u LEFT JOIN companies c ON u.company_id=c.id`
+const USER_SELECT = `SELECT u.id,u.name,u.email,u.role,u.role_id,r.name AS role_name,u.is_active,u.last_login,u.created_at,
+  u.company_id,u.phone,u.department,u.job_title,u.commission_rate,c.name AS company_name
+  FROM users u LEFT JOIN companies c ON u.company_id=c.id LEFT JOIN roles r ON r.id=u.role_id`
 
 app.get('/api/users', async (req, res) => {
   const { company_id } = req.query
@@ -267,14 +296,22 @@ app.get('/api/users/:id', async (req, res) => {
 })
 
 app.post('/api/users', async (req, res) => {
-  const { name, email, password, role, company_id, is_active, phone, department, job_title } = req.body
+  const { name, email, password, role, role_id, company_id, is_active, phone, department, job_title, commission_rate } = req.body
   if (!name || !email || !password) return res.status(400).json({ error: 'name, email, password required' })
   const hash = await bcrypt.hash(password, 10)
+  const rate = Math.min(Math.max(parseFloat(commission_rate) || 0, 0), 100)
+  // a chosen role sets the permissions; the legacy type (admin / manager / operator) follows from it
+  let type = role || 'operator', rid = null
+  if (role_id) {
+    const rr = await resolveRole(company_id, role_id)
+    if (rr.error) return res.status(400).json({ error: rr.error })
+    rid = rr.role_id; type = rr.base
+  }
   try {
     const [r] = await pool.query(
-      'INSERT INTO users (name,email,password,role,company_id,is_active,phone,department,job_title) VALUES (?,?,?,?,?,?,?,?,?)',
-      [name, email, hash, role||'operator', company_id||null, is_active===false ? 0 : 1,
-       phone||null, department||null, job_title||null])
+      'INSERT INTO users (name,email,password,role,role_id,company_id,is_active,phone,department,job_title,commission_rate) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+      [name, email, hash, type, rid, company_id||null, is_active===false ? 0 : 1,
+       phone||null, department||null, job_title||null, rate])
     const [[row]] = await pool.query(USER_SELECT + ' WHERE u.id=?', [r.insertId])
     res.status(201).json(row)
   } catch(e) {
@@ -284,11 +321,24 @@ app.post('/api/users', async (req, res) => {
 })
 
 app.patch('/api/users/:id', async (req, res) => {
-  const { name, email, password, role, company_id, is_active, phone, department, job_title } = req.body
+  const { name, email, password, role, role_id, company_id, is_active, phone, department, job_title, commission_rate } = req.body
   const updates = {}
+  const [[cur]] = await pool.query('SELECT id, role, company_id, is_active FROM users WHERE id=?', [req.params.id])
+  if (!cur) return res.status(404).json({ error: 'Not found' })
+  if (commission_rate !== undefined) updates.commission_rate = Math.min(Math.max(parseFloat(commission_rate) || 0, 0), 100)
   if (name !== undefined)       updates.name       = name
   if (email !== undefined)      updates.email      = email
   if (role !== undefined)       updates.role       = role
+  if (role_id !== undefined) {                     // assign a role (null = back to the built-in role for their type)
+    if (role_id) {
+      const rr = await resolveRole(cur.company_id, role_id)
+      if (rr.error) return res.status(400).json({ error: rr.error })
+      updates.role_id = rr.role_id; updates.role = rr.base
+    } else updates.role_id = null
+  }
+  // the company must always keep one active admin, or nobody could manage users again
+  if (cur.role === 'admin' && cur.is_active && ((updates.role && updates.role !== 'admin') || (is_active !== undefined && !is_active)) && await lastAdminGuard(cur.company_id, cur.id))
+    return res.status(409).json({ error: 'Keep at least one active Admin. Make someone else an Admin first.' })
   if (company_id !== undefined) updates.company_id = company_id || null
   if (is_active !== undefined)  updates.is_active  = is_active ? 1 : 0
   if (phone !== undefined)      updates.phone      = phone || null
@@ -303,6 +353,9 @@ app.patch('/api/users/:id', async (req, res) => {
 })
 
 app.delete('/api/users/:id', async (req, res) => {
+  const [[cur]] = await pool.query('SELECT id, role, company_id, is_active FROM users WHERE id=?', [req.params.id])
+  if (cur && cur.role === 'admin' && cur.is_active && await lastAdminGuard(cur.company_id, cur.id))
+    return res.status(409).json({ error: 'Keep at least one active Admin. Make someone else an Admin first.' })
   await pool.query('DELETE FROM users WHERE id=?', [req.params.id])
   res.json({ ok: true })
 })
@@ -329,20 +382,53 @@ app.post('/api/audit', async (req, res) => {
 // ═══════════════════════════════════════════════════════════
 
 // ─── CUSTOMERS ─────────────────────────────────────────────
+// every customer column except the (large) photo itself; the photo is fetched from /customers/:id/photo
+const CUSTOMER_COLS = `id, company_id, name, phone, email, nationality, id_type, id_number, DATE_FORMAT(id_expiry,'%Y-%m-%d') AS id_expiry, emirate, customer_type, trn, notes,
+  created_at, photo_version, (photo IS NOT NULL) AS has_photo`
+const asCustomer = r => r && { ...r, has_photo: !!r.has_photo }
+
 app.get('/api/:cid/customers', async (req, res) => {
   const [rows] = await pool.query(
-    'SELECT * FROM customers WHERE company_id=? ORDER BY name', [req.params.cid])
-  res.json(rows)
+    `SELECT ${CUSTOMER_COLS} FROM customers WHERE company_id=? ORDER BY name`, [req.params.cid])
+  res.json(rows.map(asCustomer))
+})
+
+// ─── CUSTOMER PHOTO ────────────────────────────────────────
+app.put('/api/:cid/customers/:id/photo', async (req, res) => {
+  const photo = String(req.body?.photo || '')
+  const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/.exec(photo)
+  if (!m) return res.status(400).json({ error: 'Send a JPEG, PNG or WebP image' })
+  if (Buffer.from(m[2], 'base64').length > 600 * 1024) return res.status(413).json({ error: 'Picture is too large (max 600 KB)' })
+  const [r] = await pool.query('UPDATE customers SET photo=?, photo_version=photo_version+1 WHERE id=? AND company_id=?', [photo, req.params.id, req.params.cid])
+  if (!r.affectedRows) return res.status(404).json({ error: 'Customer not found' })
+  const [[row]] = await pool.query(`SELECT ${CUSTOMER_COLS} FROM customers WHERE id=?`, [req.params.id])
+  res.json(asCustomer(row))
+})
+
+app.delete('/api/:cid/customers/:id/photo', async (req, res) => {
+  await pool.query('UPDATE customers SET photo=NULL, photo_version=photo_version+1 WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  const [[row]] = await pool.query(`SELECT ${CUSTOMER_COLS} FROM customers WHERE id=? AND company_id=?`, [req.params.id, req.params.cid])
+  if (!row) return res.status(404).json({ error: 'Customer not found' })
+  res.json(asCustomer(row))
+})
+
+app.get('/api/:cid/customers/:id/photo', async (req, res) => {
+  const [[row]] = await pool.query('SELECT photo FROM customers WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+  const m = row && row.photo && /^data:(image\/(?:jpeg|png|webp));base64,(.+)$/.exec(row.photo)
+  if (!m) return res.status(404).end()
+  res.set({ 'Content-Type': m[1], 'Cache-Control': 'private, max-age=31536000, immutable' })   // the ?v=photo_version in the URL busts the cache
+  res.send(Buffer.from(m[2], 'base64'))
 })
 
 app.post('/api/:cid/customers', async (req, res) => {
-  const { name, phone, email, nationality, id_type, id_number, emirate, customer_type, trn, notes } = req.body
+  const { name, phone, email, nationality, id_type, id_number, id_expiry, emirate, customer_type, trn, notes, user_id } = req.body
   if (!name || !String(name).trim()) return res.status(400).json({ error: 'Customer name is required' })
   const [r] = await pool.query(
-    'INSERT INTO customers (company_id,name,phone,email,nationality,id_type,id_number,emirate,customer_type,trn,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    [req.params.cid, name, phone||null, email||null, nationality||null, id_type||'emirates_id', id_number||null, emirate||'Dubai', customer_type||'individual', trn||null, notes||null])
-  const [[row]] = await pool.query('SELECT * FROM customers WHERE id=?', [r.insertId])
-  res.status(201).json(row)
+    'INSERT INTO customers (company_id,name,phone,email,nationality,id_type,id_number,id_expiry,emirate,customer_type,trn,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+    [req.params.cid, name, phone||null, email||null, nationality||null, id_type||'emirates_id', cleanNumber(id_number), cleanDate(id_expiry), emirate||'Dubai', customer_type||'individual', trn||null, notes||null])
+  await syncIdDocument(req.params.cid, r.insertId, user_id)       // an ID expiry also becomes a tracked document (renewals, reminders)
+  const [[row]] = await pool.query(`SELECT ${CUSTOMER_COLS} FROM customers WHERE id=?`, [r.insertId])
+  res.status(201).json(asCustomer(row))
 })
 
 // ─── SERVICES ──────────────────────────────────────────────
@@ -357,20 +443,29 @@ app.get('/api/:cid/services', async (req, res) => {
 })
 
 app.post('/api/:cid/services', async (req, res) => {
-  const { name, category, unit_price, vat_category, is_active, icon } = req.body
+  const { name, category, unit_price, vat_category, is_active, icon, gov_fee } = req.body
   if (!name || unit_price === undefined) return res.status(400).json({ error: 'name and unit_price required' })
+  const gov = Math.max(parseFloat(gov_fee) || 0, 0)
+  if (gov > parseFloat(unit_price)) return res.status(400).json({ error: 'Government fee cannot be more than the price' })
   const [r] = await pool.query(
-    'INSERT INTO services (company_id,name,category,unit_price,vat_category,is_active,icon) VALUES (?,?,?,?,?,?,?)',
-    [req.params.cid, name, category||'Other', unit_price, vat_category||'S', is_active===false?0:1, icon||'📄'])
+    'INSERT INTO services (company_id,name,category,unit_price,gov_fee,vat_category,is_active,icon) VALUES (?,?,?,?,?,?,?,?)',
+    [req.params.cid, name, category||'Other', unit_price, gov, vat_category||'S', is_active===false?0:1, icon||'📄'])
   const [[row]] = await pool.query('SELECT * FROM services WHERE id=?', [r.insertId])
   res.status(201).json(row)
 })
 
 app.patch('/api/:cid/services/:id', async (req, res) => {
-  const allowed = ['name','category','unit_price','vat_category','is_active','icon']
+  const allowed = ['name','category','unit_price','gov_fee','vat_category','is_active','icon']
   const updates = {}
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k] })
   if (!Object.keys(updates).length) return res.status(400).json({ error: 'Nothing to update' })
+  if (updates.gov_fee !== undefined || updates.unit_price !== undefined) {
+    const [[cur]] = await pool.query('SELECT unit_price, gov_fee FROM services WHERE id=? AND company_id=?', [req.params.id, req.params.cid])
+    if (!cur) return res.status(404).json({ error: 'Not found' })
+    const price = parseFloat(updates.unit_price ?? cur.unit_price), gov = Math.max(parseFloat(updates.gov_fee ?? cur.gov_fee) || 0, 0)
+    if (gov > price) return res.status(400).json({ error: 'Government fee cannot be more than the price' })
+    if (updates.gov_fee !== undefined) updates.gov_fee = gov
+  }
   const fields = Object.keys(updates).map(k => `${k}=?`).join(',')
   await pool.query(`UPDATE services SET ${fields} WHERE id=? AND company_id=?`, [...Object.values(updates), req.params.id, req.params.cid])
   const [[row]] = await pool.query('SELECT * FROM services WHERE id=?', [req.params.id])
@@ -432,14 +527,17 @@ app.post('/api/:cid/services/migrate-to-all', async (req, res) => {
 
 // ─── CUSTOMERS PATCH/DELETE ────────────────────────────────
 app.patch('/api/:cid/customers/:id', async (req, res) => {
-  const allowed = ['name','phone','email','nationality','id_type','id_number','emirate','customer_type','trn','notes']
+  const allowed = ['name','phone','email','nationality','id_type','id_number','id_expiry','emirate','customer_type','trn','notes']
   const updates = {}
   allowed.forEach(k => { if (req.body[k] !== undefined) updates[k] = req.body[k] })
+  if (updates.id_expiry !== undefined) updates.id_expiry = cleanDate(updates.id_expiry)
+  if (updates.id_number !== undefined) updates.id_number = cleanNumber(updates.id_number)
   if (!Object.keys(updates).length) return res.status(400).json({ error: 'Nothing to update' })
   const fields = Object.keys(updates).map(k => `${k}=?`).join(',')
   await pool.query(`UPDATE customers SET ${fields} WHERE id=? AND company_id=?`, [...Object.values(updates), req.params.id, req.params.cid])
-  const [[row]] = await pool.query('SELECT * FROM customers WHERE id=?', [req.params.id])
-  res.json(row)
+  if (['id_type', 'id_number', 'id_expiry'].some(k => updates[k] !== undefined)) await syncIdDocument(req.params.cid, req.params.id, req.body.user_id)
+  const [[row]] = await pool.query(`SELECT ${CUSTOMER_COLS} FROM customers WHERE id=?`, [req.params.id])
+  res.json(asCustomer(row))
 })
 
 app.delete('/api/:cid/customers/:id', async (req, res) => {
@@ -451,6 +549,78 @@ app.delete('/api/:cid/customers/:id', async (req, res) => {
       return res.status(409).json({ error: 'This customer has invoices or applications and cannot be deleted.' })
     res.status(500).json({ error: e.message })
   }
+})
+
+// ─── DOCUMENTS (records + audit trail) ─────────────────────
+// Only the document record is stored (type, customer, file name/size, expiry); file bytes are not stored yet.
+// Every upload and every delete writes a row to audit_logs.
+async function writeAudit(conn, req, action, target, meta, userId) {
+  let uid = null
+  if (userId) { const [[u]] = await conn.query('SELECT id FROM users WHERE id=?', [userId]); uid = u ? u.id : null }
+  await conn.query(
+    'INSERT INTO audit_logs (user_id,company_id,action,target,ip_address,result,meta) VALUES (?,?,?,?,?,?,?)',
+    [uid, req.params.cid, action, String(target).slice(0, 200), String(req.ip || '').slice(0, 45), 'success', JSON.stringify(meta)])
+}
+
+app.get('/api/:cid/documents', async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT d.id, d.name, d.file_path AS file_name, d.file_size, d.mime_type, d.customer_id, d.doc_number,
+            DATE_FORMAT(d.expires_at,'%Y-%m-%d') AS expires_at, d.created_at, c.name AS customer_name
+     FROM documents d LEFT JOIN customers c ON d.customer_id=c.id
+     WHERE d.company_id=? ORDER BY d.created_at DESC, d.id DESC`, [req.params.cid])
+  res.json(rows)
+})
+
+app.post('/api/:cid/documents', async (req, res) => {
+  const { customer_id, name, file_name, file_size, mime_type, user_id } = req.body
+  const expires_at = cleanDate(req.body.expires_at), doc_number = cleanNumber(req.body.doc_number)
+  if (!customer_id || !name) return res.status(400).json({ error: 'customer_id and name required' })
+  const [[cust]] = await pool.query('SELECT id,name FROM customers WHERE id=? AND company_id=?', [customer_id, req.params.cid])
+  if (!cust) return res.status(404).json({ error: 'Customer not found' })
+  const conn = await pool.getConnection()
+  try {
+    await conn.beginTransaction()
+    const [r] = await conn.query(
+      'INSERT INTO documents (company_id,customer_id,name,file_path,file_size,mime_type,expires_at,doc_number,uploaded_by) VALUES (?,?,?,?,?,?,?,?,?)',
+      [req.params.cid, customer_id, name, file_name || '', file_size || null, mime_type || null, expires_at, doc_number, user_id || null])
+    await writeAudit(conn, req, 'document.upload', `${name} — ${cust.name}`,
+      { document_id: r.insertId, name, customer_id: cust.id, customer: cust.name, file_name: file_name || null, expires_at, doc_number }, user_id)
+    await conn.commit()
+    await syncCustomerFromDoc(req.params.cid, cust.id, name, doc_number, expires_at)     // Emirates ID / passport / visa: keep the customer record in step
+    res.status(201).json({ id: r.insertId })
+  } catch (e) { await conn.rollback(); res.status(500).json({ error: e.message }) }
+  finally { conn.release() }
+})
+
+app.delete('/api/:cid/documents/:id', async (req, res) => {
+  const { user_id, user_name, reason } = req.body || {}
+  const [[doc]] = await pool.query(
+    `SELECT d.*, DATE_FORMAT(d.expires_at,'%Y-%m-%d') AS exp, c.name AS customer_name
+     FROM documents d LEFT JOIN customers c ON d.customer_id=c.id WHERE d.id=? AND d.company_id=?`, [req.params.id, req.params.cid])
+  if (!doc) return res.status(404).json({ error: 'Document not found' })
+  const conn = await pool.getConnection()
+  try {
+    await conn.beginTransaction()
+    // audit first, in the same transaction: a delete can never happen without its log entry
+    await writeAudit(conn, req, 'document.delete', `${doc.name} — ${doc.customer_name || 'No customer'}`, {
+      document_id: doc.id, name: doc.name, customer_id: doc.customer_id, customer: doc.customer_name,
+      file_name: doc.file_path || null, file_size: doc.file_size, expires_at: doc.exp,
+      uploaded_at: doc.created_at, deleted_by: user_name || null, reason: (reason || '').toString().slice(0, 300) || null
+    }, user_id)
+    await conn.query('DELETE FROM documents WHERE id=? AND company_id=?', [doc.id, req.params.cid])
+    await conn.commit()
+    res.json({ ok: true })
+  } catch (e) { await conn.rollback(); res.status(500).json({ error: e.message }) }
+  finally { conn.release() }
+})
+
+// Deleted-documents log for this company (from the audit trail)
+app.get('/api/:cid/documents-deleted', async (req, res) => {
+  const [rows] = await pool.query(
+    `SELECT a.id, a.target, a.meta, a.created_at, u.name AS user_name
+     FROM audit_logs a LEFT JOIN users u ON a.user_id=u.id
+     WHERE a.company_id=? AND a.action='document.delete' ORDER BY a.created_at DESC, a.id DESC LIMIT 200`, [req.params.cid])
+  res.json(rows.map(r => ({ ...r, meta: typeof r.meta === 'string' ? JSON.parse(r.meta || '{}') : (r.meta || {}) })))
 })
 
 // ─── INVOICES ──────────────────────────────────────────────
@@ -503,7 +673,7 @@ async function nextInvoiceNumber(conn) {
 app.post('/api/:cid/invoices', async (req, res) => {
   const { type, customer_id, customer_name, customer_trn,
           issue_date, supply_date, subtotal, discount_amt, vat_amount, total,
-          payment_method, notes, lines } = req.body
+          payment_method, notes, lines, created_by, created_by_name } = req.body
   let invoice_number = req.body.invoice_number
   const conn = await pool.getConnection()
   try {
@@ -518,11 +688,12 @@ app.post('/api/:cid/invoices', async (req, res) => {
         if (!invoice_number) invoice_number = await nextInvoiceNumber(conn)
         const [r] = await conn.query(
           `INSERT INTO invoices (company_id,invoice_number,type,customer_id,customer_name,customer_trn,
-            issue_date,supply_date,subtotal,discount_amt,vat_amount,total,payment_method,notes,status)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'posted')`,
+            issue_date,supply_date,subtotal,discount_amt,vat_amount,total,payment_method,notes,status,created_by,created_by_name)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'posted',?,?)`,
           [req.params.cid, invoice_number, type||'tax_invoice', customer_id||null, customer_name||null,
            customer_trn||null, issue_date, supply_date||issue_date,
-           subtotal, discount_amt||0, vat_amount, total, payment_method||'cash', notes||null])
+           subtotal, discount_amt||0, vat_amount, total, payment_method||'cash', notes||null,
+           created_by||null, created_by_name||null])
         if (lines?.length) {
           const lineVals = lines.map(l => [r.insertId, l.service_id||null, l.description, l.quantity||1,
             l.unit_price, l.vat_category||'S', l.vat_rate||0.05, l.line_amount, l.vat_amount||0])
@@ -573,8 +744,10 @@ app.patch('/api/:cid/invoices/:id', async (req, res) => {
       if (lines.length) {
         const lineVals = lines.filter(l => l.description).map(l => {
           const net = parseFloat(l.quantity||1) * parseFloat(l.unit_price||0)
-          const vat = net * 0.05
-          return [req.params.id, null, l.description, l.quantity||1, l.unit_price||0, 'S', 0.05, net, vat]
+          // keep government-fee lines ('O') out of VAT, and keep the link to the service
+          const cat = ['S','Z','E','O'].includes(l.vat_category) ? l.vat_category : 'S'
+          const rate = cat === 'S' ? 0.05 : 0
+          return [req.params.id, l.service_id||null, l.description, l.quantity||1, l.unit_price||0, cat, rate, net, net * rate]
         })
         if (lineVals.length) {
           await conn.query(
@@ -848,10 +1021,24 @@ app.get('/api/:cid/quotations/:id', async (req, res) => {
   res.json({ ...q, lines })
 })
 
+// Quotation totals, worked out the same way as a POS sale: the discount comes off the VAT-able (5%) lines and VAT is charged
+// on what is left; government fees and other 0% lines are never discounted or taxed.
+function quoteTotals(lines, discount) {
+  let subtotal = 0, taxable = 0
+  for (const l of lines) {
+    const la = (parseFloat(l.quantity) || 0) * (parseFloat(l.unit_price) || 0)
+    subtotal += la
+    if ((l.vat_category || 'S') === 'S') taxable += la
+  }
+  const disc = Math.min(Math.max(parseFloat(discount) || 0, 0), taxable)
+  const vat_amount = Math.round((taxable - disc) * 0.05 * 100) / 100
+  return { subtotal, discount: disc, vat_amount, total: Math.round((subtotal - disc + vat_amount) * 100) / 100 }
+}
+
 app.post('/api/:cid/quotations', async (req, res) => {
   const cid = req.params.cid
   const { lead_id, lead_name, lead_phone, lead_email, lead_company,
-          issue_date, valid_until, notes, lines = [], discount_amt = 0, created_by } = req.body
+          issue_date, valid_until, notes, lines = [], discount_amt = 0, created_by, terms_text, status } = req.body
 
   const year = new Date().getFullYear()
   const nextQuoteNumber = async () => {
@@ -862,23 +1049,18 @@ app.post('/api/:cid/quotations', async (req, res) => {
   }
   let quote_number = await nextQuoteNumber()
 
-  let subtotal = 0, vat_amount = 0
-  for (const l of lines) {
-    const la = parseFloat(l.quantity) * parseFloat(l.unit_price)
-    const va = l.vat_category === 'S' ? la * 0.05 : 0
-    subtotal += la; vat_amount += va
-  }
-  const total = subtotal - parseFloat(discount_amt) + vat_amount
+  const { subtotal, vat_amount, total, discount: disc } = quoteTotals(lines, discount_amt)
 
   let r
   for (let attempt = 0; ; attempt++) {
     try {
       ;[r] = await pool.query(
         `INSERT INTO quotations (company_id,quote_number,lead_id,lead_name,lead_phone,lead_email,lead_company,
-          issue_date,valid_until,subtotal,discount_amt,vat_amount,total,notes,created_by)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+          issue_date,valid_until,subtotal,discount_amt,vat_amount,total,notes,terms_text,status,created_by)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         [cid, quote_number, lead_id||null, lead_name||null, lead_phone||null, lead_email||null, lead_company||null,
-         issue_date, valid_until||null, subtotal, discount_amt, vat_amount, total, notes||null, created_by||null])
+         issue_date, valid_until||null, subtotal, disc, vat_amount, total, notes||null, terms_text||null,
+         ['draft','sent'].includes(status) ? status : 'draft', created_by||null])
       break
     } catch (e) {
       if (e.code === 'ER_DUP_ENTRY' && attempt < 5) { quote_number = await nextQuoteNumber(); continue }
@@ -901,7 +1083,7 @@ app.post('/api/:cid/quotations', async (req, res) => {
 
 app.patch('/api/:cid/quotations/:id', async (req, res) => {
   const { status, invoice_id, lead_name, lead_phone, lead_email, lead_company,
-          valid_until, notes, discount_amt, lines } = req.body
+          valid_until, notes, discount_amt, lines, terms_text } = req.body
   const fields = [], vals = []
   if (status       !== undefined) { fields.push('status=?');       vals.push(status) }
   if (invoice_id   !== undefined) { fields.push('invoice_id=?');   vals.push(invoice_id) }
@@ -911,23 +1093,22 @@ app.patch('/api/:cid/quotations/:id', async (req, res) => {
   if (lead_company !== undefined) { fields.push('lead_company=?'); vals.push(lead_company) }
   if (valid_until  !== undefined) { fields.push('valid_until=?');  vals.push(valid_until) }
   if (notes        !== undefined) { fields.push('notes=?');        vals.push(notes) }
+  if (terms_text   !== undefined) { fields.push('terms_text=?');   vals.push(terms_text || null) }
 
   if (lines !== undefined) {
-    let subtotal = 0, vat_amount = 0
+    const t = quoteTotals(lines, discount_amt)
     await pool.query('DELETE FROM quotation_lines WHERE quotation_id=?', [req.params.id])
     for (const l of lines) {
       const la = parseFloat(l.quantity) * parseFloat(l.unit_price)
       const va = l.vat_category === 'S' ? la * 0.05 : 0
-      subtotal += la; vat_amount += va
       await pool.query(
         `INSERT INTO quotation_lines (quotation_id,service_id,description,quantity,unit_price,vat_category,vat_rate,line_amount,vat_amount)
          VALUES (?,?,?,?,?,?,?,?,?)`,
         [req.params.id, l.service_id||null, l.description, l.quantity, l.unit_price,
          l.vat_category||'S', l.vat_category==='S'?0.05:0, la, va])
     }
-    const disc = parseFloat(discount_amt||0)
     fields.push('subtotal=?','vat_amount=?','total=?','discount_amt=?')
-    vals.push(subtotal, vat_amount, subtotal - disc + vat_amount, disc)
+    vals.push(t.subtotal, t.vat_amount, t.total, t.discount)
   }
 
   if (fields.length) {

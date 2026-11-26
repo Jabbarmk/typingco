@@ -7,7 +7,7 @@ const pool = mysql.createPool({
   port:     process.env.DB_PORT || 3306,
   user:     process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'alnoor_erp',
+  database: process.env.DB_NAME || 'typingo_erp',
   waitForConnections: true,
   connectionLimit:    10,
   timezone: '+04:00',

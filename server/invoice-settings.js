@@ -1,7 +1,7 @@
 // Per-company invoice template settings (template choice, editable texts, PAID stamp, logo)
 import pool from './db.js'
 
-export const TEMPLATES = ['classic', 'bilingual']
+export const TEMPLATES = ['classic', 'boxed', 'bilingual']
 
 // Editable text fields and their max lengths (anything else sent by the client is ignored)
 const TEXT_FIELDS = {

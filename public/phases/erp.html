@@ -1844,8 +1844,9 @@ function doLogout() {
           <div style="font-size:15px;font-weight:700;">Invoice template</div>
           <div style="font-size:12px;color:var(--fg3);margin:2px 0 14px;">Choose how this company's invoices look. The logo and texts below are saved for this company only.</div>
           <div class="itp-cards">
-            <label class="itp-card"><input type="radio" name="itp-template" value="classic" onchange="itpPreview()"><div><div style="font-weight:700;">Classic</div><div style="font-size:12px;color:var(--fg2);">Simple English layout with a blue header and totals box.</div></div></label>
-            <label class="itp-card"><input type="radio" name="itp-template" value="bilingual" onchange="itpPreview()"><div><div style="font-weight:700;">Bilingual (English + Arabic)</div><div style="font-size:12px;color:var(--fg2);">Boxed header with logo in the centre, Arabic details, info box, signatory and note.</div></div></label>
+            <label class="itp-card"><input type="radio" name="itp-template" value="classic" onchange="itpPreview()"><div><div style="font-weight:700;">Template 1 — Classic (current)</div><div style="font-size:12px;color:var(--fg2);">Simple English layout with a blue header and totals box.</div></div></label>
+            <label class="itp-card"><input type="radio" name="itp-template" value="boxed" onchange="itpPreview()"><div><div style="font-weight:700;">Template 2 — Boxed customer details</div><div style="font-size:12px;color:var(--fg2);">Classic layout with a bordered two-column details box (English / Arabic labels): invoice no, customer, payment method, date, printed at, mobile.</div></div></label>
+            <label class="itp-card"><input type="radio" name="itp-template" value="bilingual" onchange="itpPreview()"><div><div style="font-weight:700;">Template 3 — Bilingual (English + Arabic)</div><div style="font-size:12px;color:var(--fg2);">Boxed header with logo in the centre, Arabic details, info box, signatory and note.</div></div></label>
           </div>
           <div id="itp-ro" style="display:none;font-size:12px;color:var(--fg3);">Only an admin or manager can change the template.</div>
         </div>
@@ -4792,14 +4793,14 @@ const INV_CSS = `
 .invtpl .ovx{overflow-x:auto}
 .invtpl .stamp{position:absolute;transform:rotate(-14deg);color:#d32f2f;border:4px solid #d32f2f;outline:2px solid #d32f2f;outline-offset:3px;border-radius:10px;padding:0 26px;font:900 56px/1.15 'Times New Roman',Georgia,serif;letter-spacing:4px;opacity:.82;text-transform:uppercase;pointer-events:none;user-select:none;white-space:nowrap}
 /* bilingual */
-.bi-head{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center;border:2px solid #111;border-radius:14px;padding:14px 18px}
+.bi-head{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;padding:6px 4px}
 .bi-co{font-weight:800;font-size:14px;text-transform:uppercase;margin-bottom:8px}
 .bi-head-l{font-weight:600;font-size:12.5px}
-.bi-head-r{text-align:right;direction:rtl;font-size:12.5px}
+.bi-head-r{text-align:left;font-size:15px;font-weight:600;line-height:1.55;max-width:340px}
 .bi-head-r .bi-co{font-size:16px;text-transform:none}
-.bi-logo img{max-height:90px;max-width:160px;object-fit:contain;display:block;margin:0 auto}
-.bi-logo-ph{font-weight:900;font-size:18px;text-align:center;max-width:150px}
-.bi-title{text-align:center;font-size:24px;font-weight:800;margin:22px 0 14px;text-decoration:underline;text-underline-offset:4px}
+.bi-logo img{max-height:110px;max-width:320px;object-fit:contain;display:block}
+.bi-logo-ph{font-weight:900;font-size:22px;max-width:300px}
+.bi-title{text-align:center;font-size:36px;font-weight:800;margin:26px 0 16px;font-family:Arial,sans-serif}
 .bi-info{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid #111}
 .bi-info>div{padding:10px 14px}
 .bi-info>div:first-child{border-right:1.5px solid #111}
@@ -4822,7 +4823,7 @@ const INV_CSS = `
 .bi-foot{border-top:2px solid #111;margin-top:34px;padding-top:14px;text-align:center;font-size:12.5px;color:#333}
 .bi-foot .promo{color:#d32f2f;margin-bottom:8px}
 @media (max-width:640px){
-  .bi-head{grid-template-columns:1fr;text-align:center}.bi-head-r{text-align:center;direction:ltr}.bi-head-r .bi-co{margin-top:6px}
+  .bi-head{grid-template-columns:1fr}.bi-head-r{max-width:none}.bi-title{font-size:26px}
   .bi-info{grid-template-columns:1fr}.bi-info>div:first-child{border-right:0;border-bottom:1.5px solid #111}
   .bi-row{grid-template-columns:120px 1fr}.bi-title{font-size:19px}
   .invtpl .stamp{font-size:36px;padding:0 14px}.bi-mid .stamp{right:6px}.bi-sign{flex-direction:column}.bi-sign .note{text-align:left;max-width:100%}
@@ -4843,6 +4844,13 @@ const INV_CSS = `
 .c-tot .g{font-size:16px;font-weight:800;color:#1565d8;padding-top:8px;border-top:2px solid #1565d8;margin-top:4px}
 .c-foot{margin-top:24px;padding-top:12px;border-top:1px solid #dde3f0;font-size:10px;color:#888;text-align:center}
 .c-wrap{position:relative;min-height:120px}.c-wrap .stamp{right:10px;bottom:40px;font-size:44px}
+/* boxed (template 2) */
+.bx-info{display:grid;grid-template-columns:1fr 1fr;border:2px solid #111;margin-bottom:16px}
+.bx-info>div{padding:12px 16px}.bx-info>div:first-child{border-right:2px solid #111}
+.bx-row{display:grid;grid-template-columns:42% 1fr;gap:10px;padding:5px 0;align-items:start}
+.bx-row .lb{font-size:11.5px;color:#222}.bx-row .lb .ar{color:#444}
+.bx-row .vl{font-size:15px;font-weight:500;overflow-wrap:anywhere}
+@media (max-width:640px){.bx-info{grid-template-columns:1fr}.bx-info>div:first-child{border-right:0;border-bottom:2px solid #111}.bx-row{grid-template-columns:130px 1fr}}
 `
 
 function invFromApi(inv) {
@@ -4873,6 +4881,7 @@ function buildInvoiceDoc(inv, set) {
   const footLine = cfg.footer_line || [COMPANY.phone && 'Tel: ' + COMPANY.phone, COMPANY.email && 'E-mail: ' + COMPANY.email, COMPANY.trn && 'TRN: ' + COMPANY.trn].filter(Boolean).join(' | ')
   const logoImg = logo ? `<img src="${logo}" alt="logo">` : ''
 
+  const bxRow = (en, ar, v) => `<div class="bx-row"><div class="lb">${en} / <span class="ar">${ar}</span></div><div class="vl">${v}</div></div>`
   if (set.template === 'bilingual') {
     const row = (en, ar, v) => `<div class="bi-row"><div class="lb">${en} / <span class="ar">${ar}</span></div><div class="vl">${v}</div></div>`
     const coAr = cfg.company_ar || COMPANY.name_ar
@@ -4882,15 +4891,13 @@ function buildInvoiceDoc(inv, set) {
     return `<style>${INV_CSS}</style>
 <div class="invtpl invtpl-bi">
   <div class="bi-head">
-    <div class="bi-head-l"><div class="bi-co">${e(COMPANY.name)}</div>
-      ${COMPANY.address ? e(COMPANY.address) + '<br>' : ''}${COMPANY.phone ? 'Tel: ' + e(COMPANY.phone) + '<br>' : ''}${COMPANY.trn ? '<b>TRN:</b> ' + e(COMPANY.trn) : ''}</div>
     <div class="bi-logo">${logoImg || `<div class="bi-logo-ph">${e(COMPANY.name)}</div>`}</div>
-    <div class="bi-head-r ar">${coAr ? `<div class="bi-co">${e(coAr)}</div>` : ''}${cfg.address_ar ? e(cfg.address_ar) + '<br>' : ''}${COMPANY.phone ? 'الهاتف : ' + e(COMPANY.phone) + '<br>' : ''}${COMPANY.trn ? 'رقم التسجيل : ' + e(COMPANY.trn) : ''}</div>
+    <div class="bi-head-r">${COMPANY.address ? e(COMPANY.address) + '<br>' : ''}${COMPANY.phone ? '<b>Tel:</b> ' + e(COMPANY.phone) + '<br>' : ''}${COMPANY.trn ? '<b>TRN:</b> ' + e(COMPANY.trn) : ''}</div>
   </div>
-  <div class="bi-title">${e(cfg.title_en)} / <span class="ar">${e(cfg.title_ar)}</span></div>
-  <div class="bi-info">
-    <div>${row('Invoice No', 'رقم الفاتورة', `<span data-invnum>${e(inv.number)}</span>`)}${row('Customer', 'زبون', e(inv.customer))}${row('Payment Method', 'طريقة الدفع', e(method))}${inv.customer_trn ? row('Customer TRN', 'الرقم الضريبي', e(inv.customer_trn)) : ''}</div>
-    <div>${row('Date', 'التاريخ', e(dateStr))}${row('Printed At', 'طبع في', e(printed))}${inv.phone ? row('Mobile No', 'الجوال', e(inv.phone)) : ''}${row('Status', 'الحالة', e(inv.status === 'void' ? 'Void' : paid ? 'Paid' : 'Unpaid'))}</div>
+  <div class="bi-title">${e(String(cfg.title_en || 'Invoice').toUpperCase())}</div>
+  <div class="bx-info">
+    <div>${bxRow('Invoice No', 'رقم الفاتورة', `<span data-invnum>${e(inv.number)}</span>`)}${bxRow('Customer', 'زبون', e(inv.customer))}${bxRow('Payment Method', 'طريقة الدفع', e(method))}${inv.customer_trn ? bxRow('Customer TRN', 'الرقم الضريبي', e(inv.customer_trn)) : ''}</div>
+    <div>${bxRow('Date', 'التاريخ', e(dateStr))}${bxRow('Printed At', 'طبع في', e(printed))}${inv.phone ? bxRow('Mobile No', 'رقم الجوال', e(inv.phone)) : ''}${bxRow('Status', 'الحالة', e(inv.status === 'void' ? 'Void' : paid ? 'Paid' : 'Unpaid'))}</div>
   </div>
   <div class="ovx"><table class="bi-items">
     <thead><tr><th>SL.No<span class="ar">الرقم</span></th><th>Description<span class="ar">الوصف</span></th><th class="num">Qty<span class="ar">الكمية</span></th><th class="num">Unit Price<span class="ar">سعر الوحدة</span></th><th class="num">VAT<span class="ar">الضريبة</span></th><th class="num">Amount<span class="ar">المبلغ</span></th></tr></thead>
@@ -4912,7 +4919,11 @@ function buildInvoiceDoc(inv, set) {
 </div>`
   }
 
-  // classic
+  // classic (template 1) and boxed (template 2) share the same layout; only the details block differs
+  const boxedInfo = `<div class="bx-info">
+    <div>${bxRow('Invoice No', 'رقم الفاتورة', `<span data-invnum>${e(inv.number)}</span>`)}${bxRow('Customer', 'زبون', e(inv.customer))}${bxRow('Payment Method', 'طريقة الدفع', e(method))}${inv.customer_trn ? bxRow('Customer TRN', 'الرقم الضريبي', e(inv.customer_trn)) : ''}</div>
+    <div>${bxRow('Date', 'التاريخ', e(dateStr))}${bxRow('Printed At', 'طبع في', e(printed))}${inv.phone ? bxRow('Mobile No', 'رقم الجوال', e(inv.phone)) : ''}${bxRow('Status', 'الحالة', e(inv.status === 'void' ? 'Void' : paid ? 'Paid' : 'Unpaid'))}</div>
+  </div>`
   return `<style>${INV_CSS}</style>
 <div class="invtpl invtpl-classic">
   <div class="c-head">
@@ -4921,10 +4932,10 @@ function buildInvoiceDoc(inv, set) {
       <div style="font-size:11px;color:#888;margin-top:4px;">${e(COMPANY.address)}${COMPANY.trn ? ' · TRN: ' + e(COMPANY.trn) : ''}</div></div>
     <div class="c-meta"><div class="t">${e(cfg.title_en)}</div><div class="n" data-invnum>${e(inv.number)}</div><div class="d">Date: ${e(dateStr)}</div><div class="d">Payment: ${e(method)}</div></div>
   </div>
-  <div class="c-parties">
+  ${set.template === 'boxed' ? boxedInfo : `<div class="c-parties">
     <div><div class="c-lbl">Billed To</div><div class="c-nm">${e(inv.customer)}</div>${inv.customer_trn ? `<div style="font-size:11px;">TRN: ${e(inv.customer_trn)}</div>` : ''}${inv.phone ? `<div style="font-size:11px;">${e(inv.phone)}</div>` : ''}</div>
     <div><div class="c-lbl">Service Centre</div><div class="c-nm">${e(COMPANY.name)}</div>${COMPANY.trn ? `<div style="font-size:11px;color:#555;">TRN: ${e(COMPANY.trn)}</div>` : ''}</div>
-  </div>
+  </div>`}
   <div class="ovx"><table class="c-items">
     <thead><tr><th>Description</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Net</th><th style="text-align:center;">VAT</th><th style="text-align:right;">Gross</th></tr></thead>
     <tbody>${(inv.lines || []).map(l => `<tr><td>${e(l.description)}</td><td style="text-align:center;">${l.qty}</td><td style="text-align:right;">${aed(l.unit)}</td><td style="text-align:right;">${aed(l.net)}</td><td style="text-align:center;">5%</td><td style="text-align:right;font-weight:600;">${aed(l.net + l.vat)}</td></tr>`).join('')}</tbody>
